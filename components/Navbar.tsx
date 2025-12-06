@@ -54,7 +54,7 @@ const Navbar = () => {
     ));
 
   return (
-    <nav className="w-full bg-white border-b border-gray-200">
+    <nav className="w-full bg-white border-b border-gray-200 relative z-50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
@@ -84,7 +84,7 @@ const Navbar = () => {
                   </button>
 
                   <div
-                    className={`absolute left-1/2 transform -translate-x-1/2 mt-0 w-56 bg-white rounded-md shadow-xl border border-gray-200 transition-all duration-200 origin-top ${
+                    className={`absolute left-1/2 transform -translate-x-1/2 mt-0 w-56 bg-white rounded-md shadow-xl border border-gray-200 transition-all duration-200 origin-top z-50 ${
                       openMenu === key
                         ? 'opacity-100 visible translate-y-0'
                         : 'opacity-0 invisible -translate-y-2'
@@ -121,7 +121,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 py-4">
+          <div className="lg:hidden border-t border-gray-200 py-4 z-50 relative">
             {Object.keys(menuItems).map((item) => {
               const key = item as MenuKey;
               return (
