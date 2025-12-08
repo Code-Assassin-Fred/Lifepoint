@@ -13,7 +13,7 @@ import {
   GoogleAuthProvider,
 } from 'firebase/auth';
 import { auth, db, googleProvider } from '@/lib/firebase';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/lib/context/AuthContext';
 
 export default function AuthPage() {
@@ -26,97 +26,61 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Login form state
+  // Form states
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginErrors, setLoginErrors] = useState({ email: '', password: '' });
-
-  // Signup form state
   const [signupDisplayName, setSignupDisplayName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
-  const [signupErrors, setSignupErrors] = useState({
-    displayName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
 
-  // Redirect if already signed-in
+  // Redirect logic (runs once user state is confirmed)
   useEffect(() => {
     if (authLoading) return;
-
     if (user) {
-      if (!onboardingComplete) router.replace('/onboarding');
-      else router.replace(`/dashboard/${role || 'user'}`);
+      if (!onboardingComplete) {
+        router.replace('/onboarding');
+      } else {
+        router.replace(`/dashboard/${role || 'user'}`);
+      }
     }
   }, [user, onboardingComplete, role, authLoading, router]);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const validateEmail = (email: string) => {
+  const validateEmail = (email: string): string | null => {
     if (!email) return 'Email is required';
     if (!emailRegex.test(email)) return 'Enter a valid email address';
     return null;
   };
 
-  const validatePassword = (password: string) => {
+  const validatePassword = (password: string): string | null => {
     if (!password) return 'Password is required';
     if (password.length < 6) return 'Password must be at least 6 characters';
     return null;
   };
 
-  const validateLogin = () => {
-    let valid = true;
-    const emailError = validateEmail(loginEmail);
-    const passwordError = validatePassword(loginPassword);
-
-    setLoginErrors({ email: emailError || '', password: passwordError || '' });
-
-    if (emailError || passwordError) valid = false;
-    return valid;
-  };
-
-  const validateSignup = () => {
-    let valid = true;
-    const displayNameError = signupDisplayName.trim() ? '' : 'Full name is required';
-    const emailError = validateEmail(signupEmail);
-    const passwordError = validatePassword(signupPassword);
-    const confirmPasswordError =
-      signupPassword !== signupConfirmPassword ? 'Passwords do not match' : '';
-
-    setSignupErrors({
-      displayName: displayNameError,
-      email: emailError || '',
-      password: passwordError || '',
-      confirmPassword: confirmPasswordError || '',
-    });
-
-    if (displayNameError || emailError || passwordError || confirmPasswordError) valid = false;
-    return valid;
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!validateLogin()) return;
+
+    const emailError = validateEmail(loginEmail);
+    const passwordError = validatePassword(loginPassword);
+
+    if (emailError || passwordError) {
+      setError(emailError || passwordError || 'Please fix the errors above');
+      return;
+    }
 
     setLoading(true);
     try {
-      const credential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-      if (credential.user) {
-        const userDoc = await getDoc(doc(db, 'users', credential.user.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          if (!data.onboarded) router.replace('/onboarding');
-          else router.replace(`/dashboard/${data.role || 'user'}`);
-        } else {
-          router.replace('/onboarding');
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
+      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+      // Redirect handled by useEffect
+    } catch (err: any) {
+      const msg = err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password'
+        ? 'Invalid email or password'
+        : err.message || 'Failed to sign in';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -125,26 +89,33 @@ export default function AuthPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!validateSignup()) return;
+
+    if (!signupDisplayName.trim()) return setError('Full name is required');
+    if (validateEmail(signupEmail)) return setError('Please enter a valid email');
+    if (validatePassword(signupPassword)) return setError('Password must be at least 6 characters');
+    if (signupPassword !== signupConfirmPassword) return setError('Passwords do not match');
 
     setLoading(true);
     try {
-      const credential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
-      if (credential.user) {
-        await updateProfile(credential.user, { displayName: signupDisplayName.trim() });
-        await setDoc(doc(db, 'users', credential.user.uid), {
-          displayName: signupDisplayName.trim(),
-          email: signupEmail,
-          ai_enabled: true,
-          onboarded: false,
-          premium_access: false,
-          role: null,
-          created_at: serverTimestamp(),
-        });
-        router.replace('/onboarding');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
+      const cred = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
+      await updateProfile(cred.user, { displayName: signupDisplayName.trim() });
+
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        displayName: signupDisplayName.trim(),
+        email: signupEmail,
+        photoURL: null,
+        ai_enabled: true,
+        onboarded: false,
+        premium_access: false,
+        role: null,
+        created_at: serverTimestamp(),
+      });
+
+      router.replace('/onboarding');
+    } catch (err: any) {
+      setError(err.code === 'auth/email-already-in-use'
+        ? 'This email is already registered. Try signing in.'
+        : err.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -154,71 +125,65 @@ export default function AuthPage() {
     setError(null);
     setLoading(true);
     try {
-      const credential = await signInWithPopup(auth, googleProvider);
-      const user = credential.user;
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists()) {
-          await setDoc(userDocRef, {
-            displayName: user.displayName || 'No Name',
-            email: user.email,
-            ai_enabled: true,
-            onboarded: false,
-            premium_access: false,
-            role: null,
-            created_at: serverTimestamp(),
-          });
-          router.replace('/onboarding');
-        } else {
-          const data = userDoc.data();
-          if (!data.onboarded) router.replace('/onboarding');
-          else router.replace(`/dashboard/${data.role || 'user'}`);
-        }
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await import('firebase/firestore').then(firebase => firebase.getDoc(userDocRef));
+
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          displayName: user.displayName || 'User',
+          email: user.email,
+          photoURL: user.photoURL,
+          ai_enabled: true,
+          onboarded: false,
+          premium_access: false,
+          role: null,
+          created_at: serverTimestamp(),
+        });
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Google sign-in failed');
+      // Redirect handled by useEffect
+    } catch (err: any) {
+      setError(err.code === 'auth/popup-closed-by-user'
+        ? 'Sign-in cancelled'
+        : 'Google sign-in failed. Try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleForgotPassword = async () => {
-    const email = loginEmail || signupEmail;
-    const emailError = validateEmail(email);
-    if (emailError) {
-      setError(emailError);
+    const email = loginEmail;
+    if (!email || validateEmail(email)) {
+      setError('Please enter a valid email address');
       return;
     }
     try {
       await sendPasswordResetEmail(auth, email);
-      setError('Password reset email sent. Check your inbox.');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+      setError('Password reset email sent! Check your inbox.');
+    } catch (err: any) {
+      setError('Failed to send reset email. Try again.');
     }
   };
 
   const toggleMode = () => {
-    setMode((prev) => (prev === 'login' ? 'signup' : 'login'));
+    setMode(prev => prev === 'login' ? 'signup' : 'login');
     setError(null);
     setLoginEmail('');
     setLoginPassword('');
-    setLoginErrors({ email: '', password: '' });
     setSignupDisplayName('');
     setSignupEmail('');
     setSignupPassword('');
     setSignupConfirmPassword('');
-    setSignupErrors({ displayName: '', email: '', password: '', confirmPassword: '' });
-    setShowPassword(false);
-    setShowConfirmPassword(false);
   };
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
-          <p className="mt-4 text-gray-600">Preparing your workspace…</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto" />
+          <p className="mt-4 text-gray-700 font-medium">Loading Lifepoint...</p>
         </div>
       </div>
     );
@@ -227,187 +192,131 @@ export default function AuthPage() {
   const isSignup = mode === 'signup';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            {isSignup ? 'Create your account' : 'Welcome back'}
+          <h2 className="text-3xl font-bold text-gray-900">
+            {isSignup ? 'Join Lifepoint' : 'Welcome Back'}
           </h2>
           <p className="mt-2 text-gray-600">
-            {isSignup ? 'Start your learning journey today' : 'Sign in to continue your learning'}
+            {isSignup ? 'Start your faith & growth journey today' : 'Sign in to continue growing'}
           </p>
         </div>
 
-        {/* Auth Form */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          {/* Google Sign-in */}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
           <button
-            type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
           >
-            <FcGoogle className="h-5 w-5 mr-3" />
-            {isSignup ? 'Sign up with Google' : 'Sign in with Google'}
+            <FcGoogle className="w-5 h-5" />
+            Continue with Google
           </button>
 
-          {/* Divider */}
-          <div className="mt-6 mb-6 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
-                Or continue with email
-              </span>
-            </div>
+          <div className="my-6 flex items-center">
+            <div className="flex-1 border-t border-gray-300" />
+            <span className="px-4 text-sm text-gray-500 bg-white">or</span>
+            <div className="flex-1 border-t border-gray-300" />
           </div>
 
-          {/* Error */}
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
-              <p className="text-red-600 text-sm">{error}</p>
+            <div className={`p-4 rounded-lg text-sm ${error.includes('sent') || error.includes('cancelled') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+              {error}
             </div>
           )}
 
-          {/* Form */}
-          <form
-            onSubmit={isSignup ? handleSignup : handleLogin}
-            className="space-y-4"
-          >
+          <form onSubmit={isSignup ? handleSignup : handleLogin} className="space-y-5">
             {isSignup && (
-              <div>
-                <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full name
-                </label>
-                <input
-                  id="displayName"
-                  type="text"
-                  value={signupDisplayName}
-                  onChange={(e) => setSignupDisplayName(e.target.value)}
-                  placeholder="Enter your full name"
-                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    signupErrors.displayName ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  disabled={loading}
-                />
-                {signupErrors.displayName && (
-                  <p className="mt-1 text-sm text-red-600">{signupErrors.displayName}</p>
-                )}
-              </div>
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={signupDisplayName}
+                onChange={(e) => setSignupDisplayName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                disabled={loading}
+                required
+              />
             )}
 
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
-              </label>
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={isSignup ? signupEmail : loginEmail}
+              onChange={(e) => isSignup ? setSignupEmail(e.target.value) : setLoginEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              disabled={loading}
+              required
+            />
+
+            <div className="relative">
               <input
-                id="email"
-                type="email"
-                value={isSignup ? signupEmail : loginEmail}
-                onChange={(e) => isSignup ? setSignupEmail(e.target.value) : setLoginEmail(e.target.value)}
-                placeholder="Enter your email"
-                className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  (isSignup ? signupErrors.email : loginErrors.email) ? 'border-red-300' : 'border-gray-300'
-                }`}
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                value={isSignup ? signupPassword : loginPassword}
+                onChange={(e) => isSignup ? setSignupPassword(e.target.value) : setLoginPassword(e.target.value)}
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 disabled={loading}
+                required
               />
-              {(isSignup ? signupErrors.email : loginErrors.email) && (
-                <p className="mt-1 text-sm text-red-600">
-                  {isSignup ? signupErrors.email : loginErrors.email}
-                </p>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+              >
+                {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+              </button>
             </div>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
+            {isSignup && (
               <div className="relative">
                 <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={isSignup ? signupPassword : loginPassword}
-                  onChange={(e) => isSignup ? setSignupPassword(e.target.value) : setLoginPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className={`w-full px-3 py-2 pr-10 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    (isSignup ? signupErrors.password : loginErrors.password) ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirm Password"
+                  value={signupConfirmPassword}
+                  onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   disabled={loading}
+                  required
                 />
-                <button type="button" onClick={() => setShowPassword(prev => !prev)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  {showPassword ? <AiOutlineEyeInvisible className="h-5 w-5 text-gray-400" /> : <AiOutlineEye className="h-5 w-5 text-gray-400" />}
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                >
+                  {showConfirmPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                 </button>
-              </div>
-              {(isSignup ? signupErrors.password : loginErrors.password) && (
-                <p className="mt-1 text-sm text-red-600">{isSignup ? signupErrors.password : loginErrors.password}</p>
-              )}
-            </div>
-
-            {/* Confirm password */}
-            {isSignup && (
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm password
-                </label>
-                <div className="relative">
-                  <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={signupConfirmPassword}
-                    onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                    placeholder="Confirm your password"
-                    className={`w-full px-3 py-2 pr-10 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      signupErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    disabled={loading}
-                  />
-                  <button type="button" onClick={() => setShowConfirmPassword(prev => !prev)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                    {showConfirmPassword ? <AiOutlineEyeInvisible className="h-5 w-5 text-gray-400" /> : <AiOutlineEye className="h-5 w-5 text-gray-400" />}
-                  </button>
-                </div>
-                {signupErrors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{signupErrors.confirmPassword}</p>
-                )}
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-60"
+              className="w-full bg-red-600 text-white font-semibold py-3 rounded-lg hover:bg-red-700 transition disabled:opacity-60"
             >
-              {loading ? (isSignup ? 'Creating account...' : 'Signing in...') : (isSignup ? 'Create account' : 'Sign in')}
+              {loading ? 'Please wait...' : (isSignup ? 'Create Account' : 'Sign In')}
             </button>
           </form>
 
-          {/* Toggle */}
-          <div className="mt-6 text-center text-sm text-gray-600">
-            {isSignup ? 'Already have an account?' : 'Don’t have an account?'}{' '}
-            <button type="button" onClick={toggleMode} className="text-blue-600 hover:text-blue-500 font-medium focus:outline-none focus:underline" disabled={loading}>
-              {isSignup ? 'Sign in' : 'Sign up'}
+          <div className="mt-6 text-center text-sm">
+            <button onClick={toggleMode} className="text-red-600 font-medium hover:underline">
+              {isSignup ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>
           </div>
 
-          {/* Forgot password */}
           {!isSignup && (
             <div className="mt-4 text-center">
-              <button type="button" className="text-sm text-blue-600 hover:text-blue-500 focus:outline-none focus:underline" onClick={handleForgotPassword} disabled={loading}>
+              <button onClick={handleForgotPassword} className="text-sm text-red-600 hover:underline">
                 Forgot your password?
               </button>
             </div>
           )}
         </div>
 
-        {/* Terms */}
-        <div className="text-center text-sm text-gray-500">
-          By continuing, you agree to Lifepoint’s{' '}
-          <a href="/terms" className="text-blue-600 hover:text-blue-500 underline">Terms of Service</a> and{' '}
-          <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">Privacy Policy</a>
-        </div>
+        <p className="text-center text-xs text-gray-500">
+          By continuing, you agree to our{' '}
+          <a href="/terms" className="text-red-600 underline">Terms</a> and{' '}
+          <a href="/privacy" className="text-red-600 underline">Privacy Policy</a>
+        </p>
       </div>
     </div>
   );
