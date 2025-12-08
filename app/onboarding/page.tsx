@@ -2,57 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const MODULES = [
-  {
-    id: 'church',
-    name: 'Church',
-    submodules: ['Sunday Livestream', 'Prayer Rooms', 'Past Messages'],
-  },
-  {
-    id: 'bible',
-    name: 'Bible Study',
-    submodules: ['Bible Study Hub', 'Daily Devotion', 'AI Study Guide'],
-  },
-  {
-    id: 'growth',
-    name: 'Personal & Leadership Growth',
-    submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development'],
-  },
-  {
-    id: 'mentorship',
-    name: 'Mentorship & Coaching',
-    submodules: ['Find a Mentor', 'Book Coaching', 'Youth Mentorship'],
-  },
-  {
-    id: 'community',
-    name: 'Community',
-    submodules: ['Global Groups', 'Forums', 'Events'],
-  },
-  {
-    id: 'media',
-    name: 'Media & Content',
-    submodules: ['Videos', 'Podcasts', 'Guest Speakers'],
-  },
-  {
-    id: 'assessments',
-    name: 'Assessments',
-    submodules: ['Faith Growth', 'Leadership Skills', 'Personal Development'],
-  },
-  {
-    id: 'workshops',
-    name: 'Workshops & Events',
-    submodules: ['Masterclasses', 'Special Workshops', 'Guest Sessions'],
-  },
+  { id: 'church', name: 'Church', submodules: ['Sunday Livestream', 'Prayer Rooms', 'Past Messages'] },
+  { id: 'bible', name: 'Bible Study', submodules: ['Bible Study Hub', 'Daily Devotion', 'AI Study Guide'] },
+  { id: 'growth', name: 'Personal & Leadership Growth', submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development'] },
+  { id: 'mentorship', name: 'Mentorship & Coaching', submodules: ['Find a Mentor', 'Book Coaching', 'Youth Mentorship'] },
+  { id: 'community', name: 'Community', submodules: ['Global Groups', 'Forums', 'Events'] },
+  { id: 'media', name: 'Media & Content', submodules: ['Videos', 'Podcasts', 'Guest Speakers'] },
+  { id: 'assessments', name: 'Assessments', submodules: ['Faith Growth', 'Leadership Skills', 'Personal Development'] },
+  { id: 'workshops', name: 'Workshops & Events', submodules: ['Masterclasses', 'Special Workshops', 'Guest Sessions'] },
 ];
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { user } = useAuth();
+
   const [step, setStep] = useState(1);
   const [dob, setDob] = useState('');
   const [country, setCountry] = useState('');
@@ -77,15 +44,6 @@ export default function OnboardingPage() {
     }
   }, []);
 
-  const calculateAge = (dob: string): number => {
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-    return age;
-  };
-
   const toggleModule = (id: string) => {
     setSelectedModules((prev) =>
       prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
@@ -94,27 +52,36 @@ export default function OnboardingPage() {
 
   const handleSubmit = async () => {
     if (!user || !dob || selectedModules.length === 0) {
-      alert('Please complete all fields');
+      alert('Please complete all required fields');
       return;
     }
 
     setLoading(true);
     try {
-      const age = calculateAge(dob);
-      await updateDoc(doc(db, 'users', user.uid), {
-        dob,
-        age,
-        country,
-        selectedModules,
-        onboarded: true,
-        ai_enabled: true,
-        onboardingCompletedAt: new Date().toISOString(),
+      const token = await user.getIdToken();
+
+      const res = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          dob,
+          country: country || 'Unknown',
+          selectedModules,
+        }),
       });
 
-      router.replace('/dashboard/user');
+      if (res.ok) {
+        router.replace('/dashboard/user'); // Will auto-update via AuthContext listener
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Something went wrong. Please try again.');
+      }
     } catch (err) {
       console.error(err);
-      alert('Failed to save. Please try again.');
+      alert('Network error. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -197,7 +164,7 @@ export default function OnboardingPage() {
                   >
                     <button
                       onClick={() => toggleModule(module.id)}
-                      className="w-full px-6 py-4 flex justify-between items-center text-left hover:bg-gray-50 transition"
+                      className="w-full px-6 py-4ABC flex justify-between items-center text-left hover:bg-gray-50 transition"
                     >
                       <span className="font-semibold text-lg text-gray-800">{module.name}</span>
                       {openDropdown === module.id ? (

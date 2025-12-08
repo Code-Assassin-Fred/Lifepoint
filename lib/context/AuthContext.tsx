@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 
 interface AuthContextProps {
   user: FirebaseUser | null;
@@ -28,35 +28,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        try {
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const data = userDocSnap.data();
-            setRole(data.role || null);
-            setOnboardingComplete(data.onboarded || false);
-          } else {
-            setRole(null);
-            setOnboardingComplete(false);
+        // Listen to real-time updates on user document
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const unsubscribeDoc = onSnapshot(
+          userDocRef,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setRole(data.role || null);
+              setOnboardingComplete(data.onboarded === true);
+            } else {
+              setRole(null);
+              setOnboardingComplete(false);
+            }
+            setLoading(false);
+          },
+          (err) => {
+            console.error('Firestore listener error:', err);
+            setLoading(false);
           }
-        } catch (err) {
-          console.error('Error fetching user data:', err);
-          setRole(null);
-          setOnboardingComplete(false);
-        }
+        );
+
+        // Cleanup doc listener when auth changes
+        return () => unsubscribeDoc();
       } else {
         setRole(null);
         setOnboardingComplete(false);
+        setLoading(false);
       }
-
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
   return (
