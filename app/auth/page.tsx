@@ -12,27 +12,13 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { useFormState } from '@/lib/hooks';
+import { auth, db, googleProvider } from '@/lib/firebase';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/lib/context/AuthContext';
-
-interface LoginFormValues {
-  email: string;
-  password: string;
-}
-
-interface SignupFormValues {
-  displayName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function AuthPage() {
   const router = useRouter();
-  const { user, role, onboardingComplete, loading: authLoading } = useAuth();
+  const { user, onboardingComplete, role, loading: authLoading } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(false);
@@ -40,8 +26,17 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const loginForm = useFormState<LoginFormValues>({ email: '', password: '' });
-  const signupForm = useFormState<SignupFormValues>({
+  // Login form state
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginErrors, setLoginErrors] = useState({ email: '', password: '' });
+
+  // Signup form state
+  const [signupDisplayName, setSignupDisplayName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [signupErrors, setSignupErrors] = useState({
     displayName: '',
     email: '',
     password: '',
@@ -53,11 +48,12 @@ export default function AuthPage() {
     if (authLoading) return;
 
     if (user) {
-      if (!role) router.replace('/onboarding/choose-role');
-      else if (role && !onboardingComplete) router.replace(`/onboarding/${role}`);
-      else if (role && onboardingComplete) router.replace(`/dashboard/${role}`);
+      if (!onboardingComplete) router.replace('/onboarding');
+      else router.replace(`/dashboard/${role || 'user'}`);
     }
-  }, [user, role, onboardingComplete, authLoading, router]);
+  }, [user, onboardingComplete, role, authLoading, router]);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const validateEmail = (email: string) => {
     if (!email) return 'Email is required';
@@ -73,39 +69,31 @@ export default function AuthPage() {
 
   const validateLogin = () => {
     let valid = true;
-    const emailError = validateEmail(loginForm.values.email);
-    if (emailError) {
-      loginForm.setError('email', emailError);
-      valid = false;
-    }
-    const passwordError = validatePassword(loginForm.values.password);
-    if (passwordError) {
-      loginForm.setError('password', passwordError);
-      valid = false;
-    }
+    const emailError = validateEmail(loginEmail);
+    const passwordError = validatePassword(loginPassword);
+
+    setLoginErrors({ email: emailError || '', password: passwordError || '' });
+
+    if (emailError || passwordError) valid = false;
     return valid;
   };
 
   const validateSignup = () => {
     let valid = true;
-    if (!signupForm.values.displayName.trim()) {
-      signupForm.setError('displayName', 'Full name is required');
-      valid = false;
-    }
-    const emailError = validateEmail(signupForm.values.email);
-    if (emailError) {
-      signupForm.setError('email', emailError);
-      valid = false;
-    }
-    const passwordError = validatePassword(signupForm.values.password);
-    if (passwordError) {
-      signupForm.setError('password', passwordError);
-      valid = false;
-    }
-    if (signupForm.values.password !== signupForm.values.confirmPassword) {
-      signupForm.setError('confirmPassword', 'Passwords do not match');
-      valid = false;
-    }
+    const displayNameError = signupDisplayName.trim() ? '' : 'Full name is required';
+    const emailError = validateEmail(signupEmail);
+    const passwordError = validatePassword(signupPassword);
+    const confirmPasswordError =
+      signupPassword !== signupConfirmPassword ? 'Passwords do not match' : '';
+
+    setSignupErrors({
+      displayName: displayNameError,
+      email: emailError || '',
+      password: passwordError || '',
+      confirmPassword: confirmPasswordError || '',
+    });
+
+    if (displayNameError || emailError || passwordError || confirmPasswordError) valid = false;
     return valid;
   };
 
@@ -116,8 +104,17 @@ export default function AuthPage() {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, loginForm.values.email, loginForm.values.password);
-      // AuthContext listener will handle redirect
+      const credential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+      if (credential.user) {
+        const userDoc = await getDoc(doc(db, 'users', credential.user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          if (!data.onboarded) router.replace('/onboarding');
+          else router.replace(`/dashboard/${data.role || 'user'}`);
+        } else {
+          router.replace('/onboarding');
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in');
     } finally {
@@ -132,15 +129,20 @@ export default function AuthPage() {
 
     setLoading(true);
     try {
-      const credential = await createUserWithEmailAndPassword(
-        auth,
-        signupForm.values.email,
-        signupForm.values.password
-      );
+      const credential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
       if (credential.user) {
-        await updateProfile(credential.user, { displayName: signupForm.values.displayName.trim() });
+        await updateProfile(credential.user, { displayName: signupDisplayName.trim() });
+        await setDoc(doc(db, 'users', credential.user.uid), {
+          displayName: signupDisplayName.trim(),
+          email: signupEmail,
+          ai_enabled: true,
+          onboarded: false,
+          premium_access: false,
+          role: null,
+          created_at: serverTimestamp(),
+        });
+        router.replace('/onboarding');
       }
-      // AuthContext listener will handle redirect
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account');
     } finally {
@@ -152,8 +154,28 @@ export default function AuthPage() {
     setError(null);
     setLoading(true);
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
-      // AuthContext listener will handle redirect
+      const credential = await signInWithPopup(auth, googleProvider);
+      const user = credential.user;
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists()) {
+          await setDoc(userDocRef, {
+            displayName: user.displayName || 'No Name',
+            email: user.email,
+            ai_enabled: true,
+            onboarded: false,
+            premium_access: false,
+            role: null,
+            created_at: serverTimestamp(),
+          });
+          router.replace('/onboarding');
+        } else {
+          const data = userDoc.data();
+          if (!data.onboarded) router.replace('/onboarding');
+          else router.replace(`/dashboard/${data.role || 'user'}`);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google sign-in failed');
     } finally {
@@ -162,7 +184,7 @@ export default function AuthPage() {
   };
 
   const handleForgotPassword = async () => {
-    const email = loginForm.values.email || signupForm.values.email;
+    const email = loginEmail || signupEmail;
     const emailError = validateEmail(email);
     if (emailError) {
       setError(emailError);
@@ -179,14 +201,16 @@ export default function AuthPage() {
   const toggleMode = () => {
     setMode((prev) => (prev === 'login' ? 'signup' : 'login'));
     setError(null);
-    resetForm(loginForm);
-    resetForm(signupForm);
+    setLoginEmail('');
+    setLoginPassword('');
+    setLoginErrors({ email: '', password: '' });
+    setSignupDisplayName('');
+    setSignupEmail('');
+    setSignupPassword('');
+    setSignupConfirmPassword('');
+    setSignupErrors({ displayName: '', email: '', password: '', confirmPassword: '' });
     setShowPassword(false);
     setShowConfirmPassword(false);
-  };
-
-  const resetForm = (form: typeof loginForm | typeof signupForm) => {
-    Object.keys(form.values).forEach((key) => form.setValue(key as keyof typeof form.values, ''));
   };
 
   if (authLoading) {
@@ -207,7 +231,9 @@ export default function AuthPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-800">{isSignup ? 'Create your account' : 'Welcome back'}</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">
+            {isSignup ? 'Create your account' : 'Welcome back'}
+          </h2>
           <p className="mt-2 text-gray-600">
             {isSignup ? 'Start your learning journey today' : 'Sign in to continue your learning'}
           </p>
@@ -215,7 +241,7 @@ export default function AuthPage() {
 
         {/* Auth Form */}
         <div className="bg-white rounded-xl shadow-lg p-8">
-          {/* Google */}
+          {/* Google Sign-in */}
           <button
             type="button"
             onClick={handleGoogleSignIn}
@@ -232,7 +258,9 @@ export default function AuthPage() {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with email
+              </span>
             </div>
           </div>
 
@@ -243,8 +271,11 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Email/Password Form */}
-          <form onSubmit={isSignup ? handleSignup : handleLogin} className="space-y-4">
+          {/* Form */}
+          <form
+            onSubmit={isSignup ? handleSignup : handleLogin}
+            className="space-y-4"
+          >
             {isSignup && (
               <div>
                 <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -253,15 +284,17 @@ export default function AuthPage() {
                 <input
                   id="displayName"
                   type="text"
-                  value={signupForm.values.displayName}
-                  onChange={(e) => signupForm.setValue('displayName', e.target.value)}
+                  value={signupDisplayName}
+                  onChange={(e) => setSignupDisplayName(e.target.value)}
                   placeholder="Enter your full name"
                   className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    signupForm.errors.displayName ? 'border-red-300' : 'border-gray-300'
+                    signupErrors.displayName ? 'border-red-300' : 'border-gray-300'
                   }`}
                   disabled={loading}
                 />
-                {signupForm.errors.displayName && <p className="mt-1 text-sm text-red-600">{signupForm.errors.displayName}</p>}
+                {signupErrors.displayName && (
+                  <p className="mt-1 text-sm text-red-600">{signupErrors.displayName}</p>
+                )}
               </div>
             )}
 
@@ -273,18 +306,18 @@ export default function AuthPage() {
               <input
                 id="email"
                 type="email"
-                value={isSignup ? signupForm.values.email : loginForm.values.email}
-                onChange={(e) =>
-                  isSignup ? signupForm.setValue('email', e.target.value) : loginForm.setValue('email', e.target.value)
-                }
+                value={isSignup ? signupEmail : loginEmail}
+                onChange={(e) => isSignup ? setSignupEmail(e.target.value) : setLoginEmail(e.target.value)}
                 placeholder="Enter your email"
                 className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  (isSignup ? signupForm.errors.email : loginForm.errors.email) ? 'border-red-300' : 'border-gray-300'
+                  (isSignup ? signupErrors.email : loginErrors.email) ? 'border-red-300' : 'border-gray-300'
                 }`}
                 disabled={loading}
               />
-              {(isSignup ? signupForm.errors.email : loginForm.errors.email) && (
-                <p className="mt-1 text-sm text-red-600">{isSignup ? signupForm.errors.email : loginForm.errors.email}</p>
+              {(isSignup ? signupErrors.email : loginErrors.email) && (
+                <p className="mt-1 text-sm text-red-600">
+                  {isSignup ? signupErrors.email : loginErrors.email}
+                </p>
               )}
             </div>
 
@@ -297,23 +330,24 @@ export default function AuthPage() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  value={isSignup ? signupForm.values.password : loginForm.values.password}
-                  onChange={(e) => (isSignup ? signupForm.setValue('password', e.target.value) : loginForm.setValue('password', e.target.value))}
+                  value={isSignup ? signupPassword : loginPassword}
+                  onChange={(e) => isSignup ? setSignupPassword(e.target.value) : setLoginPassword(e.target.value)}
                   placeholder="Enter your password"
                   className={`w-full px-3 py-2 pr-10 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    (isSignup ? signupForm.errors.password : loginForm.errors.password) ? 'border-red-300' : 'border-gray-300'
+                    (isSignup ? signupErrors.password : loginErrors.password) ? 'border-red-300' : 'border-gray-300'
                   }`}
                   disabled={loading}
                 />
-                <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <button type="button" onClick={() => setShowPassword(prev => !prev)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
                   {showPassword ? <AiOutlineEyeInvisible className="h-5 w-5 text-gray-400" /> : <AiOutlineEye className="h-5 w-5 text-gray-400" />}
                 </button>
               </div>
-              {(isSignup ? signupForm.errors.password : loginForm.errors.password) && (
-                <p className="mt-1 text-sm text-red-600">{isSignup ? signupForm.errors.password : loginForm.errors.password}</p>
+              {(isSignup ? signupErrors.password : loginErrors.password) && (
+                <p className="mt-1 text-sm text-red-600">{isSignup ? signupErrors.password : loginErrors.password}</p>
               )}
             </div>
 
+            {/* Confirm password */}
             {isSignup && (
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
@@ -323,19 +357,21 @@ export default function AuthPage() {
                   <input
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    value={signupForm.values.confirmPassword}
-                    onChange={(e) => signupForm.setValue('confirmPassword', e.target.value)}
+                    value={signupConfirmPassword}
+                    onChange={(e) => setSignupConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"
                     className={`w-full px-3 py-2 pr-10 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      signupForm.errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                      signupErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                     }`}
                     disabled={loading}
                   />
-                  <button type="button" onClick={() => setShowConfirmPassword((prev) => !prev)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <button type="button" onClick={() => setShowConfirmPassword(prev => !prev)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     {showConfirmPassword ? <AiOutlineEyeInvisible className="h-5 w-5 text-gray-400" /> : <AiOutlineEye className="h-5 w-5 text-gray-400" />}
                   </button>
                 </div>
-                {signupForm.errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{signupForm.errors.confirmPassword}</p>}
+                {signupErrors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{signupErrors.confirmPassword}</p>
+                )}
               </div>
             )}
 
@@ -344,16 +380,7 @@ export default function AuthPage() {
               disabled={loading}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-60"
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  {isSignup ? 'Creating account...' : 'Signing in...'}
-                </div>
-              ) : isSignup ? (
-                'Create account'
-              ) : (
-                'Sign in'
-              )}
+              {loading ? (isSignup ? 'Creating account...' : 'Signing in...') : (isSignup ? 'Create account' : 'Sign in')}
             </button>
           </form>
 
@@ -377,14 +404,9 @@ export default function AuthPage() {
 
         {/* Terms */}
         <div className="text-center text-sm text-gray-500">
-          By continuing, you agree to Learning.ai’s{' '}
-          <a href="/terms" className="text-blue-600 hover:text-blue-500 underline">
-            Terms of Service
-          </a>{' '}
-          and{' '}
-          <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">
-            Privacy Policy
-          </a>
+          By continuing, you agree to Lifepoint’s{' '}
+          <a href="/terms" className="text-blue-600 hover:text-blue-500 underline">Terms of Service</a> and{' '}
+          <a href="/privacy" className="text-blue-600 hover:text-blue-500 underline">Privacy Policy</a>
         </div>
       </div>
     </div>

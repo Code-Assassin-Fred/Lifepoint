@@ -2,8 +2,11 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, Menu, X, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const Navbar = () => {
+  const router = useRouter();
+
   const menuItems = {
     Church: [
       { label: 'Sunday Livestream', href: '#' },
@@ -99,13 +102,13 @@ const Navbar = () => {
 
           {/* Desktop Login - Right Side */}
           <div className="hidden lg:flex">
-            <a
-              href="#"
+            <button
+              onClick={() => router.push('/auth')}
               className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-gray-900 text-sm uppercase tracking-wider transition-colors"
             >
               <User size={18} />
               <span>Login</span>
-            </a>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -146,13 +149,13 @@ const Navbar = () => {
 
             {/* Mobile Login */}
             <div className="border-t border-gray-200 mt-4 pt-4 px-4">
-              <a
-                href="#"
+              <button
+                onClick={() => router.push('/auth')}
                 className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 text-sm uppercase tracking-wider"
               >
                 <User size={18} />
                 <span>Login</span>
-              </a>
+              </button>
             </div>
           </div>
         )}

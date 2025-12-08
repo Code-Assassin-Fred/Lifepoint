@@ -26,21 +26,18 @@ const createFirebaseApp = (): FirebaseApp => {
   if (!getApps().length) {
     return initializeApp(firebaseConfig);
   }
-
   return getApp();
 };
 
 const app = createFirebaseApp();
 
+// Auth & Firestore
 export const auth: Auth = getAuth(app);
 export const db: Firestore = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
-type EmulatorConfig = {
-  host: string;
-  port: number;
-};
-
+// Emulator configuration (for local dev)
+type EmulatorConfig = { host: string; port: number };
 const authEmulator: EmulatorConfig = { host: 'localhost', port: 9099 };
 const firestoreEmulator: EmulatorConfig = { host: 'localhost', port: 8080 };
 
@@ -50,6 +47,5 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULAT
       disableWarnings: true,
     });
   }
-
   connectFirestoreEmulator(db, firestoreEmulator.host, firestoreEmulator.port);
 }
