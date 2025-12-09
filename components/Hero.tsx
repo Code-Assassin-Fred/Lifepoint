@@ -7,7 +7,7 @@ const Hero = () => {
   const router = useRouter();
 
   return (
-    <section className="w-full h-[80vh] relative overflow-hidden z-0 flex items-center">
+    <section className="w-full h-[90vh] relative overflow-hidden z-0 flex items-center">
       {/* Video */}
       <video
         className="w-full h-full object-cover"

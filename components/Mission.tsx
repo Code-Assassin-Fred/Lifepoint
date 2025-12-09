@@ -6,14 +6,14 @@ import { motion } from "framer-motion";
 export default function Mission() {
   return (
     <section
-      className="relative w-full text-white py-12 md:py-16 px-6 md:px-20"
+      className="relative w-full text-white py-12 md:py-16 px-6 md:px-20 -mt-[45px]"
       style={{
         backgroundColor: "#e10600",
-        clipPath: "polygon(0 8%, 43% 8%, 45% 0, 100% 0, 100% 92%, 60% 100%, 40% 92%, 0 92%)",
-        overflow: "hidden"
+        clipPath:
+          "polygon(0 8%, 43% 8%, 45% 0, 100% 0, 100% 92%, 60% 100%, 40% 92%, 0 92%)",
+        overflow: "hidden",
       }}
     >
-
       {/* Background Overlay */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <img
@@ -25,20 +25,22 @@ export default function Mission() {
 
       {/* Grid */}
       <div className="relative max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[30%_70%] gap-10 items-center">
-
+        
         {/* Logo */}
-        <motion.img
-          src="/logo.jpg"
-          alt="logo"
-          className="w-40 md:w-56 lg:w-64 mx-auto drop-shadow-2xl"
-          style={{
-            clipPath:
-              "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)"
-          }}
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-        />
+        <div className="w-40 md:w-56 lg:w-64 aspect-square mx-auto">
+          <motion.img
+            src="/logo.jpg"
+            alt="logo"
+            className="w-full h-full object-cover drop-shadow-2xl"
+            style={{
+              clipPath:
+                "polygon(29.3% 0%, 70.7% 0%, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0% 70.7%, 0% 29.3%)",
+            }}
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          />
+        </div>
 
         {/* Text */}
         <motion.div
@@ -57,14 +59,15 @@ export default function Mission() {
               font-semibold leading-[1.3] mb-6
             "
           >
-            CONNECT, INSPIRE, AND EMPOWER A GLOBAL COMMUNITY OF FAITH AND LEADERSHIP.
+            CONNECT, INSPIRE, AND EMPOWER A GLOBAL COMMUNITY OF FAITH AND
+            LEADERSHIP.
           </h1>
 
           <p className="text-sm md:text-base lg:text-lg max-w-3xl leading-relaxed font-light">
-            Lifepoint is a global faith-based growth platform that brings together 
-            worship, mentorship, and leadership development. We provide accessible 
-            spiritual guidance, personal growth resources, and community engagement 
-            worldwide.
+            Lifepoint is a global faith-based growth platform that brings
+            together worship, mentorship, and leadership development. We provide
+            accessible spiritual guidance, personal growth resources, and
+            community engagement worldwide.
           </p>
         </motion.div>
       </div>

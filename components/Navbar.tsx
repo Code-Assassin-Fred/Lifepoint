@@ -60,12 +60,32 @@ const Navbar = () => {
     <nav className="w-full bg-white border-b border-gray-200 relative z-50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <div className="shrink-0">
-            <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
-              <div className="text-white font-bold text-xl">L</div>
-            </div>
-          </div>
+
+          {/* Logo (Styled exactly like the Mission section) */}
+          <div
+  className="shrink-0 cursor-pointer relative z-[60]"
+  onClick={() => router.push('/')}
+>
+  <div
+    className="
+      w-20 h-20 md:w-24 md:h-24 aspect-square
+      absolute
+      -top-6 md:-top-8
+      left-0
+    "
+    style={{ 
+      clipPath: 'polygon(29.3% 0%, 70.7% 0%, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0% 70.7%, 0% 29.3%)'
+    }}
+  >
+    <img
+      src="/logo.jpg"
+      alt="Lifepoint Logo"
+      className="w-full h-full object-cover drop-shadow-2xl"
+    />
+  </div>
+</div>
+
+
 
           {/* Desktop Menu - Centered */}
           <div className="hidden lg:flex items-center justify-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
@@ -100,7 +120,7 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Desktop Login - Right Side */}
+          {/* Desktop Login */}
           <div className="hidden lg:flex">
             <button
               onClick={() => router.push('/auth')}
