@@ -10,10 +10,10 @@ export default function Mission() {
       <div 
         className="absolute top-0 left-0 w-full h-16 bg-white"
         style={{
-          clipPath: 'polygon(0 0, 100% 0, 100% 100%, 60% 100%, 40% 0, 0 100%)'
+          clipPath: 'polygon(0 0, 0 40%, 43% 40%, 45% 0, 100% 0)'
         }}
       />
-      
+
       {/* Background Overlay */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <img
@@ -24,7 +24,7 @@ export default function Mission() {
       </div>
 
       {/* 30 / 70 Grid */}
-      <div className="relative max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[30%_70%] gap-10 items-center mt-8">
+      <div className="relative max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[30%_70%] gap-10 items-center">
 
         {/* Logo (30%) - Octagon Shape */}
         <motion.img
@@ -71,6 +71,14 @@ export default function Mission() {
           </p>
         </motion.div>
       </div>
+
+      {/* Angled Bottom Border */}
+      <div 
+        className="absolute bottom-0 left-0 w-full h-16 bg-white"
+        style={{
+          clipPath: 'polygon(0 0, 40% 100%, 60% 0, 100% 0, 100% 100%, 0 100%)'
+        }}
+      />
     </section>
   );
 }
