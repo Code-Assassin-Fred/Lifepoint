@@ -1,56 +1,76 @@
 'use client';
 
-import React from 'react';
-import { Shield } from 'lucide-react';
+import React from "react";
+import { motion } from "framer-motion";
 
-const Mission = () => {
+export default function Mission() {
   return (
-    <section className="w-full relative overflow-hidden">
-      {/* Red Background Section - Reduced padding */}
-      <div className="relative bg-gradient-to-br from-red-600 to-red-700 px-6 md:px-20 py-16 md:py-20">
-        {/* Subtle Geometric Overlay */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-8 right-16 w-48 h-48 border border-white rotate-45"></div>
-          <div className="absolute bottom-16 right-32 w-64 h-64 border border-white rotate-45"></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            {/* Left Side - Smaller Shield */}
-            <div className="flex justify-center lg:justify-start">
-              <div className="relative w-56 h-64 md:w-64 md:h-72">
-                <div className="absolute inset-0 bg-gradient-to-b from-red-800 to-red-900 rounded-t-full border-8 border-gray-200 shadow-2xl">
-                  <div className="absolute inset-3 bg-gradient-to-b from-red-700 to-red-800 rounded-t-full"></div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Shield className="w-28 h-28 md:w-32 md:h-32 text-white opacity-90" strokeWidth={1.5} />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side - Tighter, cleaner text */}
-            <div className="text-white space-y-5">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-snug uppercase tracking-wider">
-                Our Mission is to<br />
-                <span className="text-gray-200">Enlighten, Entertain,<br />and Empower</span><br />
-                Current and Future Leaders<br />
-                Around the World.
-              </h2>
-
-              <p className="text-base md:text-lg text-gray-100 leading-relaxed max-w-xl">
-                We shatter conventional narratives, spark bold conversations, and equip leaders with the clarity to think critically and act with purpose.
-              </p>
-            </div>
-          </div>
-        </div>
+    <section className="relative w-full bg-red-600 text-white overflow-hidden py-12 md:py-16 px-6 md:px-20">
+      {/* Angled Top Border */}
+      <div 
+        className="absolute top-0 left-0 w-full h-16 bg-white"
+        style={{
+          clipPath: 'polygon(0 0, 100% 0, 100% 100%, 60% 100%, 40% 0, 0 100%)'
+        }}
+      />
+      
+      {/* Background Overlay */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <img
+          src="/mission-bg.png"
+          alt=""
+          className="w-full h-full object-cover"
+        />
       </div>
 
-      {/* Smaller Diagonal Transition */}
-      <div className="relative h-20 bg-gradient-to-br from-red-600 to-red-700">
-        <div className="absolute inset-0 bg-white transform origin-top-left -skew-y-3"></div>
+      {/* 30 / 70 Grid */}
+      <div className="relative max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[30%_70%] gap-10 items-center mt-8">
+
+        {/* Logo (30%) - Octagon Shape */}
+        <motion.img
+          src="/logo.jpg"
+          alt="logo"
+          className="w-40 md:w-56 lg:w-64 mx-auto drop-shadow-2xl"
+          style={{
+            clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'
+          }}
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+        />
+
+        {/* Text (70%) */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="space-y-4 md:space-y-6"
+        >
+          <h2 className="text-sm md:text-base font-black tracking-[0.3em] mb-2">
+            OUR MISSION IS TO
+          </h2>
+
+          <h1 className="
+            text-2xl 
+            sm:text-3xl
+            md:text-4xl 
+            lg:text-5xl
+            font-semibold 
+            leading-[1.3] 
+            tracking-normal
+            mb-6
+          ">
+            CONNECT, INSPIRE, AND EMPOWER A GLOBAL COMMUNITY OF FAITH AND LEADERSHIP.
+          </h1>
+
+          <p className="text-sm md:text-base lg:text-lg max-w-3xl leading-relaxed font-light">
+            Lifepoint is a global faith-based growth platform that brings together 
+            worship, mentorship, and leadership development. We provide accessible spiritual 
+            guidance, personal growth resources, and community engagement to youth, adults, and 
+            leaders worldwide combining faith, purpose, and impact in one integrated ecosystem.
+          </p>
+        </motion.div>
       </div>
     </section>
   );
-};
-
-export default Mission;
+}
