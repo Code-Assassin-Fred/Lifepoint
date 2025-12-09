@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Menu, X, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -44,6 +44,31 @@ const Navbar = () => {
 
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+  const lastScrollY = useRef(0);
+
+  // Scroll behavior
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Hide navbar when scrolling down, show when scrolling up
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+
+      // Add blur/background on scroll
+      setScrolled(currentScrollY > 50);
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const renderMenuItems = (key: MenuKey) =>
     menuItems[key].map((subitem) => (
@@ -57,37 +82,37 @@ const Navbar = () => {
     ));
 
   return (
-    <nav className="w-full bg-white border-b border-gray-200 relative z-50">
+    <nav
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+        scrolled
+          ? 'bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200'
+          : 'bg-white border-b border-gray-200'
+      } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
+    >
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-20 relative z-50">
 
-          {/* Logo (Styled exactly like the Mission section) */}
+          {/* Logo */}
           <div
-  className="shrink-0 cursor-pointer relative z-[60]"
-  onClick={() => router.push('/')}
->
-  <div
-    className="
-      w-20 h-20 md:w-24 md:h-24 aspect-square
-      absolute
-      -top-6 md:-top-8
-      left-0
-    "
-    style={{ 
-      clipPath: 'polygon(29.3% 0%, 70.7% 0%, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0% 70.7%, 0% 29.3%)'
-    }}
-  >
-    <img
-      src="/logo.jpg"
-      alt="Lifepoint Logo"
-      className="w-full h-full object-cover drop-shadow-2xl"
-    />
-  </div>
-</div>
+            className="shrink-0 cursor-pointer relative z-[60]"
+            onClick={() => router.push('/')}
+          >
+            <div
+              className="w-20 h-20 md:w-24 md:h-24 aspect-square absolute -top-6 md:-top-8 left-0"
+              style={{
+                clipPath:
+                  'polygon(29.3% 0%, 70.7% 0%, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0% 70.7%, 0% 29.3%)'
+              }}
+            >
+              <img
+                src="/logo.jpg"
+                alt="Lifepoint Logo"
+                className="w-full h-full object-cover drop-shadow-2xl"
+              />
+            </div>
+          </div>
 
-
-
-          {/* Desktop Menu - Centered */}
+          {/* Desktop Menu */}
           <div className="hidden lg:flex items-center justify-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
             {Object.keys(menuItems).map((item) => {
               const key = item as MenuKey;

@@ -7,7 +7,7 @@ const Hero = () => {
   const router = useRouter();
 
   return (
-    <section className="w-full h-[90vh] relative overflow-hidden z-0 flex items-center">
+    <section className="w-full h-[100vh] relative overflow-hidden z-0 flex items-center">
       {/* Video */}
       <video
         className="w-full h-full object-cover"
@@ -21,7 +21,7 @@ const Hero = () => {
       <div className="absolute top-0 left-0 w-full h-full bg-black/80 z-0"></div>
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-center px-10 md:px-20 z-10 text-left">
+      <div className="absolute inset-0 flex flex-col justify-center mt-20 px-10 md:px-20 z-10 text-left">
         <h1
           className="text-white font-extrabold text-6xl md:text-8xl tracking-wider leading-none"
           style={{ fontFamily: "Impact, Anton, Bebas Neue, sans-serif" }}
