@@ -15,29 +15,27 @@ export default function SkillsComponent() {
   ];
 
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const scrollAccumulator = useRef(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [startAnimation, setStartAnimation] = useState(false);
-  const [isUnfolding, setIsUnfolding] = useState(false);
-  const scrollAccumulator = useRef(0);
 
-  // Start animation only when section is mostly visible
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.intersectionRatio >= 0.75) {
-          setStartAnimation(true);
-        }
+        if (entry.intersectionRatio >= 0.75) setStartAnimation(true);
+        else setStartAnimation(false);
       },
       { threshold: [0, 0.25, 0.5, 0.75, 1] }
     );
-
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, []);
 
-  // Handle scroll locking during unfold animation
   useEffect(() => {
     if (!startAnimation) return;
+
+    const unfoldableCards = cards.length - 1;
+    const scrollSensitivity = 2000;
 
     const handleWheel = (e: WheelEvent) => {
       const el = sectionRef.current;
@@ -47,30 +45,34 @@ export default function SkillsComponent() {
       const windowHeight = window.innerHeight;
       const startPoint = windowHeight / 2;
 
-      // Check if we're in the unfolding zone
-      const inUnfoldZone = rect.top <= startPoint && scrollProgress < 1;
+      const inUnfoldZone = rect.top <= startPoint && rect.bottom >= startPoint;
+      
+      // Check if scrolling up when fully folded
+      const isScrollingUp = e.deltaY < 0;
+      const isFullyFolded = scrollAccumulator.current <= 0;
+      const isFullyUnfolded = scrollAccumulator.current >= scrollSensitivity;
 
       if (inUnfoldZone) {
-        e.preventDefault();
-        setIsUnfolding(true);
-
-        // Accumulate scroll delta
-        scrollAccumulator.current += e.deltaY;
-
-        // Progress based on accumulated scroll (adjust sensitivity here)
-        const scrollSensitivity = 2000; // Higher = slower unfold
-        const newProgress = Math.min(Math.max(scrollAccumulator.current / scrollSensitivity, 0), 1);
-        
-        setScrollProgress(newProgress);
-
-        // If animation complete, allow normal scrolling again
-        if (newProgress >= 1) {
-          setIsUnfolding(false);
-          scrollAccumulator.current = scrollSensitivity; // Lock at max
+        // Allow normal scroll up if cards are fully folded
+        if (isScrollingUp && isFullyFolded) {
+          return; // Don't prevent default, allow normal scroll
         }
-      } else if (scrollProgress >= 1) {
-        // Animation complete, allow normal scrolling
-        setIsUnfolding(false);
+        
+        // Allow normal scroll down if cards are fully unfolded
+        if (!isScrollingUp && isFullyUnfolded) {
+          return; // Don't prevent default, allow normal scroll
+        }
+
+        e.preventDefault();
+
+        // Accumulate delta, clamp between 0 and scrollSensitivity
+        scrollAccumulator.current = Math.min(
+          Math.max(scrollAccumulator.current + e.deltaY, 0),
+          scrollSensitivity
+        );
+
+        const newProgress = scrollAccumulator.current / scrollSensitivity;
+        setScrollProgress(newProgress);
       }
     };
 
@@ -82,22 +84,27 @@ export default function SkillsComponent() {
       const windowHeight = window.innerHeight;
       const startPoint = windowHeight / 2;
 
-      // Reset if user scrolls back up
+      // Reset when scrolling back above start
       if (rect.top > startPoint) {
-        setScrollProgress(0);
-        setIsUnfolding(false);
         scrollAccumulator.current = 0;
+        setScrollProgress(0);
+      }
+
+      // If below unfolding zone, lock scrollProgress at max
+      if (rect.bottom < startPoint) {
+        scrollAccumulator.current = scrollSensitivity;
+        setScrollProgress(1);
       }
     };
 
     window.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("scroll", handleScroll);
-    
+
     return () => {
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [startAnimation, scrollProgress]);
+  }, [startAnimation]);
 
   return (
     <div
@@ -129,30 +136,31 @@ export default function SkillsComponent() {
       {/* Cards */}
       <div className="relative w-full max-w-md mx-auto z-10">
         {cards.map((card, i) => {
-          const cardsCount = cards.length;
-          const cardScrollStart = i / cardsCount;
-          const cardScrollEnd = (i + 1) / cardsCount;
+          const unfoldableCards = cards.length - 1;
+          const cardIndex = i >= unfoldableCards ? unfoldableCards : i;
 
-          // Normalize scroll progress for this card
+          const cardScrollStart = cardIndex / unfoldableCards;
+          const cardScrollEnd = (cardIndex + 1) / unfoldableCards;
+
           let rawProgress = (scrollProgress - cardScrollStart) / (cardScrollEnd - cardScrollStart);
           rawProgress = Math.min(Math.max(rawProgress, 0), 1);
 
-          // Easing
           const eased =
             rawProgress < 0.5
               ? 2 * rawProgress * rawProgress
               : 1 - Math.pow(-2 * rawProgress + 2, 2) / 2;
 
           const rotateDir = i % 2 === 0 ? -90 : 90;
+          const rotation = i === cards.length - 1 ? 0 : rotateDir * eased;
 
           return (
             <div
               key={card.id}
               className="absolute top-0 left-0 w-full border-2 border-white bg-[#3a3a3a]/80 backdrop-blur-md p-10"
               style={{
-                zIndex: cardsCount - i,
+                zIndex: cards.length - i,
                 transformOrigin: i % 2 === 0 ? "bottom left" : "bottom right",
-                transform: `rotate(${rotateDir * eased}deg) translateY(${i * 10}px) translateX(${i * 5}px)`,
+                transform: `rotate(${rotation}deg) translateY(${i * 10}px) translateX(${i * 5}px)`,
                 transition: "none"
               }}
             >
@@ -169,22 +177,11 @@ export default function SkillsComponent() {
           );
         })}
 
-        {/* Spacer to give container height */}
+        {/* Spacer for container height */}
         <div className="opacity-0 pointer-events-none p-10">
           <h2 className="text-2xl">{cards[0].title}</h2>
         </div>
       </div>
-
-      {/* Progress Indicator */}
-      {isUnfolding && (
-        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-3">
-            <div className="text-white text-sm">
-              Card {Math.floor(scrollProgress * cards.length) + 1} of {cards.length}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
