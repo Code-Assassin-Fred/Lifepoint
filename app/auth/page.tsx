@@ -198,9 +198,6 @@ export default function AuthPage() {
           <h2 className="text-3xl font-bold text-gray-900">
             {isSignup ? 'Join Lifepoint' : 'Welcome Back'}
           </h2>
-          <p className="mt-2 text-gray-600">
-            {isSignup ? 'Start your faith & growth journey today' : 'Sign in to continue growing'}
-          </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">

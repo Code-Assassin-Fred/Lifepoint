@@ -22,6 +22,16 @@ export default function InsideLifepoint() {
     }
   };
 
+  const slideInLeft = {
+    hidden: { opacity: 0, x: -100 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9] as [number, number, number, number] } }
+  };
+
+  const slideInRight = {
+    hidden: { opacity: 0, x: 100 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9] as [number, number, number, number] } }
+  };
+
   return (
     <section className="w-full bg-white py-16 px-4">
       <div className="max-w-7xl mx-auto">
@@ -62,7 +72,7 @@ export default function InsideLifepoint() {
           ].map((img, index) => (
             <motion.div
               key={index}
-              className={`relative aspect-[4/3] overflow-hidden rounded-lg ${img.colSpan ? img.colSpan : ''} ${img.aspect ? img.aspect : ''}`}
+              className={`relative aspect-4/3 overflow-hidden rounded-lg ${img.colSpan ? img.colSpan : ''} ${img.aspect ? img.aspect : ''}`}
               variants={fadeInUp}
             >
               <img
@@ -136,7 +146,13 @@ export default function InsideLifepoint() {
           {/* Experience and Education Side by Side */}
           <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-8" variants={staggerContainer}>
             {/* Experience */}
-            <motion.div className="bg-gray-50 p-6 rounded-lg" variants={fadeInUp}>
+            <motion.div 
+              className="bg-gray-50 p-6 rounded-lg" 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={slideInLeft}
+            >
               <h4 className="text-xl font-bold text-gray-800 mb-4">Experience</h4>
               <div className="space-y-4">
                 <div>
@@ -163,7 +179,13 @@ export default function InsideLifepoint() {
             </motion.div>
 
             {/* Education */}
-            <motion.div className="bg-gray-50 p-6 rounded-lg" variants={fadeInUp}>
+            <motion.div 
+              className="bg-gray-50 p-6 rounded-lg" 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={slideInRight}
+            >
               <h4 className="text-xl font-bold text-gray-800 mb-4">Education & Credentials</h4>
               <ul className="space-y-2 text-gray-700">
                 <li>• Doctor of Ministry in Organizational Leadership - Asbury Theological Seminary (USA)</li>

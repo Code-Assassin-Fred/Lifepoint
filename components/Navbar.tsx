@@ -9,34 +9,34 @@ const Navbar = () => {
 
   const menuItems = {
     Church: [
-      { label: 'Sunday Livestream', href: '#' },
-      { label: 'Prayer Rooms', href: '#' },
-      { label: 'Past Messages', href: '#' }
+      { label: 'Sunday Livestream' },
+      { label: 'Prayer Rooms' },
+      { label: 'Past Messages' }
     ],
     'Bible Study': [
-      { label: 'Bible Study Hub', href: '#' },
-      { label: 'Daily Devotion', href: '#' },
-      { label: 'AI Study Guide', href: '#' }
+      { label: 'Bible Study Hub' },
+      { label: 'Daily Devotion' },
+      { label: 'AI Study Guide' }
     ],
     Growth: [
-      { label: 'Personal Growth', href: '#' },
-      { label: 'Leadership Development', href: '#' },
-      { label: 'Assessments', href: '#' }
+      { label: 'Personal Growth' },
+      { label: 'Leadership Development' },
+      { label: 'Assessments' }
     ],
     Mentorship: [
-      { label: 'Find a Mentor', href: '#' },
-      { label: 'Book Coaching', href: '#' },
-      { label: 'Youth Mentorship', href: '#' }
+      { label: 'Find a Mentor' },
+      { label: 'Book Coaching' },
+      { label: 'Youth Mentorship' }
     ],
     Community: [
-      { label: 'Global Groups', href: '#' },
-      { label: 'Forums', href: '#' },
-      { label: 'Events', href: '#' }
+      { label: 'Global Groups' },
+      { label: 'Forums' },
+      { label: 'Events' }
     ],
     Media: [
-      { label: 'Videos', href: '#' },
-      { label: 'Podcasts', href: '#' },
-      { label: 'Guest Speakers', href: '#' }
+      { label: 'Videos' },
+      { label: 'Podcasts' },
+      { label: 'Guest Speakers' }
     ]
   };
 
@@ -70,15 +70,16 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Render all menu items to redirect to /auth
   const renderMenuItems = (key: MenuKey) =>
     menuItems[key].map((subitem) => (
-      <a
+      <button
         key={subitem.label}
-        href={subitem.href}
-        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+        onClick={() => router.push('/auth')}
+        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
       >
         {subitem.label}
-      </a>
+      </button>
     ));
 
   return (
