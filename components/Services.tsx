@@ -2,7 +2,7 @@ import React from 'react';
 
 const Services = () => {
   return (
-    <section className="bg-white py-20 -mt-[45px]">
+    <section className="bg-white py-20 -mt-[48px]">
       <div className="max-w-7xl mx-auto px-8 md:px-16">
         <div className="flex flex-col md:flex-row gap-12 items-start">
           {/* Left Column - Title */}

@@ -46,26 +46,17 @@ export default function SkillsComponent() {
       const startPoint = windowHeight / 2;
 
       const inUnfoldZone = rect.top <= startPoint && rect.bottom >= startPoint;
-      
-      // Check if scrolling up when fully folded
+
       const isScrollingUp = e.deltaY < 0;
       const isFullyFolded = scrollAccumulator.current <= 0;
       const isFullyUnfolded = scrollAccumulator.current >= scrollSensitivity;
 
       if (inUnfoldZone) {
-        // Allow normal scroll up if cards are fully folded
-        if (isScrollingUp && isFullyFolded) {
-          return; 
-        }
-        
-        // Allow normal scroll down if cards are fully unfolded
-        if (!isScrollingUp && isFullyUnfolded) {
-          return; 
-        }
+        if (isScrollingUp && isFullyFolded) return;
+        if (!isScrollingUp && isFullyUnfolded) return;
 
         e.preventDefault();
 
-        // Accumulate delta, clamp between 0 and scrollSensitivity
         scrollAccumulator.current = Math.min(
           Math.max(scrollAccumulator.current + e.deltaY, 0),
           scrollSensitivity
@@ -84,13 +75,11 @@ export default function SkillsComponent() {
       const windowHeight = window.innerHeight;
       const startPoint = windowHeight / 2;
 
-      // Reset when scrolling back above start
       if (rect.top > startPoint) {
         scrollAccumulator.current = 0;
         setScrollProgress(0);
       }
 
-      // If below unfolding zone, lock scrollProgress at max
       if (rect.bottom < startPoint) {
         scrollAccumulator.current = scrollSensitivity;
         setScrollProgress(1);
@@ -128,10 +117,6 @@ export default function SkillsComponent() {
           ))}
         </div>
       </div>
-
-      <h1 className="text-4xl text-white text-center mb-10 tracking-widest z-10 relative">
-        SERVICES
-      </h1>
 
       {/* Cards */}
       <div className="relative w-full max-w-md mx-auto z-10">
@@ -177,11 +162,35 @@ export default function SkillsComponent() {
           );
         })}
 
-        {/* Spacer for container height */}
+        {/* Spacer */}
         <div className="opacity-0 pointer-events-none p-10">
           <h2 className="text-2xl">{cards[0].title}</h2>
         </div>
       </div>
+
+<div className="absolute bottom-10 left-0 w-full overflow-hidden whitespace-nowrap">
+  <div
+    className="text-5xl font-semibold text-white inline-block px-10"
+    style={{ animation: "scrollText 18s linear infinite" }}
+  >
+    <span style={{ color: "#ff6b6b" }}>Learn.</span> 
+    Believe. 
+    <span style={{ color: "#ff6b6b" }}>Become.</span> 
+    One moment of growth at a time. &nbsp; 
+    <span style={{ color: "#ff6b6b" }}>Learn. </span> 
+    <span style={{ color: "#ff6b6b" }}>Believe. </span> 
+    <span style={{ color: "#ff6b6b" }}>Become. </span> 
+    One moment of growth at a time.
+  </div>
+</div>
+
+      {/* Animation */}
+      <style>{`
+        @keyframes scrollText {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </div>
   );
 }
