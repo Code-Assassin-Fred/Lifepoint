@@ -55,12 +55,12 @@ export default function SkillsComponent() {
       if (inUnfoldZone) {
         // Allow normal scroll up if cards are fully folded
         if (isScrollingUp && isFullyFolded) {
-          return; // Don't prevent default, allow normal scroll
+          return; 
         }
         
         // Allow normal scroll down if cards are fully unfolded
         if (!isScrollingUp && isFullyUnfolded) {
-          return; // Don't prevent default, allow normal scroll
+          return; 
         }
 
         e.preventDefault();
