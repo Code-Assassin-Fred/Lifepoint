@@ -2,7 +2,7 @@ import React from 'react';
 
 const Services = () => {
   return (
-    <section className="bg-white py-20 -mt-[48px]">
+    <section className="bg-white py-20 -mt-[55px]">
       <div className="max-w-7xl mx-auto px-8 md:px-16">
         <div className="flex flex-col md:flex-row gap-12 items-start">
           {/* Left Column - Title */}
@@ -23,7 +23,7 @@ const Services = () => {
               className="text-gray-800 text-base md:text-lg leading-relaxed"
               style={{ fontFamily: 'Georgia, serif' }}
             >
-              Lifepoint's network of services offers a holistic approach to spiritual growth, personal development, and leadership empowerment. From online worship experiences to structured leadership programs, mentorship opportunities, and coaching sessions, everything we do is designed to guide individuals toward faith, growth, and community impact.
+              Our network of services offer a holistic approach to spiritual growth, personal development, and leadership empowerment. From online worship experiences to structured leadership programs, mentorship opportunities, and coaching sessions, everything we do is designed to guide individuals toward faith, growth, and community impact.
             </p>
 
             <p

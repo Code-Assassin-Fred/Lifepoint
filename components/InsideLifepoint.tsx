@@ -1,96 +1,106 @@
+"use client";
+
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export default function InsideLifepoint() {
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
+  };
+
+  const fadeIn = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.8 } }
+  };
+
+  const staggerContainer = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.2 }
+    }
+  };
+
   return (
     <section className="w-full bg-white py-16 px-4">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div
+          className="text-center mb-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+        >
           <h2 className="text-5xl md:text-6xl font-black text-gray-700 uppercase mb-6 tracking-tight">
             Inside Lifepoint
           </h2>
           <p className="text-lg md:text-xl text-gray-700 max-w-4xl mx-auto">
             From iconic stage moments to behind-the-scenes breakthroughs—witness the legacy of Lifepoint in motion.
           </p>
-        </div>
+        </motion.div>
 
         {/* Image Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
-          {/* Row 1 */}
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-            <img
-              src="/Mandatory4.jpg"
-              alt="Lifepoint team moment"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-            <img
-              src="/mike1.jpg"
-              alt="Lifepoint leadership"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-            <img
-              src="/Mike2.jpg"
-              alt="Lifepoint event"
-              className="w-full h-full object-cover object-top"
-            />
-          </div>
-          
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-            <img
-              src="/Mandatory1.jpg"
-              alt="Lifepoint gathering"
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Row 2 */}
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-            <img
-              src="/Mandatory2.jpg"
-              alt="Lifepoint experience"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-            <img
-              src="/mandatory3.jpg"
-              alt="Lifepoint community"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="lg:col-span-2 relative aspect-[8/3] lg:aspect-[2/1] overflow-hidden rounded-lg">
-            <img
-              src="/Mandatory4.jpg"
-              alt="Lifepoint legacy"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+        >
+          {/* Images with fade-in-up effect */}
+          {[
+            { src: '/Mandatory4.jpg', alt: 'Lifepoint team moment' },
+            { src: '/mike1.jpg', alt: 'Lifepoint leadership' },
+            { src: '/Mike2.jpg', alt: 'Lifepoint event', objectPosition: 'top' },
+            { src: '/Mandatory1.jpg', alt: 'Lifepoint gathering' },
+            { src: '/Mandatory2.jpg', alt: 'Lifepoint experience' },
+            { src: '/mandatory3.jpg', alt: 'Lifepoint community' },
+            { src: '/Mandatory4.jpg', alt: 'Lifepoint legacy', colSpan: 'lg:col-span-2', aspect: 'lg:aspect-[2/1]' },
+          ].map((img, index) => (
+            <motion.div
+              key={index}
+              className={`relative aspect-[4/3] overflow-hidden rounded-lg ${img.colSpan ? img.colSpan : ''} ${img.aspect ? img.aspect : ''}`}
+              variants={fadeInUp}
+            >
+              <img
+                src={img.src}
+                alt={img.alt}
+                className={`w-full h-full object-cover ${img.objectPosition ? 'object-' + img.objectPosition : ''}`}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
 
         {/* Founder Section */}
-        <div className="mb-8">
+        <motion.div
+          className="mb-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+        >
           <h3 className="text-3xl md:text-4xl font-bold text-gray-800">
             Founder
           </h3>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+        >
           {/* Left Side - Image with LinkedIn Icon */}
-          <div className="relative max-w-md">
+          <motion.div className="relative max-w-md" variants={fadeInUp}>
             <img
               src="/founder1.jpg"
               alt="Dr. Mike Mutua - Founder"
               className="w-full h-96 object-cover object-top rounded-lg shadow-lg"
             />
-            {/* LinkedIn Icon Overlay */}
             <a 
               href="https://www.linkedin.com/in/mikelifepoint" 
               target="_blank" 
@@ -101,18 +111,18 @@ export default function InsideLifepoint() {
                 <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
               </svg>
             </a>
-          </div>
+          </motion.div>
 
           {/* Right Side - Content */}
-          <div className="space-y-6">
+          <motion.div className="space-y-6" variants={fadeInUp}>
             <p className="text-lg leading-relaxed text-gray-700">
               <span className="text-red-600">"My calling has always been about empowering youth, adults and leaders and transforming lives through biblical truth and practical wisdom. Over the past decade, I've been privileged to build LifePoint Ministry from the ground up, train thousands of leaders, and establish platforms where authentic faith meets real-world leadership. It's not just about preaching but more about equipping people to walk in purpose and lead with excellence."</span>
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* About Dr. Mike Section */}
-        <div className="mt-16">
+        <motion.div className="mt-16" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
           <h3 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
             Dr. Mike Mutua
           </h3>
@@ -124,9 +134,9 @@ export default function InsideLifepoint() {
           </p>
           
           {/* Experience and Education Side by Side */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-8" variants={staggerContainer}>
             {/* Experience */}
-            <div className="bg-gray-50 p-6 rounded-lg">
+            <motion.div className="bg-gray-50 p-6 rounded-lg" variants={fadeInUp}>
               <h4 className="text-xl font-bold text-gray-800 mb-4">Experience</h4>
               <div className="space-y-4">
                 <div>
@@ -150,10 +160,10 @@ export default function InsideLifepoint() {
                   <p className="text-gray-500 text-sm">2010 - 2014 • 4 Years</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Education */}
-            <div className="bg-gray-50 p-6 rounded-lg">
+            <motion.div className="bg-gray-50 p-6 rounded-lg" variants={fadeInUp}>
               <h4 className="text-xl font-bold text-gray-800 mb-4">Education & Credentials</h4>
               <ul className="space-y-2 text-gray-700">
                 <li>• Doctor of Ministry in Organizational Leadership - Asbury Theological Seminary (USA)</li>
@@ -162,9 +172,9 @@ export default function InsideLifepoint() {
                 <li>• Bachelor of Theology - Scott Christian University (Kenya)</li>
                 <li>• Ordained and Licensed Minister</li>
               </ul>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

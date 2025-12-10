@@ -26,7 +26,7 @@ const Hero = () => {
           className="text-white font-extrabold text-6xl md:text-8xl tracking-wider leading-none"
           style={{ fontFamily: "Impact, Anton, Bebas Neue, sans-serif" }}
         >
-          <span className="text-red-600">LIFEPOINT</span>
+          <span className="text-red-500">LIFEPOINT</span>
         </h1>
 
         <p className="text-gray-200 mt-6 text-xl md:text-2xl max-w-xl leading-relaxed">

@@ -98,7 +98,7 @@ export default function SkillsComponent() {
   return (
     <div
       ref={sectionRef}
-      className="relative w-full bg-[#2a2a2a] py-20 overflow-hidden min-h-screen"
+      className="relative w-full bg-[#2a2a2a] py-20 overflow-hidden min-h-[600px] md:min-h-screen"
     >
       {/* Background Grid */}
       <div className="absolute inset-0 overflow-hidden">
@@ -119,7 +119,7 @@ export default function SkillsComponent() {
       </div>
 
       {/* Cards */}
-      <div className="relative w-full max-w-md mx-auto z-10">
+      <div className="relative w-full max-w-md mx-auto z-10 mb-32 md:mb-0">
         {cards.map((card, i) => {
           const unfoldableCards = cards.length - 1;
           const cardIndex = i >= unfoldableCards ? unfoldableCards : i;
@@ -168,21 +168,21 @@ export default function SkillsComponent() {
         </div>
       </div>
 
-<div className="absolute bottom-10 left-0 w-full overflow-hidden whitespace-nowrap">
-  <div
-    className="text-5xl font-semibold text-white inline-block px-10"
-    style={{ animation: "scrollText 18s linear infinite" }}
-  >
-    <span style={{ color: "#ff6b6b" }}>Learn.</span> 
-    Believe. 
-    <span style={{ color: "#ff6b6b" }}>Become.</span> 
-    One moment of growth at a time. &nbsp; 
-    <span style={{ color: "#ff6b6b" }}>Learn. </span> 
-    <span style={{ color: "#ff6b6b" }}>Believe. </span> 
-    <span style={{ color: "#ff6b6b" }}>Become. </span> 
-    One moment of growth at a time.
-  </div>
-</div>
+      <div className="absolute bottom-10 left-0 w-full overflow-hidden whitespace-nowrap">
+        <div
+          className="text-5xl font-semibold text-white inline-block px-10"
+          style={{ animation: "scrollText 18s linear infinite" }}
+        >
+          <span style={{ color: "#ff6b6b" }}>Learn.</span> 
+          Believe. 
+          <span style={{ color: "#ff6b6b" }}>Become.</span> 
+          One moment of growth at a time. &nbsp; 
+          <span style={{ color: "#ff6b6b" }}>Learn. </span> 
+          <span style={{ color: "#ff6b6b" }}>Believe. </span> 
+          <span style={{ color: "#ff6b6b" }}>Become. </span> 
+          One moment of growth at a time.
+        </div>
+      </div>
 
       {/* Animation */}
       <style>{`

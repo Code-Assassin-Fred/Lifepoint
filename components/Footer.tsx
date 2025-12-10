@@ -56,16 +56,6 @@ const Footer = () => {
             <p className="text-sm md:text-base">
               Lifepoint is a global online church and growth platform empowering youth, adults, and leaders to rise in faith, purpose, and influence.
             </p>
-            <div className="flex items-center gap-3 mt-2">
-              <Phone size={18} />
-              <a href={`tel:${contactNumber}`} className="hover:text-red-600 transition-colors">{contactNumber}</a>
-            </div>
-            <div className="flex items-center gap-3 mt-1">
-              <MessageCircle size={18} />
-              <a href={`https://wa.me/254721720069`} target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors">
-                WhatsApp
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -102,10 +92,10 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Social */}
+          {/* Social + Contact */}
           <div>
             <h4 className="font-semibold text-lg mb-4">Connect With Us</h4>
-            <div className="flex gap-4">
+            <div className="flex gap-4 mb-4">
               {socialLinks.map((social, idx) => (
                 <a
                   key={idx}
@@ -117,6 +107,20 @@ const Footer = () => {
                   {social.icon}
                 </a>
               ))}
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Phone size={18} />
+                <a href={`tel:${contactNumber}`} className="hover:text-red-600 transition-colors">
+                  {contactNumber}
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <MessageCircle size={18} />
+                <a href={`https://wa.me/254721720069`} target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors">
+                  WhatsApp
+                </a>
+              </div>
             </div>
           </div>
         </div>
