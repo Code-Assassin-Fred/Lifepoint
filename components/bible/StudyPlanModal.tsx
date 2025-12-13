@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -15,9 +15,14 @@ interface StudyDay {
 interface StudyPlanModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialData?: {
+        title?: string;
+        description?: string;
+        days?: StudyDay[];
+    };
 }
 
-export default function StudyPlanModal({ isOpen, onClose }: StudyPlanModalProps) {
+export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPlanModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('Faith');
@@ -28,6 +33,17 @@ export default function StudyPlanModal({ isOpen, onClose }: StudyPlanModalProps)
     const [error, setError] = useState<string | null>(null);
 
     const categories = ['Faith', 'Peace', 'Discipleship', 'Prayer', 'Hope', 'Love', 'Wisdom'];
+
+    // Load initial data
+    useEffect(() => {
+        if (initialData) {
+            if (initialData.title) setTitle(initialData.title);
+            if (initialData.description) setDescription(initialData.description);
+            if (initialData.days && initialData.days.length > 0) {
+                setDays(initialData.days);
+            }
+        }
+    }, [initialData, isOpen]);
 
     const addDay = () => {
         setDays([...days, { dayNumber: days.length + 1, title: '', scripture: '', content: '' }]);
@@ -71,10 +87,12 @@ export default function StudyPlanModal({ isOpen, onClose }: StudyPlanModalProps)
             });
 
             // Reset and close
-            setTitle('');
-            setDescription('');
-            setCategory('Faith');
-            setDays([{ dayNumber: 1, title: '', scripture: '', content: '' }]);
+            if (!initialData) {
+                setTitle('');
+                setDescription('');
+                setCategory('Faith');
+                setDays([{ dayNumber: 1, title: '', scripture: '', content: '' }]);
+            }
             onClose();
         } catch (err) {
             console.error('Error creating study plan:', err);
@@ -85,10 +103,12 @@ export default function StudyPlanModal({ isOpen, onClose }: StudyPlanModalProps)
     };
 
     const handleClose = () => {
-        setTitle('');
-        setDescription('');
-        setCategory('Faith');
-        setDays([{ dayNumber: 1, title: '', scripture: '', content: '' }]);
+        if (!initialData) {
+            setTitle('');
+            setDescription('');
+            setCategory('Faith');
+            setDays([{ dayNumber: 1, title: '', scripture: '', content: '' }]);
+        }
         setError(null);
         onClose();
     };

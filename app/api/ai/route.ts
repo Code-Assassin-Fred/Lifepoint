@@ -19,23 +19,6 @@ IMPORTANT FORMATTING RULES:
 4. Keep paragraphs short for readability
 5. End with a "Further Study" section with 2-3 related passages
 
-Your response structure should be:
-## [Main Topic/Verse]
-Brief introduction...
-
-### Context
-Historical and immediate context...
-
-### Key Insights
-Language insights, theological meaning...
-
-### Application
-Practical takeaways...
-
-### Further Study
-- [Scripture 1] - brief relevance
-- [Scripture 2] - brief relevance
-
 You speak with authority but humility, always pointing people to God's Word. Keep responses focused - around 300-400 words unless more detail is requested.`;
 
 const ADMIN_ASSISTANT_PROMPT = `You are an expert theology curriculum designer helping church leaders create Bible study content. 
@@ -64,8 +47,33 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { action, content, context } = await req.json();
+        const { action, content, context, messages } = await req.json();
 
+        // Handle multi-turn chat
+        if (action === 'chat') {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${OPENAI_API_KEY}`,
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        { role: 'system', content: ADMIN_ASSISTANT_PROMPT },
+                        ...messages
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 1500,
+                }),
+            });
+
+            if (!response.ok) throw new Error('OpenAI API error');
+            const data = await response.json();
+            return NextResponse.json({ response: data.choices[0]?.message?.content });
+        }
+
+        // Handle single-turn actions (legacy/user actions)
         let systemPrompt = SYSTEM_PROMPT;
         let userMessage = '';
 
@@ -108,66 +116,6 @@ Help me form a prayer response to God's Word. Structure your response with:
 - Praise points from the passage
 - Personal application prayers
 - A sample prayer`;
-                break;
-
-            case 'admin-generate-devotion':
-                systemPrompt = ADMIN_ASSISTANT_PROMPT;
-                userMessage = `Generate a complete daily devotion for: "${content}"
-
-Include:
-## Title
-A compelling title
-
-## Scripture
-The main passage
-
-## Devotional Content
-3-4 paragraphs of reflection (about 200 words)
-
-## Reflection Questions
-3 questions for personal reflection
-
-## Prayer Prompt
-A guiding prayer prompt
-
-${context ? `Theme/context: ${context}` : ''}`;
-                break;
-
-            case 'admin-generate-study-plan':
-                systemPrompt = ADMIN_ASSISTANT_PROMPT;
-                userMessage = `Create a Bible study plan outline for: "${content}"
-
-Generate a structured study plan with:
-## Overview
-Brief description of the study
-
-## Study Days
-For each day provide:
-- Day number and title
-- Scripture passage
-- Key theme/focus
-- Brief study notes (1-2 sentences)
-
-${context ? `Additional requirements: ${context}` : ''}
-
-Generate 5-7 days unless otherwise specified.`;
-                break;
-
-            case 'admin-suggest-scriptures':
-                systemPrompt = ADMIN_ASSISTANT_PROMPT;
-                userMessage = `Suggest scripture passages for a Bible study on: "${content}"
-
-Provide:
-## Main Passages
-5-7 key passages with brief explanations
-
-## Supporting Passages
-3-5 additional passages for deeper study
-
-## Memory Verse
-One impactful verse to memorize
-
-${context ? `Context: ${context}` : ''}`;
                 break;
 
             case 'ask-question':

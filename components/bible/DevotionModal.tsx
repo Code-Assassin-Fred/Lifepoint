@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -8,9 +8,15 @@ import { db } from '@/lib/firebase';
 interface DevotionModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialData?: {
+        title?: string;
+        scripture?: string;
+        content?: string;
+        prayerPrompt?: string;
+    };
 }
 
-export default function DevotionModal({ isOpen, onClose }: DevotionModalProps) {
+export default function DevotionModal({ isOpen, onClose, initialData }: DevotionModalProps) {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [title, setTitle] = useState('');
     const [scripture, setScripture] = useState('');
@@ -18,6 +24,16 @@ export default function DevotionModal({ isOpen, onClose }: DevotionModalProps) {
     const [prayerPrompt, setPrayerPrompt] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Load initial data when available
+    useEffect(() => {
+        if (initialData) {
+            if (initialData.title) setTitle(initialData.title);
+            if (initialData.scripture) setScripture(initialData.scripture);
+            if (initialData.content) setContent(initialData.content);
+            if (initialData.prayerPrompt) setPrayerPrompt(initialData.prayerPrompt);
+        }
+    }, [initialData, isOpen]);
 
     const handleSubmit = async () => {
         if (!title.trim() || !scripture.trim() || !content.trim()) {
@@ -54,11 +70,13 @@ export default function DevotionModal({ isOpen, onClose }: DevotionModalProps) {
     };
 
     const handleClose = () => {
-        setDate(new Date().toISOString().split('T')[0]);
-        setTitle('');
-        setScripture('');
-        setContent('');
-        setPrayerPrompt('');
+        if (!initialData) {
+            setDate(new Date().toISOString().split('T')[0]);
+            setTitle('');
+            setScripture('');
+            setContent('');
+            setPrayerPrompt('');
+        }
         setError(null);
         onClose();
     };
