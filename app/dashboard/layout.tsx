@@ -9,26 +9,16 @@ import { getModulesForUser, getAllModules } from '@/config/modules';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 
-// ============================================
-// HARDCODED FOR TESTING - REMOVE IN PRODUCTION
-// ============================================
-const FAKE_SELECTED_MODULES = ['church', 'bible'];
-const FAKE_ROLE = 'admin'; // Change to 'user' to test user view
-// ============================================
-
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
     const router = useRouter();
-    const { user, loading, role: authRole } = useAuth();
+    const { user, loading, role, selectedModules } = useAuth();
 
-    // Use hardcoded values for testing
-    const role = FAKE_ROLE;
-    const selectedModules = FAKE_SELECTED_MODULES;
-
-    // Get modules based on selection (or all for admin)
+    // Get modules based on role and selection
+    // Admin sees all modules, user sees only their selected modules
     const modules =
         role === 'admin'
             ? getAllModules()
@@ -39,7 +29,7 @@ export default function DashboardLayout({
         router.push('/auth');
     };
 
-    // Protect route
+    // Protect route - redirect to auth if not logged in
     useEffect(() => {
         if (!loading && !user) {
             router.replace('/auth');
