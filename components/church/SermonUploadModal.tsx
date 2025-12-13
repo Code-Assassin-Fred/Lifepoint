@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useRef, DragEvent } from 'react';
-import { X, Link2, Upload, Image, Calendar } from 'lucide-react';
+import { X, Link2, Upload, Image } from 'lucide-react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/lib/context/AuthContext';
 
 interface SermonUploadModalProps {
     isOpen: boolean;
@@ -9,33 +12,23 @@ interface SermonUploadModalProps {
 }
 
 export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModalProps) {
+    const { user } = useAuth();
     const [title, setTitle] = useState('');
     const [speaker, setSpeaker] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [videoSource, setVideoSource] = useState<'link' | 'upload'>('link');
     const [videoUrl, setVideoUrl] = useState('');
-    const [thumbnail, setThumbnail] = useState<File | null>(null);
-    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    const [thumbnailUrl, setThumbnailUrl] = useState('');
     const [isDragging, setIsDragging] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleThumbnailChange = (file: File) => {
-        setThumbnail(file);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setThumbnailPreview(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-    };
 
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setIsDragging(false);
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-            handleThumbnailChange(file);
-        }
+        // For now, just accept URL input for thumbnail
     };
 
     const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -47,30 +40,56 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
         setIsDragging(false);
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            handleThumbnailChange(file);
+    const handleSubmit = async () => {
+        if (!title.trim()) {
+            setError('Title is required');
+            return;
+        }
+        if (!speaker.trim()) {
+            setError('Speaker is required');
+            return;
+        }
+        if (!videoUrl.trim()) {
+            setError('Video URL is required');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            await addDoc(collection(db, 'sermons'), {
+                title: title.trim(),
+                speaker: speaker.trim(),
+                date: new Date(date),
+                videoUrl: videoUrl.trim(),
+                thumbnailUrl: thumbnailUrl.trim() || null,
+                createdAt: serverTimestamp(),
+                createdBy: user?.uid || 'unknown',
+            });
+
+            // Reset form and close
+            setTitle('');
+            setSpeaker('');
+            setDate(new Date().toISOString().split('T')[0]);
+            setVideoUrl('');
+            setThumbnailUrl('');
+            onClose();
+        } catch (err) {
+            console.error('Error uploading sermon:', err);
+            setError('Failed to upload sermon. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleSubmit = () => {
-        // No submit logic - just for UI demo
-        console.log({ title, speaker, date, videoSource, videoUrl, thumbnail });
-        onClose();
-    };
-
-    const resetForm = () => {
+    const handleClose = () => {
         setTitle('');
         setSpeaker('');
         setDate(new Date().toISOString().split('T')[0]);
         setVideoUrl('');
-        setThumbnail(null);
-        setThumbnailPreview(null);
-    };
-
-    const handleClose = () => {
-        resetForm();
+        setThumbnailUrl('');
+        setError(null);
         onClose();
     };
 
@@ -89,14 +108,14 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Upload Sermon</h2>
-                        <p className="text-sm text-gray-500 mt-0.5">
+                        <h2 className="text-xl font-bold text-black">Upload Sermon</h2>
+                        <p className="text-sm text-black/60 mt-0.5">
                             Add a new sermon to the library for your congregation.
                         </p>
                     </div>
                     <button
                         onClick={handleClose}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 text-black/40 hover:text-black/60 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -104,10 +123,16 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
 
                 {/* Form */}
                 <div className="p-6 space-y-5">
+                    {error && (
+                        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
+                            {error}
+                        </div>
+                    )}
+
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Sermon Title
+                        <label className="block text-sm font-medium text-black mb-1.5">
+                            Sermon Title *
                         </label>
                         <input
                             type="text"
@@ -121,8 +146,8 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                     {/* Speaker & Date */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Speaker
+                            <label className="block text-sm font-medium text-black mb-1.5">
+                                Speaker *
                             </label>
                             <input
                                 type="text"
@@ -133,24 +158,22 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            <label className="block text-sm font-medium text-black mb-1.5">
                                 Date
                             </label>
-                            <div className="relative">
-                                <input
-                                    type="date"
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                                />
-                            </div>
+                            <input
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                            />
                         </div>
                     </div>
 
                     {/* Video Source Toggle */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Video Source
+                        <label className="block text-sm font-medium text-black mb-1.5">
+                            Video Source *
                         </label>
                         <div className="flex rounded-xl border border-gray-200 overflow-hidden">
                             <button
@@ -158,7 +181,7 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                                 onClick={() => setVideoSource('link')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${videoSource === 'link'
                                         ? 'bg-red-50 text-red-600 border-r border-red-100'
-                                        : 'bg-white text-gray-600 hover:bg-gray-50 border-r border-gray-200'
+                                        : 'bg-white text-black/60 hover:bg-gray-50 border-r border-gray-200'
                                     }`}
                             >
                                 <Link2 size={16} />
@@ -169,7 +192,7 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                                 onClick={() => setVideoSource('upload')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${videoSource === 'upload'
                                         ? 'bg-red-50 text-red-600'
-                                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                                        : 'bg-white text-black/60 hover:bg-gray-50'
                                     }`}
                             >
                                 <Upload size={16} />
@@ -194,59 +217,22 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                     {/* Upload placeholder */}
                     {videoSource === 'upload' && (
                         <div className="p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center">
-                            <p className="text-sm text-gray-500">Video upload coming soon</p>
+                            <p className="text-sm text-black/50">Video upload coming soon - use link for now</p>
                         </div>
                     )}
 
-                    {/* Thumbnail */}
+                    {/* Thumbnail URL */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Thumbnail (optional)
+                        <label className="block text-sm font-medium text-black mb-1.5">
+                            Thumbnail URL (optional)
                         </label>
-                        <div
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onClick={() => fileInputRef.current?.click()}
-                            className={`relative cursor-pointer rounded-xl border-2 border-dashed transition-all ${isDragging
-                                    ? 'border-red-400 bg-red-50'
-                                    : 'border-gray-200 hover:border-gray-300 bg-gray-50'
-                                } ${thumbnailPreview ? 'p-2' : 'p-6'}`}
-                        >
-                            {thumbnailPreview ? (
-                                <div className="relative aspect-video rounded-lg overflow-hidden">
-                                    <img
-                                        src={thumbnailPreview}
-                                        alt="Thumbnail preview"
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setThumbnail(null);
-                                            setThumbnailPreview(null);
-                                        }}
-                                        className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-lg hover:bg-black/80 transition-colors"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center text-gray-400">
-                                    <Image size={32} className="mb-2" />
-                                    <p className="text-sm font-medium">Choose Image</p>
-                                    <p className="text-xs mt-1">or drag and drop</p>
-                                </div>
-                            )}
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileSelect}
-                                className="hidden"
-                            />
-                        </div>
+                        <input
+                            type="url"
+                            value={thumbnailUrl}
+                            onChange={(e) => setThumbnailUrl(e.target.value)}
+                            placeholder="https://example.com/thumbnail.jpg"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                        />
                     </div>
                 </div>
 
@@ -255,16 +241,18 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                        disabled={loading}
+                        className="px-5 py-2.5 text-sm font-medium text-black/70 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors"
+                        disabled={loading}
+                        className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50"
                     >
-                        Upload Sermon
+                        {loading ? 'Uploading...' : 'Upload Sermon'}
                     </button>
                 </div>
             </div>
