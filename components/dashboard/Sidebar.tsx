@@ -10,7 +10,7 @@ import {
     X,
     Shield,
 } from 'lucide-react';
-import { Module } from '@/config/modules';
+import { Module, getModuleRoute } from '@/config/modules';
 
 interface SidebarProps {
     modules: Module[];
@@ -32,7 +32,10 @@ export default function Sidebar({
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
 
-    const isActive = (route: string) => pathname === route || pathname.startsWith(route + '/');
+    const isActive = (moduleId: string) => {
+        const route = getModuleRoute(moduleId, role);
+        return pathname === route || pathname.startsWith(route + '/');
+    };
 
     const dashboardRoute = role === 'admin' ? '/dashboard/admin' : '/dashboard/user';
 
@@ -54,7 +57,7 @@ export default function Sidebar({
                             className="w-full h-full object-cover"
                         />
                     </div>
-                    <span className="text-xl font-bold text-gray-900">Lifepoint</span>
+                    <span className="text-xl font-bold text-black">Lifepoint</span>
                 </Link>
             </div>
 
@@ -73,8 +76,8 @@ export default function Sidebar({
                         </div>
                     )}
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-                        <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+                        <p className="text-sm font-medium text-black truncate">{userName}</p>
+                        <p className="text-xs text-black/60 truncate">{userEmail}</p>
                     </div>
                 </div>
             </div>
@@ -86,7 +89,7 @@ export default function Sidebar({
                     href={dashboardRoute}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${pathname === dashboardRoute
                             ? 'bg-red-50 text-red-600'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            : 'text-black/70 hover:bg-gray-50 hover:text-black'
                         }`}
                 >
                     <LayoutDashboard size={20} />
@@ -95,20 +98,21 @@ export default function Sidebar({
 
                 {/* Modules Section */}
                 <div className="mt-6">
-                    <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                    <p className="px-4 text-xs font-semibold text-black/40 uppercase tracking-wider mb-3">
                         Modules
                     </p>
                     <div className="space-y-1">
                         {modules.map((module) => {
                             const Icon = module.icon;
-                            const active = isActive(module.route);
+                            const route = getModuleRoute(module.id, role);
+                            const active = isActive(module.id);
                             return (
                                 <Link
                                     key={module.id}
-                                    href={module.route}
+                                    href={route}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${active
                                             ? 'bg-red-50 text-red-600'
-                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                            : 'text-black/70 hover:bg-gray-50 hover:text-black'
                                         }`}
                                 >
                                     <Icon size={20} />
@@ -122,14 +126,14 @@ export default function Sidebar({
                 {/* Admin Link (if admin) */}
                 {role === 'admin' && (
                     <div className="mt-6">
-                        <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                        <p className="px-4 text-xs font-semibold text-black/40 uppercase tracking-wider mb-3">
                             Admin
                         </p>
                         <Link
                             href="/dashboard/admin"
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pathname.startsWith('/dashboard/admin')
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pathname === '/dashboard/admin'
                                     ? 'bg-red-50 text-red-600'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    : 'text-black/70 hover:bg-gray-50 hover:text-black'
                                 }`}
                         >
                             <Shield size={20} />
@@ -143,7 +147,7 @@ export default function Sidebar({
             <div className="p-4 border-t border-gray-100">
                 <button
                     onClick={onLogout}
-                    className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all"
+                    className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-black/70 hover:bg-red-50 hover:text-red-600 transition-all"
                 >
                     <LogOut size={20} />
                     <span className="font-medium">Sign Out</span>
@@ -166,11 +170,11 @@ export default function Sidebar({
                     >
                         <img src="/logo.jpg" alt="Lifepoint" className="w-full h-full object-cover" />
                     </div>
-                    <span className="font-bold text-gray-900">Lifepoint</span>
+                    <span className="font-bold text-black">Lifepoint</span>
                 </Link>
                 <button
                     onClick={() => setMobileOpen(!mobileOpen)}
-                    className="p-2 text-gray-600 hover:text-gray-900"
+                    className="p-2 text-black/70 hover:text-black"
                 >
                     {mobileOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>

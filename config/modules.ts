@@ -17,7 +17,6 @@ export interface Module {
     label: string;
     description: string;
     icon: LucideIcon;
-    route: string;
     adminOnly?: boolean;
     premium?: boolean;
 }
@@ -28,58 +27,56 @@ export const ALL_MODULES: Module[] = [
         label: 'Church',
         description: 'Livestreams, sermons, and prayer room',
         icon: Church,
-        route: '/dashboard/user/church',
     },
     {
         id: 'bible',
         label: 'Bible Study',
         description: 'Daily devotions, study plans, and personal notes',
         icon: BookOpen,
-        route: '/dashboard/user/bible',
     },
     {
         id: 'giving',
         label: 'Giving',
         description: 'Tithes, offerings, and donation history',
         icon: Heart,
-        route: '/dashboard/user/giving',
     },
     {
         id: 'events',
         label: 'Events',
         description: 'Upcoming gatherings and registrations',
         icon: Calendar,
-        route: '/dashboard/user/events',
     },
     {
         id: 'community',
         label: 'Community',
         description: 'Connect with groups and forums',
         icon: Users,
-        route: '/dashboard/user/community',
     },
     {
         id: 'media',
         label: 'Media',
         description: 'Videos, podcasts, and guest speakers',
         icon: Tv,
-        route: '/dashboard/user/media',
     },
     {
         id: 'growth',
         label: 'Growth',
         description: 'Personal development and assessments',
         icon: GraduationCap,
-        route: '/dashboard/user/growth',
     },
     {
         id: 'mentorship',
         label: 'Mentorship',
         description: 'Find mentors and book coaching sessions',
         icon: UserCheck,
-        route: '/dashboard/user/mentorship',
     },
 ];
+
+// Get route for a module based on role
+export function getModuleRoute(moduleId: string, role: string | null): string {
+    const baseRoute = role === 'admin' ? '/dashboard/admin' : '/dashboard/user';
+    return `${baseRoute}/${moduleId}`;
+}
 
 // Helper to get modules for a user based on their selection
 export function getModulesForUser(selectedIds: string[]): Module[] {

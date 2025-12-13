@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/lib/context/AuthContext';
-import { getModulesForUser } from '@/config/modules';
+import { getModulesForUser, getModuleRoute } from '@/config/modules';
 import { ArrowRight } from 'lucide-react';
 
 export default function UserDashboardPage() {
-    const { selectedModules } = useAuth();
+    const { selectedModules, role } = useAuth();
     const modules = getModulesForUser(selectedModules);
 
     return (
@@ -37,10 +37,11 @@ export default function UserDashboardPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                     {modules.map((module) => {
                         const Icon = module.icon;
+                        const route = getModuleRoute(module.id, role);
                         return (
                             <Link
                                 key={module.id}
-                                href={module.route}
+                                href={route}
                                 className="group relative bg-white rounded-2xl p-6 border border-gray-100 hover:border-red-200 hover:shadow-lg transition-all duration-300"
                             >
                                 {/* Icon */}
