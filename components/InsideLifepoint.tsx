@@ -107,18 +107,18 @@ export default function InsideLifepoint() {
           {/* Left Side - Image with LinkedIn Icon */}
           <motion.div className="relative max-w-md" variants={fadeInUp}>
             <img
-              src="/founder1.jpg"
+              src="/Founder1.jpg"
               alt="Dr. Mike Mutua - Founder"
               className="w-full h-96 object-cover object-top rounded-lg shadow-lg"
             />
-            <a 
-              href="https://www.linkedin.com/in/mikelifepoint" 
-              target="_blank" 
+            <a
+              href="https://www.linkedin.com/in/mikelifepoint"
+              target="_blank"
               rel="noopener noreferrer"
               className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition-colors"
             >
               <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
               </svg>
             </a>
           </motion.div>
@@ -142,12 +142,12 @@ export default function InsideLifepoint() {
           <p className="text-lg text-gray-700 leading-relaxed mb-8 max-w-4xl">
             Dr. Mutua serves as the Founder and National Bishop of LifePoint Ministry Kenya, Lead Strategist at The Ark Consult, and Principal of Pwani International Christian College. He is skilled in coaching leaders, leading teams, public speaking, leadership team training, church planting, and pastoral counseling.
           </p>
-          
+
           {/* Experience and Education Side by Side */}
           <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-8" variants={staggerContainer}>
             {/* Experience */}
-            <motion.div 
-              className="bg-gray-50 p-6 rounded-lg" 
+            <motion.div
+              className="bg-gray-50 p-6 rounded-lg"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
@@ -179,8 +179,8 @@ export default function InsideLifepoint() {
             </motion.div>
 
             {/* Education */}
-            <motion.div 
-              className="bg-gray-50 p-6 rounded-lg" 
+            <motion.div
+              className="bg-gray-50 p-6 rounded-lg"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
