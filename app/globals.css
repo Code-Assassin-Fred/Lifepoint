@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f7f7; /* white with a bit of gray */
+  --background: #f7f7f7;
+  /* white with a bit of gray */
   --foreground: #171717;
 }
 
@@ -26,3 +27,18 @@ body {
 }
 
 
+
+@layer base {
+
+  input,
+  textarea,
+  select {
+    color: black;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: black;
+    opacity: 1;
+  }
+}
