@@ -16,8 +16,16 @@ export default function SkillsComponent() {
 
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const scrollAccumulator = useRef(0);
+  const touchStartY = useRef(0);
+  const lastTouchY = useRef(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [startAnimation, setStartAnimation] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  // Detect touch device on mount
+  useEffect(() => {
+    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -36,10 +44,12 @@ export default function SkillsComponent() {
 
     const unfoldableCards = cards.length - 1;
     const scrollSensitivity = 2000;
+    // Lower sensitivity for touch (more responsive on mobile)
+    const touchSensitivity = 800;
 
-    const handleWheel = (e: WheelEvent) => {
+    const updateProgress = (delta: number, sensitivity: number) => {
       const el = sectionRef.current;
-      if (!el) return;
+      if (!el) return false;
 
       const rect = el.getBoundingClientRect();
       const windowHeight = window.innerHeight;
@@ -47,24 +57,56 @@ export default function SkillsComponent() {
 
       const inUnfoldZone = rect.top <= startPoint && rect.bottom >= startPoint;
 
-      const isScrollingUp = e.deltaY < 0;
+      const isScrollingUp = delta < 0;
       const isFullyFolded = scrollAccumulator.current <= 0;
-      const isFullyUnfolded = scrollAccumulator.current >= scrollSensitivity;
+      const isFullyUnfolded = scrollAccumulator.current >= sensitivity;
 
       if (inUnfoldZone) {
-        if (isScrollingUp && isFullyFolded) return;
-        if (!isScrollingUp && isFullyUnfolded) return;
-
-        e.preventDefault();
+        if (isScrollingUp && isFullyFolded) return false;
+        if (!isScrollingUp && isFullyUnfolded) return false;
 
         scrollAccumulator.current = Math.min(
-          Math.max(scrollAccumulator.current + e.deltaY, 0),
-          scrollSensitivity
+          Math.max(scrollAccumulator.current + delta, 0),
+          sensitivity
         );
 
-        const newProgress = scrollAccumulator.current / scrollSensitivity;
+        const newProgress = scrollAccumulator.current / sensitivity;
         setScrollProgress(newProgress);
+        return true; // Indicate we handled the scroll
       }
+      return false;
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      if (updateProgress(e.deltaY, scrollSensitivity)) {
+        e.preventDefault();
+      }
+    };
+
+    // Touch event handlers for mobile
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        touchStartY.current = e.touches[0].clientY;
+        lastTouchY.current = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+
+      const currentY = e.touches[0].clientY;
+      // Invert delta because touch drag down = scroll up (negative delta)
+      const delta = (lastTouchY.current - currentY) * 3; // Multiply for more responsive feel
+      lastTouchY.current = currentY;
+
+      if (updateProgress(delta, touchSensitivity)) {
+        e.preventDefault();
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStartY.current = 0;
+      lastTouchY.current = 0;
     };
 
     const handleScroll = () => {
@@ -74,6 +116,7 @@ export default function SkillsComponent() {
       const rect = el.getBoundingClientRect();
       const windowHeight = window.innerHeight;
       const startPoint = windowHeight / 2;
+      const sensitivity = isTouchDevice ? touchSensitivity : scrollSensitivity;
 
       if (rect.top > startPoint) {
         scrollAccumulator.current = 0;
@@ -81,19 +124,32 @@ export default function SkillsComponent() {
       }
 
       if (rect.bottom < startPoint) {
-        scrollAccumulator.current = scrollSensitivity;
+        scrollAccumulator.current = sensitivity;
         setScrollProgress(1);
       }
     };
 
     window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Add touch event listeners
+    const el = sectionRef.current;
+    if (el) {
+      el.addEventListener("touchstart", handleTouchStart, { passive: true });
+      el.addEventListener("touchmove", handleTouchMove, { passive: false });
+      el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    }
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("scroll", handleScroll);
+      if (el) {
+        el.removeEventListener("touchstart", handleTouchStart);
+        el.removeEventListener("touchmove", handleTouchMove);
+        el.removeEventListener("touchend", handleTouchEnd);
+      }
     };
-  }, [startAnimation]);
+  }, [startAnimation, isTouchDevice]);
 
   return (
     <div
@@ -141,12 +197,16 @@ export default function SkillsComponent() {
           return (
             <div
               key={card.id}
-              className="absolute top-0 left-0 w-full border-2 border-white bg-[#3a3a3a]/80 backdrop-blur-md p-10"
+              className={`absolute top-0 left-0 w-full border-2 border-white p-10 ${isTouchDevice ? 'bg-[#3a3a3a]' : 'bg-[#3a3a3a]/80 backdrop-blur-md'
+                }`}
               style={{
                 zIndex: cards.length - i,
                 transformOrigin: i % 2 === 0 ? "bottom left" : "bottom right",
                 transform: `rotate(${rotation}deg) translateY(${i * 10}px) translateX(${i * 5}px)`,
-                transition: "none"
+                transition: "none",
+                willChange: "transform",
+                WebkitBackfaceVisibility: "hidden",
+                backfaceVisibility: "hidden"
               }}
             >
               <h2 className="text-2xl text-white mb-6">{card.title}</h2>
@@ -173,13 +233,13 @@ export default function SkillsComponent() {
           className="text-5xl font-semibold text-white inline-block px-10"
           style={{ animation: "scrollText 18s linear infinite" }}
         >
-          <span style={{ color: "#ff6b6b" }}>Learn.</span> 
-          Believe. 
-          <span style={{ color: "#ff6b6b" }}>Become.</span> 
-          One moment of growth at a time. &nbsp; 
-          <span style={{ color: "#ff6b6b" }}>Learn. </span> 
-          <span style={{ color: "#ff6b6b" }}>Believe. </span> 
-          <span style={{ color: "#ff6b6b" }}>Become. </span> 
+          <span style={{ color: "#ff6b6b" }}>Learn.</span>
+          Believe.
+          <span style={{ color: "#ff6b6b" }}>Become.</span>
+          One moment of growth at a time. &nbsp;
+          <span style={{ color: "#ff6b6b" }}>Learn. </span>
+          <span style={{ color: "#ff6b6b" }}>Believe. </span>
+          <span style={{ color: "#ff6b6b" }}>Become. </span>
           One moment of growth at a time.
         </div>
       </div>
