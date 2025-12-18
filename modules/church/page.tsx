@@ -96,7 +96,7 @@ export default function ChurchModule() {
                         <Church size={24} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-black">Church</h2>
+                        <h2 className="text-xl font-bold text-black">Home</h2>
                         <p className="text-sm text-black/60">Livestreams, sermons, and prayer room</p>
                     </div>
                 </div>
@@ -123,8 +123,8 @@ export default function ChurchModule() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${isActive
-                                    ? 'border-red-600 text-red-600'
-                                    : 'border-transparent text-black/60 hover:text-black'
+                                ? 'border-red-600 text-red-600'
+                                : 'border-transparent text-black/60 hover:text-black'
                                 }`}
                         >
                             <Icon size={16} />

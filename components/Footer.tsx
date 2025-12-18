@@ -8,7 +8,7 @@ const Footer = () => {
   const router = useRouter();
 
   const quickLinks = [
-    { label: 'Church', href: '#' },
+    { label: 'Home', href: '#' },
     { label: 'Bible Study', href: '#' },
     { label: 'Growth', href: '#' },
     { label: 'Mentorship', href: '#' },
@@ -36,7 +36,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Top Section */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          
+
           {/* Logo + Description */}
           <div className="space-y-4">
             <div

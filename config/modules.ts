@@ -24,7 +24,7 @@ export interface Module {
 export const ALL_MODULES: Module[] = [
     {
         id: 'church',
-        label: 'Church',
+        label: 'Home',
         description: 'Livestreams, sermons, and prayer room',
         icon: Church,
     },
