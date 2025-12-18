@@ -231,7 +231,7 @@ export default function SkillsComponent() {
       <div className="absolute bottom-10 left-0 w-full overflow-hidden whitespace-nowrap">
         <div
           className="text-5xl font-semibold text-white inline-block px-10"
-          style={{ animation: "scrollText 18s linear infinite" }}
+          style={{ animation: "scrollText 28s ease-in-out infinite" }}
         >
           <span style={{ color: "#ff6b6b" }}>Learn.</span>
           Believe.
