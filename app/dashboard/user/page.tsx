@@ -22,8 +22,7 @@ export default function UserDashboardPage() {
             {/* Empty State */}
             {modules.length === 0 && (
                 <div className="bg-gray-50 rounded-2xl p-8 text-center">
-                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">📚</span>
+                    <div className="w-16 h-16 rounded-full border-2 border-gray-200 flex items-center justify-center mx-auto mb-4">
                     </div>
                     <h3 className="text-lg font-semibold text-black mb-2">No Modules Selected</h3>
                     <p className="text-black/60 max-w-md mx-auto">
@@ -45,7 +44,7 @@ export default function UserDashboardPage() {
                                 className="group relative bg-white rounded-2xl p-6 border border-gray-100 hover:border-red-200 hover:shadow-lg transition-all duration-300"
                             >
                                 {/* Icon */}
-                                <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-4 group-hover:bg-red-100 transition-colors">
+                                <div className="w-12 h-12 rounded-xl border-2 border-red-600 text-red-600 flex items-center justify-center mb-4 transition-colors">
                                     <Icon size={24} />
                                 </div>
 
@@ -65,22 +64,6 @@ export default function UserDashboardPage() {
                 </div>
             )}
 
-            {/* Daily Encouragement */}
-            <div className="mt-10 p-6 bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl border border-red-100">
-                <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xl shadow-sm">
-                        🙏
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-black text-sm">Daily Encouragement</h4>
-                        <p className="text-black/70 mt-1 text-sm leading-relaxed">
-                            &ldquo;For I know the plans I have for you,&rdquo; declares the LORD,
-                            &ldquo;plans to prosper you and not to harm you, plans to give you hope and a future.&rdquo;
-                        </p>
-                        <p className="text-xs text-black/50 mt-2">— Jeremiah 29:11</p>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }

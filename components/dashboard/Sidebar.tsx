@@ -87,9 +87,9 @@ export default function Sidebar({
                 {/* Dashboard Link */}
                 <Link
                     href={dashboardRoute}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${pathname === dashboardRoute
-                            ? 'bg-red-50 text-red-600'
-                            : 'text-black/70 hover:bg-gray-50 hover:text-black'
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all border-2 ${pathname === dashboardRoute
+                        ? 'border-red-600 text-red-600 bg-white'
+                        : 'border-transparent text-black/70 hover:text-black'
                         }`}
                 >
                     <LayoutDashboard size={20} />
@@ -110,9 +110,9 @@ export default function Sidebar({
                                 <Link
                                     key={module.id}
                                     href={route}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${active
-                                            ? 'bg-red-50 text-red-600'
-                                            : 'text-black/70 hover:bg-gray-50 hover:text-black'
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border-2 ${active
+                                        ? 'border-red-600 text-red-600 bg-white'
+                                        : 'border-transparent text-black/70 hover:text-black'
                                         }`}
                                 >
                                     <Icon size={20} />
@@ -131,9 +131,9 @@ export default function Sidebar({
                         </p>
                         <Link
                             href="/dashboard/admin"
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pathname === '/dashboard/admin'
-                                    ? 'bg-red-50 text-red-600'
-                                    : 'text-black/70 hover:bg-gray-50 hover:text-black'
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border-2 ${pathname === '/dashboard/admin'
+                                ? 'border-red-600 text-red-600 bg-white'
+                                : 'border-transparent text-black/70 hover:text-black'
                                 }`}
                         >
                             <Shield size={20} />
@@ -147,7 +147,7 @@ export default function Sidebar({
             <div className="p-4 border-t border-gray-100">
                 <button
                     onClick={onLogout}
-                    className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-black/70 hover:bg-red-50 hover:text-red-600 transition-all"
+                    className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-black/70 hover:border-red-600 border-2 border-transparent hover:text-red-600 transition-all"
                 >
                     <LogOut size={20} />
                     <span className="font-medium">Sign Out</span>

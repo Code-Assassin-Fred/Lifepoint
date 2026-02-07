@@ -125,8 +125,8 @@ export default function OnboardingPage() {
 
               <div className="space-y-4">
                 {MODULES.map((module) => (
-                  <div key={module.id} className={`border rounded-xl overflow-hidden transition-all ${selectedModules.includes(module.id) ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}>
-                    <div className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50" onClick={() => setOpenDropdown(openDropdown === module.id ? null : module.id)}>
+                  <div key={module.id} className={`border-2 rounded-xl overflow-hidden transition-all ${selectedModules.includes(module.id) ? 'border-red-600 bg-white' : 'border-gray-200 bg-white'}`}>
+                    <div className="flex items-center justify-between px-6 py-4 cursor-pointer" onClick={() => setOpenDropdown(openDropdown === module.id ? null : module.id)}>
                       <div className="flex items-center gap-3">
                         <input type="checkbox" checked={selectedModules.includes(module.id)} onChange={() => toggleModule(module.id)} onClick={(e) => e.stopPropagation()} className="h-5 w-5 text-red-600" />
                         <span className="font-semibold text-lg text-gray-800">{module.name}</span>
@@ -151,7 +151,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="flex justify-between pt-6">
-                <button onClick={() => setStep(1)} className="px-8 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Back</button>
+                <button onClick={() => setStep(1)} className="px-8 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Back</button>
                 <button onClick={handleSubmit} disabled={loading || selectedModules.length === 0} className="bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 transition">
                   {loading ? 'Saving...' : 'Complete Setup'}
                 </button>
