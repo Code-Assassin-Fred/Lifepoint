@@ -229,7 +229,7 @@ export default function AuthPage() {
                 placeholder="Full Name"
                 value={signupDisplayName}
                 onChange={(e) => setSignupDisplayName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-black/50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-black/40"
                 disabled={loading}
                 required
               />
@@ -240,7 +240,7 @@ export default function AuthPage() {
               placeholder="Email Address"
               value={isSignup ? signupEmail : loginEmail}
               onChange={(e) => isSignup ? setSignupEmail(e.target.value) : setLoginEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-black/50"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-black/40"
               disabled={loading}
               required
             />
@@ -251,7 +251,7 @@ export default function AuthPage() {
                 placeholder="Password"
                 value={isSignup ? signupPassword : loginPassword}
                 onChange={(e) => isSignup ? setSignupPassword(e.target.value) : setLoginPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-black/50"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-black/40"
                 disabled={loading}
                 required
               />
@@ -271,7 +271,7 @@ export default function AuthPage() {
                   placeholder="Confirm Password"
                   value={signupConfirmPassword}
                   onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-black/50"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-black/40"
                   disabled={loading}
                   required
                 />

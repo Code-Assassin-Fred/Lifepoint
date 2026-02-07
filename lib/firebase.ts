@@ -7,7 +7,14 @@ import {
   GoogleAuthProvider,
   type Auth,
 } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore';
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  type Firestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -33,7 +40,13 @@ const app = createFirebaseApp();
 
 // Auth & Firestore
 export const auth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app);
+
+// Use initializeFirestore to enable settings like longPolling
+export const db: Firestore = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  experimentalForceLongPolling: true,
+});
+
 export const googleProvider = new GoogleAuthProvider();
 
 // Emulator configuration (for local dev)
