@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenerativeAI, Part } from '@google/generative-ai';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+const model = genAI ? genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }) : null;
 
 const SYSTEM_PROMPT = `You are a distinguished theology scholar with deep expertise in Biblical studies, hermeneutics, and systematic theology. You have extensive pastoral experience and author scripture interpretation guides.
 
@@ -39,9 +43,9 @@ IMPORTANT: Format your responses with clear structure using markdown:
 Be thorough but practical. Provide content that can be directly used or easily adapted.`;
 
 export async function POST(req: NextRequest) {
-    if (!OPENAI_API_KEY) {
+    if (!GEMINI_API_KEY || !model) {
         return NextResponse.json(
-            { error: 'OpenAI API key not configured' },
+            { error: 'Gemini API key not configured' },
             { status: 500 }
         );
     }
@@ -51,26 +55,27 @@ export async function POST(req: NextRequest) {
 
         // Handle multi-turn chat
         if (action === 'chat') {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${OPENAI_API_KEY}`,
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4o-mini',
-                    messages: [
-                        { role: 'system', content: ADMIN_ASSISTANT_PROMPT },
-                        ...messages
-                    ],
+            const chat = model.startChat({
+                history: [
+                    { role: 'user', parts: [{ text: ADMIN_ASSISTANT_PROMPT }] },
+                    { role: 'model', parts: [{ text: "Understood. I will help you create high-quality theology curriculum and study materials." }] },
+                    ...messages.map((m: any) => ({
+                        role: m.role === 'assistant' ? 'model' : 'user',
+                        parts: [{ text: m.content }]
+                    }))
+                ],
+                generationConfig: {
                     temperature: 0.7,
-                    max_tokens: 1500,
-                }),
+                    maxOutputTokens: 1500,
+                },
             });
 
-            if (!response.ok) throw new Error('OpenAI API error');
-            const data = await response.json();
-            return NextResponse.json({ response: data.choices[0]?.message?.content });
+            // The last message in 'messages' is the actual prompt
+            const lastMessage = messages[messages.length - 1]?.content || '';
+            const result = await chat.sendMessage(lastMessage);
+            const responseText = result.response.text();
+
+            return NextResponse.json({ response: responseText });
         }
 
         // Handle single-turn actions (legacy/user actions)
@@ -126,34 +131,19 @@ Help me form a prayer response to God's Word. Structure your response with:
                 userMessage = content;
         }
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${OPENAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userMessage },
-                ],
+        const result = await model.generateContent({
+            contents: [
+                { role: 'user', parts: [{ text: systemPrompt }] },
+                { role: 'model', parts: [{ text: "Understood. I will provide scholarly and pastoral biblical guidance with the formatting you requested." }] },
+                { role: 'user', parts: [{ text: userMessage }] }
+            ],
+            generationConfig: {
                 temperature: 0.7,
-                max_tokens: 1500,
-            }),
+                maxOutputTokens: 1500,
+            }
         });
 
-        if (!response.ok) {
-            const error = await response.json();
-            console.error('OpenAI error:', error);
-            return NextResponse.json(
-                { error: 'Failed to get AI response' },
-                { status: 500 }
-            );
-        }
-
-        const data = await response.json();
-        const aiResponse = data.choices[0]?.message?.content;
+        const aiResponse = result.response.text();
 
         return NextResponse.json({ response: aiResponse });
     } catch (error) {
