@@ -9,7 +9,7 @@ const Footer = () => {
 
   const quickLinks = [
     { label: 'Home', href: '#' },
-    { label: 'Bible Study', href: '#' },
+    { label: 'Wisdom Hub', href: '#' },
     { label: 'Growth', href: '#' },
     { label: 'Mentorship', href: '#' },
     { label: 'Community', href: '#' },
@@ -54,7 +54,7 @@ const Footer = () => {
               />
             </div>
             <p className="text-sm md:text-base">
-              Lifepoint is a global online church and growth platform empowering youth, adults, and leaders to rise in faith, purpose, and influence.
+              Lifepoint is a global online community and growth platform empowering youth, adults, and leaders to rise in potential, purpose, and influence.
             </p>
           </div>
 

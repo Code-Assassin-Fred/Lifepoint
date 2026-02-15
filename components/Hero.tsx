@@ -30,8 +30,8 @@ const Hero = () => {
         </h1>
 
         <p className="text-gray-200 mt-6 text-xl md:text-2xl max-w-xl leading-relaxed">
-          A global online church and growth movement empowering youth,
-          adults, and leaders to rise in faith, purpose, and influence.
+          A global online community and growth movement empowering youth,
+          adults, and leaders to rise in potential, purpose, and influence.
         </p>
 
         <div className="mt-10 flex gap-4">

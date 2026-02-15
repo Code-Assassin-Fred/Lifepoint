@@ -15,7 +15,7 @@ export default function Mission() {
       }}
     >
       {/* Background Overlay with Parallax */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 opacity-20 pointer-events-none"
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
@@ -30,7 +30,7 @@ export default function Mission() {
 
       {/* Grid */}
       <div className="relative max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[30%_70%] gap-10 items-center">
-        
+
         {/* Logo with Rotation and Glow */}
         <div className="w-40 md:w-56 lg:w-64 aspect-square mx-auto">
           <motion.img
@@ -46,8 +46,8 @@ export default function Mission() {
             initial={{ opacity: 0, x: -40, rotate: -5, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            whileHover={{ 
-              scale: 1.05, 
+            whileHover={{
+              scale: 1.05,
               rotate: 2,
               filter: "brightness(1.2)",
               transition: { duration: 0.3 }
@@ -62,7 +62,7 @@ export default function Mission() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="space-y-4 md:space-y-6"
         >
-          <motion.h2 
+          <motion.h2
             className="text-sm md:text-base font-black tracking-[0.3em] mb-2"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -80,19 +80,19 @@ export default function Mission() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            CONNECT, INSPIRE, AND EMPOWER A GLOBAL COMMUNITY OF FAITH AND
+            CONNECT, INSPIRE, AND EMPOWER A GLOBAL COMMUNITY OF WISDOM AND
             LEADERSHIP.
           </motion.h1>
 
-          <motion.p 
+          <motion.p
             className="text-sm md:text-base lg:text-lg max-w-3xl leading-relaxed font-light mb-20"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            Lifepoint is a global faith-based growth platform that brings
-            together worship, mentorship, and leadership development. We provide
-            accessible spiritual guidance, personal growth resources, and
+            Lifepoint is a global growth platform that brings
+            together inspiration, mentorship, and leadership development. We provide
+            accessible personal guidance, growth resources, and
             community engagement worldwide.
           </motion.p>
         </motion.div>

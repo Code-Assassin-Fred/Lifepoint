@@ -1,8 +1,8 @@
 'use client';
 
 import {
-    Church,
-    BookOpen,
+    Home,
+    Library,
     Heart,
     Calendar,
     Users,
@@ -23,25 +23,25 @@ export interface Module {
 
 export const ALL_MODULES: Module[] = [
     {
-        id: 'church',
+        id: 'home',
         label: 'Home',
-        description: 'Livestreams, sermons, and prayer room',
-        icon: Church,
+        description: 'Live sessions, insights, and reflection room',
+        icon: Home,
     },
     {
-        id: 'bible',
-        label: 'Bible Study',
-        description: 'Daily devotions, study plans, and personal notes',
-        icon: BookOpen,
+        id: 'wisdom',
+        label: 'Wisdom Hub',
+        description: 'Daily insights, growth plans, and personal notes',
+        icon: Library,
     },
     {
-        id: 'giving',
-        label: 'Giving',
-        description: 'Tithes, offerings, and donation history',
+        id: 'support',
+        label: 'Support',
+        description: 'Contributions, giving, and donation history',
         icon: Heart,
     },
     {
-        id: 'events',
+        id: 'workshops',
         label: 'Events',
         description: 'Upcoming gatherings and registrations',
         icon: Calendar,
@@ -59,13 +59,13 @@ export const ALL_MODULES: Module[] = [
         icon: Tv,
     },
     {
-        id: 'growth',
+        id: 'development',
         label: 'Growth',
         description: 'Personal development and assessments',
         icon: GraduationCap,
     },
     {
-        id: 'mentorship',
+        id: 'guidance',
         label: 'Mentorship',
         description: 'Find mentors and book coaching sessions',
         icon: UserCheck,
@@ -80,7 +80,17 @@ export function getModuleRoute(moduleId: string, role: string | null): string {
 
 // Helper to get modules for a user based on their selection
 export function getModulesForUser(selectedIds: string[]): Module[] {
-    return ALL_MODULES.filter((m) => selectedIds.includes(m.id));
+    const idMap: Record<string, string> = {
+        church: 'home',
+        bible: 'wisdom',
+        giving: 'support',
+        growth: 'development',
+        mentorship: 'guidance',
+        events: 'workshops',
+    };
+
+    const normalizedIds = selectedIds.map((id) => idMap[id] || id);
+    return ALL_MODULES.filter((m) => normalizedIds.includes(m.id));
 }
 
 // Get all modules (for admin view)

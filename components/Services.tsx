@@ -8,12 +8,12 @@ const Services = () => {
           {/* Left Column - Title */}
           <div className="md:w-2/5">
             <h2
-  className="text-2xl md:text-3xl font-extrabold text-gray-900 uppercase truncate"
-  style={{ fontFamily: 'Arial Black, Arial, sans-serif', letterSpacing: '-0.02em' }}
-  title="Ministries & Services"
->
-  Ministries & Services
-</h2>
+              className="text-2xl md:text-3xl font-extrabold text-gray-900 uppercase truncate"
+              style={{ fontFamily: 'Arial Black, Arial, sans-serif', letterSpacing: '-0.02em' }}
+              title="Programs & Opportunities"
+            >
+              Programs & Opportunities
+            </h2>
 
           </div>
 
@@ -23,14 +23,14 @@ const Services = () => {
               className="text-gray-800 text-base md:text-lg leading-relaxed"
               style={{ fontFamily: 'Georgia, serif' }}
             >
-              Our network of services offer a holistic approach to spiritual growth, personal development, and leadership empowerment. From online worship experiences to structured leadership programs, mentorship opportunities, and coaching sessions, everything we do is designed to guide individuals toward faith, growth, and community impact.
+              Our network of services offer a holistic approach to personal growth, skills development, and leadership empowerment. From online inspiration streams to structured leadership programs, mentorship opportunities, and coaching sessions, everything we do is designed to guide individuals toward excellence, growth, and community impact.
             </p>
 
             <p
               className="text-gray-800 text-base md:text-lg leading-relaxed"
               style={{ fontFamily: 'Georgia, serif' }}
             >
-              Whether through livestreamed Sunday services, deep-dive Bible studies, youth and adult mentorship programs, or premium pastoral coaching, Lifepoint supports each person on a journey of spiritual maturity and personal excellence.
+              Whether through livestreamed weekly sessions, deep-dive wisdom studies, youth and adult mentorship programs, or premium executive coaching, Lifepoint supports each person on a journey of maturity and personal excellence.
             </p>
           </div>
         </div>

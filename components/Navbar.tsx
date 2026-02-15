@@ -9,14 +9,14 @@ const Navbar = () => {
 
   const menuItems = {
     Home: [
-      { label: 'Sunday Livestream' },
-      { label: 'Prayer Rooms' },
-      { label: 'Past Messages' }
+      { label: 'Live Sessions' },
+      { label: 'Reflection Rooms' },
+      { label: 'Recent Insights' }
     ],
-    'Bible Study': [
-      { label: 'Bible Study Hub' },
-      { label: 'Daily Devotion' },
-      { label: 'AI Study Guide' }
+    'Wisdom Hub': [
+      { label: 'Knowledge Hub' },
+      { label: 'Daily Reflection' },
+      { label: 'AI Insight Guide' }
     ],
     Growth: [
       { label: 'Personal Growth' },
@@ -85,8 +85,8 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled
-          ? 'bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200'
-          : 'bg-white border-b border-gray-200'
+        ? 'bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200'
+        : 'bg-white border-b border-gray-200'
         } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
     >
       <div className="max-w-7xl mx-auto px-6">
@@ -133,8 +133,8 @@ const Navbar = () => {
 
                   <div
                     className={`absolute left-1/2 transform -translate-x-1/2 mt-0 w-56 bg-white rounded-md shadow-xl border border-gray-200 transition-all duration-200 origin-top z-50 ${openMenu === key
-                        ? 'opacity-100 visible translate-y-0'
-                        : 'opacity-0 invisible -translate-y-2'
+                      ? 'opacity-100 visible translate-y-0'
+                      : 'opacity-0 invisible -translate-y-2'
                       }`}
                   >
                     <div className="py-2">{renderMenuItems(key)}</div>

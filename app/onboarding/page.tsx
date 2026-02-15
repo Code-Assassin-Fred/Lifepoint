@@ -9,13 +9,13 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const MODULES = [
-  { id: 'church', name: 'Home', submodules: ['Sunday Livestream', 'Prayer Rooms', 'Past Messages'] },
-  { id: 'bible', name: 'Bible Study', submodules: ['Bible Study Hub', 'Daily Devotion', 'AI Study Guide'] },
-  { id: 'growth', name: 'Personal & Leadership Growth', submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development'] },
-  { id: 'mentorship', name: 'Mentorship & Coaching', submodules: ['Find a Mentor', 'Book Coaching', 'Youth Mentorship'] },
+  { id: 'home', name: 'Home', submodules: ['Live Sessions', 'Reflection Rooms', 'Recent Insights'] },
+  { id: 'wisdom', name: 'Wisdom Hub', submodules: ['Knowledge Hub', 'Daily Reflection', 'AI Insight Guide'] },
+  { id: 'development', name: 'Personal & Leadership Growth', submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development'] },
+  { id: 'guidance', name: 'Mentorship & Coaching', submodules: ['Find a Mentor', 'Book Coaching', 'Youth Mentorship'] },
   { id: 'community', name: 'Community', submodules: ['Global Groups', 'Forums', 'Events'] },
   { id: 'media', name: 'Media & Content', submodules: ['Videos', 'Podcasts', 'Guest Speakers'] },
-  { id: 'assessments', name: 'Assessments', submodules: ['Faith Growth', 'Leadership Skills', 'Personal Development'] },
+  { id: 'assessments', name: 'Assessments', submodules: ['Personal Progress', 'Leadership Skills', 'Global Standards'] },
   { id: 'workshops', name: 'Workshops & Events', submodules: ['Masterclasses', 'Special Workshops', 'Guest Sessions'] },
 ];
 

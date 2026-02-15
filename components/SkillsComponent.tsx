@@ -4,14 +4,14 @@ import { useEffect, useRef, useState } from "react";
 
 export default function SkillsComponent() {
   const cards = [
-    { id: 1, title: "Home", submodules: ["Sunday Livestream", "Past Messages", "Prayer Rooms"] },
-    { id: 2, title: "Bible Learning & Discipleship", submodules: ["Foundations", "Deep-Dive Bible Studies", "Devotionals", "Study Plans"] },
+    { id: 1, title: "Home", submodules: ["Live Sessions", "Recent Insights", "Reflection Rooms"] },
+    { id: 2, title: "Wisdom Hub & Skill Building", submodules: ["Foundations", "Deep-Dive Knowledge studies", "Reflections", "Action Plans"] },
     { id: 3, title: "Personal Growth", submodules: ["Purpose Discovery", "Confidence Building", "Communication Skills", "Life Skills"] },
     { id: 4, title: "Leadership Development", submodules: ["Leadership Programs", "Masterclasses", "Certificates", "Workshops"] },
-    { id: 5, title: "Mentorship & Coaching", submodules: ["Youth Mentorship", "Adult Mentorship", "Leadership Coaching", "Pastoral Executive Coaching"] },
+    { id: 5, title: "Mentorship & Coaching", submodules: ["Youth Mentorship", "Adult Mentorship", "Leadership Coaching", "Executive Growth Coaching"] },
     { id: 6, title: "Community Engagement", submodules: ["Global Groups", "Forums", "Meetups", "Topic Discussions"] },
-    { id: 7, title: "Media & Content Hub", submodules: ["Sermon Clips", "Podcasts", "Inspirational Content", "Testimonies"] },
-    { id: 8, title: "Events & Programs", submodules: ["Workshops", "Faith-Based Events", "Guest Speaker Sessions", "Online Programs"] }
+    { id: 7, title: "Media & Content Hub", submodules: ["Insight Clips", "Podcasts", "Inspirational Content", "Success Stories"] },
+    { id: 8, title: "Events & Programs", submodules: ["Workshops", "Impact-Driven Events", "Guest Speaker Sessions", "Online Programs"] }
   ];
 
   const sectionRef = useRef<HTMLDivElement | null>(null);

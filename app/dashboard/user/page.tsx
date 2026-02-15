@@ -15,7 +15,7 @@ export default function UserDashboardPage() {
             <div className="mb-8">
                 <h2 className="text-xl font-bold text-black">Your Modules</h2>
                 <p className="text-black/60 text-sm mt-1">
-                    Quick access to your selected spiritual growth areas
+                    Quick access to your selected personal growth areas
                 </p>
             </div>
 
