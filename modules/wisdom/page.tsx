@@ -28,10 +28,10 @@ import {
     MessageSquare,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import DevotionModal from '@/components/bible/DevotionModal';
-import StudyPlanModal from '@/components/bible/StudyPlanModal';
+import InsightModal from '@/components/wisdom/InsightModal';
+import GrowthPlanModal from '@/components/wisdom/GrowthPlanModal';
 
-interface Devotion {
+interface Insight {
     id: string;
     date: string;
     title: string;
@@ -40,20 +40,20 @@ interface Devotion {
     prayerPrompt?: string;
 }
 
-interface StudyDay {
+interface GrowthStep {
     dayNumber: number;
     title: string;
     scripture: string;
     content: string;
 }
 
-interface StudyPlan {
+interface GrowthPlan {
     id: string;
     title: string;
     description: string;
     category: string;
     duration: string;
-    days: StudyDay[];
+    days: GrowthStep[];
 }
 
 type Tab = 'devotion' | 'plans' | 'ai' | 'admin-ai';
@@ -63,24 +63,24 @@ interface Message {
     content: string;
 }
 
-export default function BibleModule() {
+export default function WisdomModule() {
     const { role } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('devotion');
 
     // Modals & Pre-filled Data
-    const [isDevotionModalOpen, setIsDevotionModalOpen] = useState(false);
-    const [isStudyPlanModalOpen, setIsStudyPlanModalOpen] = useState(false);
-    const [devotionInitialData, setDevotionInitialData] = useState<any>(null);
-    const [studyPlanInitialData, setStudyPlanInitialData] = useState<any>(null);
+    const [isInsightModalOpen, setIsInsightModalOpen] = useState(false);
+    const [isGrowthPlanModalOpen, setIsGrowthPlanModalOpen] = useState(false);
+    const [insightInitialData, setInsightInitialData] = useState<any>(null);
+    const [growthPlanInitialData, setGrowthPlanInitialData] = useState<any>(null);
 
     // Data
-    const [todayDevotion, setTodayDevotion] = useState<Devotion | null>(null);
-    const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
-    const [loadingDevotion, setLoadingDevotion] = useState(true);
+    const [todayInsight, setTodayInsight] = useState<Insight | null>(null);
+    const [growthPlans, setGrowthPlans] = useState<GrowthPlan[]>([]);
+    const [loadingInsight, setLoadingInsight] = useState(true);
     const [loadingPlans, setLoadingPlans] = useState(true);
 
-    // Study Plan View
-    const [selectedPlan, setSelectedPlan] = useState<StudyPlan | null>(null);
+    // Growth Plan View
+    const [selectedPlan, setSelectedPlan] = useState<GrowthPlan | null>(null);
     const [currentDay, setCurrentDay] = useState(0);
 
     // AI
@@ -98,27 +98,27 @@ export default function BibleModule() {
     const today = new Date();
     const dateString = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-    // Fetch devotion
+    // Fetch insight
     useEffect(() => {
         const q = query(collection(db, 'devotions'), orderBy('date', 'desc'), limit(1));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             if (!snapshot.empty) {
                 const docData = snapshot.docs[0];
-                setTodayDevotion({ id: docData.id, ...docData.data() } as Devotion);
+                setTodayInsight({ id: docData.id, ...docData.data() } as Insight);
             } else {
-                setTodayDevotion(null);
+                setTodayInsight(null);
             }
-            setLoadingDevotion(false);
-        }, () => setLoadingDevotion(false));
+            setLoadingInsight(false);
+        }, () => setLoadingInsight(false));
         return () => unsubscribe();
     }, []);
 
-    // Fetch study plans
+    // Fetch growth plans
     useEffect(() => {
         const q = query(collection(db, 'studyPlans'), orderBy('createdAt', 'desc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const plans = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as StudyPlan[];
-            setStudyPlans(plans);
+            const plans = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as GrowthPlan[];
+            setGrowthPlans(plans);
             setLoadingPlans(false);
         }, () => setLoadingPlans(false));
         return () => unsubscribe();
@@ -204,12 +204,12 @@ export default function BibleModule() {
     };
 
     // Simple parsers to extract data from AI response
-    const parseDevotion = (text: string) => {
+    const parseInsight = (text: string) => {
         // This is a naive parser based on the prompt structure
         const titleMatch = text.match(/## Title\s*([\s\S]*?)(?=##|$)/);
-        const scriptureMatch = text.match(/## Scripture\s*([\s\S]*?)(?=##|$)/);
-        const contentMatch = text.match(/## Devotional Content\s*([\s\S]*?)(?=##|$)/);
-        const prayerMatch = text.match(/## Prayer Prompt\s*([\s\S]*?)(?=##|$)/);
+        const scriptureMatch = text.match(/## Reference\s*([\s\S]*?)(?=##|$)/);
+        const contentMatch = text.match(/## Insight Content\s*([\s\S]*?)(?=##|$)/);
+        const prayerMatch = text.match(/## Reflection Prompt\s*([\s\S]*?)(?=##|$)/);
 
         return {
             title: titleMatch ? titleMatch[1].trim() : '',
@@ -219,42 +219,30 @@ export default function BibleModule() {
         };
     };
 
-    const parseStudyPlan = (text: string) => {
+    const parseGrowthPlan = (text: string) => {
         const lines = text.split('\n');
         let title = '';
-        let description = '';
-        const days: StudyDay[] = [];
+        const days: GrowthStep[] = [];
 
         // Attempt to extract title/desc
         const titleLine = lines.find(l => l.includes('Plan Title:')) || '';
         if (titleLine) title = titleLine.replace('Plan Title:', '').trim();
 
-        // Very basic day parsing - assumes "Day X" format
-        // A more robust way asks the AI to output JSON, but text is user-friendly.
-        // For now we'll just pre-fill Title/Description if possible or just open the modal blank.
-        // Given the difficulty of parsing arbitrary text, we will copy the WHOLE text to description or just let user copy paste.
-        // WAIT, better: just copy the text to clipboard?
-        // User requested "button to save so that they are visible".
-        // Let's at least try to extract the Plan Title.
-
         return {
-            title: title || 'New Study Plan',
+            title: title || 'New Growth Plan',
             description: text.substring(0, 200) + '...', // First 200 chars as placeholder
         };
     };
 
-    const handleSaveAsDevotion = (text: string) => {
-        const data = parseDevotion(text);
-        setDevotionInitialData(data);
-        setIsDevotionModalOpen(true);
+    const handleSaveAsInsight = (text: string) => {
+        const data = parseInsight(text);
+        setInsightInitialData(data);
+        setIsInsightModalOpen(true);
     };
 
-    const handleSaveAsStudyPlan = (text: string) => {
-        // For study plans, parsing is hard. Let's just pass the text as description for now
-        // and let the admin refine. Or better, just open blank and they copy paste.
-        // Actually, let's just open the modal.
-        setStudyPlanInitialData({ description: 'Generated plan:\n' + text.substring(0, 100) + '...' });
-        setIsStudyPlanModalOpen(true);
+    const handleSaveAsGrowthPlan = (text: string) => {
+        setGrowthPlanInitialData({ description: 'Generated plan:\n' + text.substring(0, 100) + '...' });
+        setIsGrowthPlanModalOpen(true);
     };
 
     const markdownComponents = {
@@ -271,7 +259,7 @@ export default function BibleModule() {
         return (
             <div className="max-w-3xl">
                 <button onClick={() => { setSelectedPlan(null); setCurrentDay(0); setAiResponse(''); }} className="flex items-center gap-2 text-black/60 hover:text-black mb-6">
-                    <ChevronLeft size={18} /> Back to Study Plans
+                    <ChevronLeft size={18} /> Back to Growth Plans
                 </button>
                 <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 border border-red-100 mb-6">
                     <span className="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full font-medium">{selectedPlan.category}</span>
@@ -280,7 +268,7 @@ export default function BibleModule() {
                 </div>
                 <div className="flex items-center justify-between mb-4">
                     <button onClick={() => { setCurrentDay(Math.max(0, currentDay - 1)); setAiResponse(''); }} disabled={currentDay === 0} className="p-2 text-black/60 hover:text-black disabled:opacity-30"><ChevronLeft size={20} /></button>
-                    <span className="font-medium text-black">Day {day.dayNumber} of {selectedPlan.days.length}</span>
+                    <span className="font-medium text-black">Step {day.dayNumber} of {selectedPlan.days.length}</span>
                     <button onClick={() => { setCurrentDay(Math.min(selectedPlan.days.length - 1, currentDay + 1)); setAiResponse(''); }} disabled={currentDay === selectedPlan.days.length - 1} className="p-2 text-black/60 hover:text-black disabled:opacity-30"><ChevronRight size={20} /></button>
                 </div>
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 mb-4">
@@ -291,7 +279,7 @@ export default function BibleModule() {
                 <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-6 border border-amber-200">
                     <div className="flex items-center gap-2 mb-4">
                         <Lightbulb size={20} className="text-amber-600" />
-                        <span className="font-semibold text-black">Wisdom from the Word</span>
+                        <span className="font-semibold text-black">Daily Wisdom</span>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-4">
                         <button onClick={() => handleAskAI('explain-scripture', day.scripture, `Study: ${selectedPlan.title}`)} disabled={aiLoading} className="px-3 py-1.5 bg-white text-xs font-medium text-black/70 rounded-lg hover:bg-amber-100 disabled:opacity-50 border border-amber-200">Explain passage</button>
@@ -318,14 +306,14 @@ export default function BibleModule() {
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center"><BookOpen size={24} /></div>
                         <div>
-                            <h2 className="text-xl font-bold text-black">Bible Study</h2>
-                            <p className="text-sm text-black/60">Daily devotions, study plans, and wisdom from the Word</p>
+                            <h2 className="text-xl font-bold text-black">Knowledge Hub</h2>
+                            <p className="text-sm text-black/60">Daily insights, growth plans, and wisdom</p>
                         </div>
                     </div>
                     {isAdmin && (
                         <div className="flex gap-2">
-                            <button onClick={() => { setDevotionInitialData(null); setIsDevotionModalOpen(true); }} className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-black text-sm rounded-xl font-medium hover:bg-gray-200"><Plus size={16} /> Devotion</button>
-                            <button onClick={() => { setStudyPlanInitialData(null); setIsStudyPlanModalOpen(true); }} className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700"><Plus size={16} /> Study Plan</button>
+                            <button onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-black text-sm rounded-xl font-medium hover:bg-gray-200"><Plus size={16} /> Insight</button>
+                            <button onClick={() => { setGrowthPlanInitialData(null); setIsGrowthPlanModalOpen(true); }} className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700"><Plus size={16} /> Growth Plan</button>
                         </div>
                     )}
                 </div>
@@ -333,7 +321,7 @@ export default function BibleModule() {
 
             {/* Tabs */}
             <div className="flex-none border-b border-gray-200 mb-6 overflow-x-auto">
-                {[{ id: 'devotion', label: 'Daily Devotion', icon: Sun }, { id: 'plans', label: 'Study Plans', icon: BookMarked }, { id: 'ai', label: 'Ask the Word', icon: Sparkles }, { id: 'admin-ai', label: 'Content Assistant', icon: Wand2, adminOnly: true }]
+                {[{ id: 'devotion', label: 'Daily Insight', icon: Sun }, { id: 'plans', label: 'Growth Plans', icon: BookMarked }, { id: 'ai', label: 'AI Insight', icon: Sparkles }, { id: 'admin-ai', label: 'Content Assistant', icon: Wand2, adminOnly: true }]
                     .filter(t => !t.adminOnly || isAdmin)
                     .map((tab) => {
                         const Icon = tab.icon;
@@ -349,32 +337,32 @@ export default function BibleModule() {
             <div className="flex-1 overflow-y-auto min-h-0">
                 {activeTab === 'devotion' && (
                     <div className="space-y-6">
-                        {loadingDevotion ? <div className="text-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto" /></div> : todayDevotion ? (
+                        {loadingInsight ? <div className="text-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto" /></div> : todayInsight ? (
                             <>
                                 <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 border border-red-100">
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <p className="text-xs text-red-600 font-medium">{dateString}</p>
-                                            <h3 className="text-lg font-bold text-black mt-1">{todayDevotion.title}</h3>
-                                            <p className="text-black/70 text-sm mt-1">{todayDevotion.scripture}</p>
+                                            <h3 className="text-lg font-bold text-black mt-1">{todayInsight.title}</h3>
+                                            <p className="text-black/70 text-sm mt-1">{todayInsight.scripture}</p>
                                         </div>
-                                        {isAdmin && <button onClick={() => deleteDoc(doc(db, 'devotions', todayDevotion.id))} className="p-2 text-red-500 hover:bg-red-100 rounded-lg"><Trash2 size={16} /></button>}
+                                        {isAdmin && <button onClick={() => deleteDoc(doc(db, 'devotions', todayInsight.id))} className="p-2 text-red-500 hover:bg-red-100 rounded-lg"><Trash2 size={16} /></button>}
                                     </div>
                                 </div>
                                 <div className="bg-white rounded-2xl p-6 border border-gray-100">
-                                    <p className="text-black/80 leading-relaxed whitespace-pre-wrap">{todayDevotion.content}</p>
-                                    {todayDevotion.prayerPrompt && <div className="mt-6 p-4 bg-gray-50 rounded-xl"><p className="text-sm font-medium text-black mb-2">Prayer Prompt</p><p className="text-black/70 text-sm">{todayDevotion.prayerPrompt}</p></div>}
+                                    <p className="text-black/80 leading-relaxed whitespace-pre-wrap">{todayInsight.content}</p>
+                                    {todayInsight.prayerPrompt && <div className="mt-6 p-4 bg-gray-50 rounded-xl"><p className="text-sm font-medium text-black mb-2">Reflection Prompt</p><p className="text-black/70 text-sm">{todayInsight.prayerPrompt}</p></div>}
                                 </div>
                             </>
-                        ) : <div className="bg-gray-50 rounded-2xl p-8 text-center"><Sun size={24} className="text-black/40 mx-auto mb-4" /><h3 className="text-lg font-semibold text-black mb-2">No Devotion Today</h3></div>}
+                        ) : <div className="bg-gray-50 rounded-2xl p-8 text-center"><Sun size={24} className="text-black/40 mx-auto mb-4" /><h3 className="text-lg font-semibold text-black mb-2">No Insight Today</h3></div>}
                     </div>
                 )}
 
                 {activeTab === 'plans' && (
                     <div className="space-y-3">
-                        {loadingPlans ? <div className="text-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto" /></div> : studyPlans.length === 0 ? (
-                            <div className="bg-gray-50 rounded-2xl p-8 text-center"><BookMarked size={24} className="text-black/40 mx-auto mb-4" /><h3 className="text-lg font-semibold text-black mb-2">No Study Plans</h3></div>
-                        ) : studyPlans.map((plan) => (
+                        {loadingPlans ? <div className="text-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto" /></div> : growthPlans.length === 0 ? (
+                            <div className="bg-gray-50 rounded-2xl p-8 text-center"><BookMarked size={24} className="text-black/40 mx-auto mb-4" /><h3 className="text-lg font-semibold text-black mb-2">No Growth Plans</h3></div>
+                        ) : growthPlans.map((plan) => (
                             <div key={plan.id} onClick={() => setSelectedPlan(plan)} className="group bg-white rounded-xl border border-gray-100 p-4 hover:border-red-200 hover:shadow-md transition-all cursor-pointer">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -391,8 +379,8 @@ export default function BibleModule() {
                 {activeTab === 'ai' && (
                     <div className="space-y-6">
                         <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-6 border border-amber-200">
-                            <h3 className="font-bold text-black">Wisdom from the Word</h3>
-                            <p className="text-black/70 text-sm">Ask any question about scripture.</p>
+                            <h3 className="font-bold text-black">Daily Wisdom</h3>
+                            <p className="text-black/70 text-sm">Ask any question about wisdom and guidance.</p>
                         </div>
                         <div className="relative">
                             <input type="text" value={aiQuestion} onChange={(e) => setAiQuestion(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAskAI('ask-question', aiQuestion)} placeholder="Ask about scripture..." className="w-full px-4 py-4 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent" />
@@ -430,11 +418,11 @@ export default function BibleModule() {
                                                 </div>
                                                 {/* Action Buttons for AI Responses */}
                                                 <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-                                                    <button onClick={() => handleSaveAsDevotion(msg.content)} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-100 transition-colors">
-                                                        <Save size={14} /> Save as Devotion
+                                                    <button onClick={() => handleSaveAsInsight(msg.content)} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-100 transition-colors">
+                                                        <Save size={14} /> Save as Insight
                                                     </button>
-                                                    <button onClick={() => handleSaveAsStudyPlan(msg.content)} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors">
-                                                        <Save size={14} /> Save as Study Plan
+                                                    <button onClick={() => handleSaveAsGrowthPlan(msg.content)} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors">
+                                                        <Save size={14} /> Save as Growth Plan
                                                     </button>
                                                 </div>
                                             </div>
@@ -479,8 +467,8 @@ export default function BibleModule() {
                 )}
             </div>
 
-            <DevotionModal isOpen={isDevotionModalOpen} onClose={() => setIsDevotionModalOpen(false)} initialData={devotionInitialData} />
-            <StudyPlanModal isOpen={isStudyPlanModalOpen} onClose={() => setIsStudyPlanModalOpen(false)} initialData={studyPlanInitialData} />
+            <InsightModal isOpen={isInsightModalOpen} onClose={() => setIsInsightModalOpen(false)} initialData={insightInitialData} />
+            <GrowthPlanModal isOpen={isGrowthPlanModalOpen} onClose={() => setIsGrowthPlanModalOpen(false)} initialData={growthPlanInitialData} />
         </div>
     );
 }

@@ -5,34 +5,34 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-interface StudyDay {
+interface GrowthStep {
     dayNumber: number;
     title: string;
     scripture: string;
     content: string;
 }
 
-interface StudyPlanModalProps {
+interface GrowthPlanModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialData?: {
         title?: string;
         description?: string;
-        days?: StudyDay[];
+        days?: GrowthStep[];
     };
 }
 
-export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPlanModalProps) {
+export default function GrowthPlanModal({ isOpen, onClose, initialData }: GrowthPlanModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('Faith');
-    const [days, setDays] = useState<StudyDay[]>([
+    const [category, setCategory] = useState('Personal');
+    const [days, setDays] = useState<GrowthStep[]>([
         { dayNumber: 1, title: '', scripture: '', content: '' },
     ]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const categories = ['Faith', 'Peace', 'Discipleship', 'Prayer', 'Hope', 'Love', 'Wisdom'];
+    const categories = ['Personal', 'Leadership', 'Knowledge', 'Wisdom', 'Inspiration', 'Growth'];
 
     // Load initial data
     useEffect(() => {
@@ -55,7 +55,7 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
         setDays(newDays);
     };
 
-    const updateDay = (index: number, field: keyof StudyDay, value: string) => {
+    const updateDay = (index: number, field: keyof GrowthStep, value: string) => {
         const newDays = [...days];
         newDays[index] = { ...newDays[index], [field]: value };
         setDays(newDays);
@@ -69,7 +69,7 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
 
         const validDays = days.filter((d) => d.title.trim() && d.scripture.trim());
         if (validDays.length === 0) {
-            setError('At least one day with title and scripture is required');
+            setError('At least one step with title and reference is required');
             return;
         }
 
@@ -81,7 +81,7 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
                 title: title.trim(),
                 description: description.trim(),
                 category,
-                duration: `${validDays.length} days`,
+                duration: `${validDays.length} steps`,
                 days: validDays,
                 createdAt: serverTimestamp(),
             });
@@ -90,13 +90,13 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
             if (!initialData) {
                 setTitle('');
                 setDescription('');
-                setCategory('Faith');
+                setCategory('Personal');
                 setDays([{ dayNumber: 1, title: '', scripture: '', content: '' }]);
             }
             onClose();
         } catch (err) {
-            console.error('Error creating study plan:', err);
-            setError('Failed to create study plan. Please try again.');
+            console.error('Error creating growth plan:', err);
+            setError('Failed to create growth plan. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -106,7 +106,7 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
         if (!initialData) {
             setTitle('');
             setDescription('');
-            setCategory('Faith');
+            setCategory('Personal');
             setDays([{ dayNumber: 1, title: '', scripture: '', content: '' }]);
         }
         setError(null);
@@ -123,8 +123,8 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
                     <div>
-                        <h2 className="text-xl font-bold text-black">Create Study Plan</h2>
-                        <p className="text-sm text-black/60 mt-0.5">Design a multi-day Bible study plan</p>
+                        <h2 className="text-xl font-bold text-black">Create Growth Plan</h2>
+                        <p className="text-sm text-black/60 mt-0.5">Design a multi-day knowledge growth plan</p>
                     </div>
                     <button onClick={handleClose} className="p-2 text-black/40 hover:text-black/60 hover:bg-gray-100 rounded-lg">
                         <X size={20} />
@@ -144,7 +144,7 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="e.g., 21 Days of Faith"
+                                placeholder="e.g., 21 Days of Personal Growth"
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
                             />
                         </div>
@@ -154,7 +154,7 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Brief description of the study plan..."
+                                placeholder="Brief description of the growth plan..."
                                 rows={2}
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                             />
@@ -177,14 +177,14 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
                     {/* Days */}
                     <div>
                         <div className="flex items-center justify-between mb-3">
-                            <label className="text-sm font-medium text-black">Study Days</label>
+                            <label className="text-sm font-medium text-black">Growth Steps</label>
                             <button
                                 type="button"
                                 onClick={addDay}
                                 className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700"
                             >
                                 <Plus size={16} />
-                                Add Day
+                                Add Step
                             </button>
                         </div>
 
@@ -192,7 +192,7 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
                             {days.map((day, index) => (
                                 <div key={index} className="p-4 bg-gray-50 rounded-xl space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-black/70">Day {day.dayNumber}</span>
+                                        <span className="text-sm font-semibold text-black/70">Step {day.dayNumber}</span>
                                         {days.length > 1 && (
                                             <button
                                                 type="button"
@@ -207,20 +207,20 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
                                         type="text"
                                         value={day.title}
                                         onChange={(e) => updateDay(index, 'title', e.target.value)}
-                                        placeholder="Day title"
+                                        placeholder="Step title"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                     />
                                     <input
                                         type="text"
                                         value={day.scripture}
                                         onChange={(e) => updateDay(index, 'scripture', e.target.value)}
-                                        placeholder="Scripture reference (e.g., John 3:16)"
+                                        placeholder="Reference (e.g., Wisdom Reference)"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                     />
                                     <textarea
                                         value={day.content}
                                         onChange={(e) => updateDay(index, 'content', e.target.value)}
-                                        placeholder="Study notes or reflection prompt (optional)"
+                                        placeholder="Growth notes or reflection prompt (optional)"
                                         rows={2}
                                         className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                                     />
@@ -244,7 +244,7 @@ export default function StudyPlanModal({ isOpen, onClose, initialData }: StudyPl
                         disabled={loading}
                         className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-50"
                     >
-                        {loading ? 'Creating...' : 'Create Study Plan'}
+                        {loading ? 'Creating...' : 'Create Growth Plan'}
                     </button>
                 </div>
             </div>

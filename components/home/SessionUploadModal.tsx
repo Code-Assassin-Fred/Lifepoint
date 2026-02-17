@@ -6,12 +6,12 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/context/AuthContext';
 
-interface SermonUploadModalProps {
+interface SessionUploadModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
-export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModalProps) {
+export default function SessionUploadModal({ isOpen, onClose }: SessionUploadModalProps) {
     const { user } = useAuth();
     const [title, setTitle] = useState('');
     const [speaker, setSpeaker] = useState('');
@@ -76,8 +76,8 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
             setThumbnailUrl('');
             onClose();
         } catch (err) {
-            console.error('Error uploading sermon:', err);
-            setError('Failed to upload sermon. Please try again.');
+            console.error('Error uploading session:', err);
+            setError('Failed to upload session. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -108,9 +108,9 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <div>
-                        <h2 className="text-xl font-bold text-black">Upload Sermon</h2>
+                        <h2 className="text-xl font-bold text-black">Upload Session</h2>
                         <p className="text-sm text-black/60 mt-0.5">
-                            Add a new sermon to the library for your congregation.
+                            Add a new session to the library for your audience.
                         </p>
                     </div>
                     <button
@@ -132,13 +132,13 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                     {/* Title */}
                     <div>
                         <label className="block text-sm font-medium text-black mb-1.5">
-                            Sermon Title *
+                            Session Title *
                         </label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Enter sermon title"
+                            placeholder="Enter session title"
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                         />
                     </div>
@@ -153,7 +153,7 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                                 type="text"
                                 value={speaker}
                                 onChange={(e) => setSpeaker(e.target.value)}
-                                placeholder="Pastor name"
+                                placeholder="Speaker name"
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                             />
                         </div>
@@ -180,8 +180,8 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                                 type="button"
                                 onClick={() => setVideoSource('link')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${videoSource === 'link'
-                                        ? 'bg-red-50 text-red-600 border-r border-red-100'
-                                        : 'bg-white text-black/60 hover:bg-gray-50 border-r border-gray-200'
+                                    ? 'bg-red-50 text-red-600 border-r border-red-100'
+                                    : 'bg-white text-black/60 hover:bg-gray-50 border-r border-gray-200'
                                     }`}
                             >
                                 <Link2 size={16} />
@@ -191,8 +191,8 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                                 type="button"
                                 onClick={() => setVideoSource('upload')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${videoSource === 'upload'
-                                        ? 'bg-red-50 text-red-600'
-                                        : 'bg-white text-black/60 hover:bg-gray-50'
+                                    ? 'bg-red-50 text-red-600'
+                                    : 'bg-white text-black/60 hover:bg-gray-50'
                                     }`}
                             >
                                 <Upload size={16} />
@@ -252,7 +252,7 @@ export default function SermonUploadModal({ isOpen, onClose }: SermonUploadModal
                         disabled={loading}
                         className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50"
                     >
-                        {loading ? 'Uploading...' : 'Upload Sermon'}
+                        {loading ? 'Uploading...' : 'Upload Session'}
                     </button>
                 </div>
             </div>

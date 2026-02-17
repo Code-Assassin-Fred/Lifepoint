@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-interface DevotionModalProps {
+interface InsightModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialData?: {
@@ -16,7 +16,7 @@ interface DevotionModalProps {
     };
 }
 
-export default function DevotionModal({ isOpen, onClose, initialData }: DevotionModalProps) {
+export default function InsightModal({ isOpen, onClose, initialData }: InsightModalProps) {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [title, setTitle] = useState('');
     const [scripture, setScripture] = useState('');
@@ -37,7 +37,7 @@ export default function DevotionModal({ isOpen, onClose, initialData }: Devotion
 
     const handleSubmit = async () => {
         if (!title.trim() || !scripture.trim() || !content.trim()) {
-            setError('Title, scripture, and content are required');
+            setError('Title, reference, and content are required');
             return;
         }
 
@@ -62,8 +62,8 @@ export default function DevotionModal({ isOpen, onClose, initialData }: Devotion
             setPrayerPrompt('');
             onClose();
         } catch (err) {
-            console.error('Error creating devotion:', err);
-            setError('Failed to create devotion. Please try again.');
+            console.error('Error creating insight:', err);
+            setError('Failed to create insight. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -91,8 +91,8 @@ export default function DevotionModal({ isOpen, onClose, initialData }: Devotion
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <div>
-                        <h2 className="text-xl font-bold text-black">Create Devotion</h2>
-                        <p className="text-sm text-black/60 mt-0.5">Add a daily devotion for the community</p>
+                        <h2 className="text-xl font-bold text-black">Create Insight</h2>
+                        <p className="text-sm text-black/60 mt-0.5">Add a daily insight for the community</p>
                     </div>
                     <button onClick={handleClose} className="p-2 text-black/40 hover:text-black/60 hover:bg-gray-100 rounded-lg">
                         <X size={20} />
@@ -127,33 +127,33 @@ export default function DevotionModal({ isOpen, onClose, initialData }: Devotion
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-black mb-1.5">Scripture Reference *</label>
+                        <label className="block text-sm font-medium text-black mb-1.5">Reference *</label>
                         <input
                             type="text"
                             value={scripture}
                             onChange={(e) => setScripture(e.target.value)}
-                            placeholder="e.g., Philippians 4:6-7"
+                            placeholder="e.g., Wisdom Reference"
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-black mb-1.5">Devotional Content *</label>
+                        <label className="block text-sm font-medium text-black mb-1.5">Insight Content *</label>
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="Write the devotional reflection..."
+                            placeholder="Write the daily insight reflection..."
                             rows={5}
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-black mb-1.5">Prayer Prompt (optional)</label>
+                        <label className="block text-sm font-medium text-black mb-1.5">Reflection Prompt (optional)</label>
                         <textarea
                             value={prayerPrompt}
                             onChange={(e) => setPrayerPrompt(e.target.value)}
-                            placeholder="A guiding prayer or prompt for reflection..."
+                            placeholder="A guiding prompt for reflection..."
                             rows={2}
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                         />
@@ -174,7 +174,7 @@ export default function DevotionModal({ isOpen, onClose, initialData }: Devotion
                         disabled={loading}
                         className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-50"
                     >
-                        {loading ? 'Creating...' : 'Create Devotion'}
+                        {loading ? 'Creating...' : 'Create Insight'}
                     </button>
                 </div>
             </div>

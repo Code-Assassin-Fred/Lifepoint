@@ -12,10 +12,10 @@ import {
     doc,
     Timestamp,
 } from 'firebase/firestore';
-import { Church, Radio, Video, Heart, Plus, Play, Clock, User, Trash2 } from 'lucide-react';
-import SermonUploadModal from '@/components/church/SermonUploadModal';
+import { Home, Radio, Video, Heart, Plus, Play, Clock, User, Trash2 } from 'lucide-react';
+import SessionUploadModal from '@/components/home/SessionUploadModal';
 
-interface Sermon {
+interface Session {
     id: string;
     title: string;
     speaker: string;
@@ -24,33 +24,33 @@ interface Sermon {
     thumbnailUrl?: string;
 }
 
-type Tab = 'livestream' | 'sermons' | 'prayer';
+type Tab = 'livestream' | 'sessions' | 'prayer';
 
-export default function ChurchModule() {
+export default function HomeModule() {
     const { role } = useAuth();
-    const [activeTab, setActiveTab] = useState<Tab>('sermons');
+    const [activeTab, setActiveTab] = useState<Tab>('sessions');
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [sermons, setSermons] = useState<Sermon[]>([]);
+    const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState<string | null>(null);
 
     const isAdmin = role === 'admin';
 
-    // Fetch sermons from Firestore
+    // Fetch sessions from Firestore
     useEffect(() => {
         const q = query(collection(db, 'sermons'), orderBy('date', 'desc'));
         const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
-                const sermonsData = snapshot.docs.map((doc) => ({
+                const sessionsData = snapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
-                })) as Sermon[];
-                setSermons(sermonsData);
+                })) as Session[];
+                setSessions(sessionsData);
                 setLoading(false);
             },
             (error) => {
-                console.error('Error fetching sermons:', error);
+                console.error('Error fetching sessions:', error);
                 setLoading(false);
             }
         );
@@ -58,15 +58,15 @@ export default function ChurchModule() {
         return () => unsubscribe();
     }, []);
 
-    const handleDeleteSermon = async (sermonId: string) => {
-        if (!confirm('Are you sure you want to delete this sermon?')) return;
+    const handleDeleteSession = async (sessionId: string) => {
+        if (!confirm('Are you sure you want to delete this session?')) return;
 
-        setDeleting(sermonId);
+        setDeleting(sessionId);
         try {
-            await deleteDoc(doc(db, 'sermons', sermonId));
+            await deleteDoc(doc(db, 'sermons', sessionId));
         } catch (error) {
-            console.error('Error deleting sermon:', error);
-            alert('Failed to delete sermon');
+            console.error('Error deleting session:', error);
+            alert('Failed to delete session');
         } finally {
             setDeleting(null);
         }
@@ -82,9 +82,9 @@ export default function ChurchModule() {
     };
 
     const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
-        { id: 'livestream', label: 'Livestream', icon: Radio },
-        { id: 'sermons', label: 'Past Sermons', icon: Video },
-        { id: 'prayer', label: 'Prayer Room', icon: Heart },
+        { id: 'livestream', label: 'Live Sessions', icon: Radio },
+        { id: 'sessions', label: 'Recent Insights', icon: Video },
+        { id: 'prayer', label: 'Reflection Room', icon: Heart },
     ];
 
     return (
@@ -93,11 +93,11 @@ export default function ChurchModule() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
-                        <Church size={24} />
+                        <Home size={24} />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-black">Home</h2>
-                        <p className="text-sm text-black/60">Livestreams, sermons, and prayer room</p>
+                        <p className="text-sm text-black/60">Live sessions, insights, and reflection room</p>
                     </div>
                 </div>
 
@@ -108,7 +108,7 @@ export default function ChurchModule() {
                         className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700 transition-colors"
                     >
                         <Plus size={16} />
-                        Upload Sermon
+                        Upload Session
                     </button>
                 )}
             </div>
@@ -142,46 +142,46 @@ export default function ChurchModule() {
                         <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
                             <Radio size={24} className="text-black/40" />
                         </div>
-                        <h3 className="text-lg font-semibold text-black mb-2">No Live Service</h3>
+                        <h3 className="text-lg font-semibold text-black mb-2">No Live Session</h3>
                         <p className="text-black/60 text-sm max-w-md mx-auto">
-                            Check back during service times to watch live. Our services are streamed every Sunday at 10:00 AM.
+                            Check back during session times to watch live. Our sessions are streamed regularly.
                         </p>
                     </div>
                 )}
 
-                {/* Sermons Tab */}
-                {activeTab === 'sermons' && (
+                {/* Sessions Tab */}
+                {activeTab === 'sessions' && (
                     <>
                         {loading ? (
                             <div className="text-center py-12">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto" />
-                                <p className="mt-4 text-black/60">Loading sermons...</p>
+                                <p className="mt-4 text-black/60">Loading sessions...</p>
                             </div>
-                        ) : sermons.length === 0 ? (
+                        ) : sessions.length === 0 ? (
                             <div className="bg-gray-50 rounded-2xl p-8 text-center">
                                 <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
                                     <Video size={24} className="text-black/40" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-black mb-2">No Sermons Yet</h3>
+                                <h3 className="text-lg font-semibold text-black mb-2">No Sessions Yet</h3>
                                 <p className="text-black/60 text-sm max-w-md mx-auto">
                                     {isAdmin
-                                        ? 'Upload your first sermon to get started.'
-                                        : 'Check back soon for new sermons.'}
+                                        ? 'Upload your first session to get started.'
+                                        : 'Check back soon for new insights.'}
                                 </p>
                             </div>
                         ) : (
                             <div className="grid gap-4 sm:grid-cols-2">
-                                {sermons.map((sermon) => (
+                                {sessions.map((session) => (
                                     <div
-                                        key={sermon.id}
+                                        key={session.id}
                                         className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all"
                                     >
                                         {/* Thumbnail */}
                                         <div className="relative aspect-video bg-gray-100">
-                                            {sermon.thumbnailUrl ? (
+                                            {session.thumbnailUrl ? (
                                                 <img
-                                                    src={sermon.thumbnailUrl}
-                                                    alt={sermon.title}
+                                                    src={session.thumbnailUrl}
+                                                    alt={session.title}
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
@@ -190,7 +190,7 @@ export default function ChurchModule() {
                                                 </div>
                                             )}
                                             <a
-                                                href={sermon.videoUrl}
+                                                href={session.videoUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all"
@@ -205,12 +205,12 @@ export default function ChurchModule() {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleDeleteSermon(sermon.id);
+                                                        handleDeleteSession(session.id);
                                                     }}
-                                                    disabled={deleting === sermon.id}
+                                                    disabled={deleting === session.id}
                                                     className="absolute top-2 right-2 p-2 bg-black/60 text-white rounded-lg hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
                                                 >
-                                                    {deleting === sermon.id ? (
+                                                    {deleting === session.id ? (
                                                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                                     ) : (
                                                         <Trash2 size={16} />
@@ -222,13 +222,13 @@ export default function ChurchModule() {
                                         {/* Content */}
                                         <div className="p-4">
                                             <h4 className="font-medium text-black text-sm line-clamp-2 group-hover:text-red-600 transition-colors">
-                                                {sermon.title}
+                                                {session.title}
                                             </h4>
                                             <div className="flex items-center gap-2 mt-2 text-xs text-black/60">
                                                 <User size={12} />
-                                                <span>{sermon.speaker}</span>
+                                                <span>{session.speaker}</span>
                                                 <span className="text-black/30">•</span>
-                                                <span>{formatDate(sermon.date)}</span>
+                                                <span>{formatDate(session.date)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -238,25 +238,25 @@ export default function ChurchModule() {
                     </>
                 )}
 
-                {/* Prayer Room Tab */}
+                {/* Reflection Room Tab */}
                 {activeTab === 'prayer' && (
                     <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-8 text-center">
                         <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
                             <Heart size={24} className="text-red-500" />
                         </div>
-                        <h3 className="text-lg font-semibold text-black mb-2">Prayer Room</h3>
+                        <h3 className="text-lg font-semibold text-black mb-2">Reflection Room</h3>
                         <p className="text-black/70 text-sm max-w-md mx-auto mb-6">
-                            Join our community in prayer. Share your prayer requests and lift up others.
+                            Join our community in reflection. Share your insights and lift up others.
                         </p>
                         <button className="px-5 py-2.5 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700 transition-colors">
-                            Enter Prayer Room
+                            Enter Reflection Room
                         </button>
                     </div>
                 )}
             </div>
 
             {/* Upload Modal */}
-            <SermonUploadModal
+            <SessionUploadModal
                 isOpen={isUploadModalOpen}
                 onClose={() => setIsUploadModalOpen(false)}
             />

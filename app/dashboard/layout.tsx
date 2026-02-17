@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/context/AuthContext';
@@ -15,6 +15,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const router = useRouter();
+    const pathname = usePathname();
     const { user, loading, role, selectedModules } = useAuth();
 
     // Get modules based on role and selection
@@ -30,11 +31,22 @@ export default function DashboardLayout({
     };
 
     // Protect route - redirect to auth if not logged in
+    // Also protect admin routes - redirect if not admin
     useEffect(() => {
-        if (!loading && !user) {
-            router.replace('/auth');
+        if (!loading) {
+            if (!user) {
+                router.replace('/auth');
+            } else if (pathname.startsWith('/dashboard/admin') && role !== 'admin') {
+                router.replace('/dashboard/user');
+            } else if (pathname.startsWith('/dashboard/user') && role === 'admin') {
+                // If an admin is on a user route, redirect to admin landing
+                router.replace('/dashboard/admin');
+            } else if (pathname === '/dashboard') {
+                // Root dashboard route - redirect to appropriate landing
+                router.replace(role === 'admin' ? '/dashboard/admin' : '/dashboard/user');
+            }
         }
-    }, [user, loading, router]);
+    }, [user, loading, role, router, pathname]);
 
     if (loading) {
         return (
