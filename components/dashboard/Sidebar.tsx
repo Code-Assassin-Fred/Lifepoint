@@ -9,11 +9,8 @@ import {
     Menu,
     X,
     Shield,
-    PieChart,
     Users,
     MessageSquare,
-    Utensils,
-    Home
 } from 'lucide-react';
 import { Module, getModuleRoute } from '@/config/modules';
 
@@ -68,12 +65,12 @@ export default function Sidebar({
 
     const navContent = (
         <div className="flex flex-col h-full bg-[#18181b] text-white overflow-hidden">
-            {/* Logo Area */}
+            {/* Branding - Restored Lifepoint but kept clean Flux style */}
             <div className="px-8 pt-10 pb-8 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#ccf381] flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-4 h-4 bg-white/30 rounded-bl-full" />
+                <div className="w-8 h-8 rounded-full bg-[#ccf381] flex items-center justify-center relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-4 h-4 bg-white/30 rounded-bl-full group-hover:bg-white/50 transition-colors" />
                 </div>
-                <span className="text-2xl font-bold tracking-tight text-white">flux</span>
+                <span className="text-2xl font-bold tracking-tight text-white">Lifepoint</span>
             </div>
 
             {/* Navigation - Hidden Scrollbar */}
@@ -83,43 +80,9 @@ export default function Sidebar({
                     icon={LayoutDashboard}
                     label="Dashboard"
                     active={pathname === dashboardRoute}
-                    badge="3"
                 />
 
-                <NavItem
-                    href="/dashboard/user/home"
-                    icon={Home}
-                    label="Home"
-                    active={pathname === '/dashboard/user/home'}
-                />
-
-                <NavItem
-                    href="/dashboard/user/wisdom"
-                    icon={Utensils}
-                    label="Nutrition"
-                    active={pathname === '/dashboard/user/wisdom'}
-                />
-
-                <NavItem
-                    href="/dashboard/user/reports"
-                    icon={PieChart}
-                    label="Reports"
-                    active={pathname === '/dashboard/user/reports'}
-                    badge="1"
-                />
-
-                <NavItem href="/users" icon={Users} label="Users" active={pathname === '/users'} />
-                <NavItem href="/messages" icon={MessageSquare} label="Messages" active={pathname === '/messages'} />
-
-                {/* Dynamic Modules Section */}
-                {role === 'admin' && (
-                    <NavItem
-                        href="/dashboard/admin"
-                        icon={Shield}
-                        label="Admin"
-                        active={pathname === '/dashboard/admin'}
-                    />
-                )}
+                {/* Real Modules from Config */}
                 {modules.map((module) => (
                     <NavItem
                         key={module.id}
@@ -129,20 +92,54 @@ export default function Sidebar({
                         active={isActive(getModuleRoute(module.id, role))}
                     />
                 ))}
+
+                {/* Admin Panel Link */}
+                {role === 'admin' && (
+                    <NavItem
+                        href="/dashboard/admin"
+                        icon={Shield}
+                        label="Admin Console"
+                        active={pathname.startsWith('/dashboard/admin') && pathname !== dashboardRoute}
+                    />
+                )}
+
+                {/* Settings/Profile section */}
+                <div className="mt-4 pt-4 border-t border-zinc-800 mx-8 mb-2">
+                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Account</p>
+                </div>
+                <NavItem href="/profile" icon={Users} label="Profile" active={pathname === '/profile'} />
             </nav>
 
-            {/* Upgrade Badge (Bottom Left) - Exact Match */}
+            {/* Upgrade Badge (Bottom Left) - Kept generally relevant */}
             <div className="p-6">
                 <div className="bg-[#ccf381] rounded-[2rem] p-6 text-black relative group cursor-pointer hover:bg-[#bbe075] transition-colors">
                     <div className="relative z-10">
-                        <h4 className="font-extrabold text-xl mb-1">Upgrade to Pro</h4>
+                        <h4 className="font-extrabold text-xl mb-1">Upgrade Plan</h4>
                         <p className="text-xs font-bold opacity-70 leading-relaxed max-w-[150px]">
-                            Upgrade your account for a fuller experience.
+                            Unlock premium content and growth plans.
                         </p>
                     </div>
                 </div>
             </div>
 
+            {/* User Footer */}
+            <div className="px-8 pb-6 pt-2 flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                    {userPhoto ? (
+                        <img src={userPhoto} alt={userName} className="w-10 h-10 rounded-full object-cover ring-2 ring-zinc-800" />
+                    ) : (
+                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold border border-zinc-700">
+                            {userName.charAt(0).toUpperCase()}
+                        </div>
+                    )}
+                    <div className="hidden group-hover:block transition-all animate-in fade-in slide-in-from-left-2">
+                        <p className="text-sm font-bold text-white truncate max-w-[100px]">{userName}</p>
+                    </div>
+                </div>
+                <button onClick={onLogout} className="text-zinc-500 hover:text-white transition-colors">
+                    <LogOut size={20} />
+                </button>
+            </div>
         </div>
     );
 
@@ -151,7 +148,7 @@ export default function Sidebar({
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#18181b] text-white p-4 h-16 flex items-center justify-between">
                 <span className="font-bold text-lg flex items-center gap-2">
-                    <div className="w-6 h-6 rounded bg-[#ccf381]" /> flux
+                    <div className="w-6 h-6 rounded-full bg-[#ccf381]" /> Lifepoint
                 </span>
                 <button onClick={() => setMobileOpen(!mobileOpen)}>
                     {mobileOpen ? <X /> : <Menu />}
