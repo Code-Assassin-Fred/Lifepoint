@@ -1,49 +1,88 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f7f7;
-  /* white with a bit of gray */
-  --foreground: #171717;
+  /* Flux/Clean Theme - Light Mode */
+  --background: #F4F4F5;
+  /* Light Gray Canvas */
+  --foreground: #18181b;
+  /* Dark Text */
+
+  --sidebar-bg: #18181b;
+  /* Dark Sidebar */
+  --sidebar-fg: #ffffff;
+  /* White Text */
+
+  --card: #ffffff;
+  --card-foreground: #18181b;
+
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+
+  --accent: #E4E4E7;
+  --accent-foreground: #18181b;
+
+  --border: #E4E4E7;
+
+  --radius: 1.5rem;
+  /* Large Border Radius */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-sidebar: var(--sidebar-bg);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 8px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  .solid-card {
+    @apply bg-white rounded-3xl shadow-sm border border-transparent;
   }
-}
 
-html,
-body {
-  overflow-x: hidden;
+  .solid-pill {
+    @apply rounded-full px-4 py-2 font-medium transition-all;
+  }
+
+  /* Hide Scrollbar but keep functionality */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
 }
-
-
 
 @layer base {
 
   input,
   textarea,
   select {
-    color: black;
-  }
-
-  input::placeholder,
-  textarea::placeholder {
-    color: black;
-    opacity: 1;
+    color: inherit;
+    background: transparent;
   }
 }
