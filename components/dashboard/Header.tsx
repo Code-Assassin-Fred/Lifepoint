@@ -10,7 +10,7 @@ interface HeaderProps {
 
 export default function Header({ userName, userPhoto, role }: HeaderProps) {
     return (
-        <header className="flex items-center justify-between py-6 px-8 mb-4">
+        <header className="flex items-center justify-between pt-6 pb-2 px-8">
             {/* Left: Branding or Breadcrumb (Empty in inspo 1, but we can put a simple welcome or nothing) */}
             <div className="hidden md:block">
                 {/* Placeholder for page title connection if needed, otherwise empty */}

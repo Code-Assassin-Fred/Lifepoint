@@ -85,7 +85,7 @@ export default function DashboardLayout({
 
                 <Header userName={userName} userPhoto={userPhoto} role={role} />
 
-                <main className="p-6 lg:p-8">{children}</main>
+                <main className="px-6 pb-6 lg:px-8 lg:pb-8 pt-0">{children}</main>
             </div>
         </div>
     );

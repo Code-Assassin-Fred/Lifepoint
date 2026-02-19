@@ -88,10 +88,10 @@ export default function HomeModule() {
     ];
 
     return (
-        <div className="max-w-5xl">
+        <div className="max-w-5xl mx-auto">
             {/* Admin Actions */}
             {isAdmin && (
-                <div className="flex justify-end mb-8">
+                <div className="flex justify-end mb-4">
                     <button
                         onClick={() => setIsUploadModalOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700 transition-colors"
@@ -127,12 +127,12 @@ export default function HomeModule() {
             <div>
                 {/* Livestream Tab */}
                 {activeTab === 'livestream' && (
-                    <div className="bg-gray-50 rounded-2xl p-8 text-center">
-                        <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
-                            <Radio size={24} className="text-black/40" />
+                    <div className="bg-gray-50 rounded-2xl p-12 py-24 text-center flex flex-col items-center justify-center border border-gray-100/50">
+                        <div className="w-16 h-16 rounded-full bg-gray-200/50 flex items-center justify-center mb-6">
+                            <Radio size={28} className="text-black/40" />
                         </div>
-                        <h3 className="text-lg font-semibold text-black mb-2">No Live Session</h3>
-                        <p className="text-black/60 text-sm max-w-md mx-auto">
+                        <h3 className="text-xl font-bold text-black mb-3">No Live Session</h3>
+                        <p className="text-black/60 text-sm max-w-sm mx-auto leading-relaxed">
                             Check back during session times to watch live. Our sessions are streamed regularly.
                         </p>
                     </div>
@@ -147,12 +147,12 @@ export default function HomeModule() {
                                 <p className="mt-4 text-black/60">Loading sessions...</p>
                             </div>
                         ) : sessions.length === 0 ? (
-                            <div className="bg-gray-50 rounded-2xl p-8 text-center">
-                                <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
-                                    <Video size={24} className="text-black/40" />
+                            <div className="bg-gray-50 rounded-2xl p-12 py-24 text-center flex flex-col items-center justify-center border border-gray-100/50">
+                                <div className="w-16 h-16 rounded-full bg-gray-200/50 flex items-center justify-center mb-6">
+                                    <Video size={28} className="text-black/40" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-black mb-2">No Sessions Yet</h3>
-                                <p className="text-black/60 text-sm max-w-md mx-auto">
+                                <h3 className="text-xl font-bold text-black mb-3">No Sessions Yet</h3>
+                                <p className="text-black/60 text-sm max-w-sm mx-auto leading-relaxed">
                                     {isAdmin
                                         ? 'Upload your first session to get started.'
                                         : 'Check back soon for new insights.'}
@@ -229,15 +229,15 @@ export default function HomeModule() {
 
                 {/* Reflection Room Tab */}
                 {activeTab === 'prayer' && (
-                    <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-8 text-center">
-                        <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
-                            <Heart size={24} className="text-red-500" />
+                    <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-12 py-24 text-center flex flex-col items-center justify-center border border-red-100/30">
+                        <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm">
+                            <Heart size={28} className="text-red-500" />
                         </div>
-                        <h3 className="text-lg font-semibold text-black mb-2">Reflection Room</h3>
-                        <p className="text-black/70 text-sm max-w-md mx-auto mb-6">
+                        <h3 className="text-xl font-bold text-black mb-3">Reflection Room</h3>
+                        <p className="text-black/70 text-sm max-w-sm mx-auto mb-8 leading-relaxed">
                             Join our community in reflection. Share your insights and lift up others.
                         </p>
-                        <button className="px-5 py-2.5 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700 transition-colors">
+                        <button className="px-6 py-3 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700 transition-all hover:scale-105 shadow-lg shadow-red-200">
                             Enter Reflection Room
                         </button>
                     </div>
