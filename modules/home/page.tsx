@@ -89,20 +89,9 @@ export default function HomeModule() {
 
     return (
         <div className="max-w-5xl">
-            {/* Module Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
-                        <Home size={24} />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-black">Home</h2>
-                        <p className="text-sm text-black/60">Live sessions, insights, and reflection room</p>
-                    </div>
-                </div>
-
-                {/* Admin Upload Button */}
-                {isAdmin && (
+            {/* Admin Actions */}
+            {isAdmin && (
+                <div className="flex justify-end mb-8">
                     <button
                         onClick={() => setIsUploadModalOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700 transition-colors"
@@ -110,8 +99,8 @@ export default function HomeModule() {
                         <Plus size={16} />
                         Upload Session
                     </button>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Tabs */}
             <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
