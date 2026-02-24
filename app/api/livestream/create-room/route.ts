@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
+import { adminDb } from '@/lib/firebase-admin';
 
 const DAILY_API_KEY = process.env.DAILY_API_KEY;
-const DAILY_DOMAIN = process.env.NEXT_PUBLIC_DAILY_DOMAIN;
 
 export async function POST(req: Request) {
     if (!DAILY_API_KEY) {
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     }
 
     try {
-        const { title } = await req.json();
+        const { title, adminId } = await req.json();
 
         // Create a room in Daily.co
         const response = await fetch('https://api.daily.co/v1/rooms', {
@@ -58,6 +58,16 @@ export async function POST(req: Request) {
         }
 
         const { token } = (await tokenResponse.json()) as { token: string };
+
+        // Save session to Firestore using Admin SDK
+        await adminDb.collection('livesessions').add({
+            title,
+            adminId: adminId || 'unknown',
+            roomUrl: room.url,
+            roomName: room.name,
+            status: 'live',
+            startedAt: new Date(),
+        });
 
         return NextResponse.json({
             roomUrl: room.url,

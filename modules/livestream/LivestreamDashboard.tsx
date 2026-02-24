@@ -29,21 +29,12 @@ export default function LivestreamDashboard() {
             const response = await fetch('/api/livestream/create-room', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title }),
+                body: JSON.stringify({ title, adminId: user?.uid }),
             });
 
             if (!response.ok) throw new Error('Failed to create room');
 
-            const { roomUrl, roomName, token } = await response.json();
-
-            // Save session to Firestore
-            await livestreamService.startSession({
-                adminId: user?.uid || 'unknown',
-                roomUrl,
-                roomName,
-                title,
-            });
-
+            const { roomUrl, token } = await response.json();
             setAdminToken(token);
         } catch (error) {
             console.error('Error starting stream:', error);
@@ -53,8 +44,18 @@ export default function LivestreamDashboard() {
 
     const handleEndStream = async () => {
         if (activeSession?.id) {
-            await livestreamService.endSession(activeSession.id);
-            setAdminToken(null);
+            try {
+                const response = await fetch('/api/livestream/end-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: activeSession.id }),
+                });
+
+                if (!response.ok) throw new Error('Failed to end session');
+                setAdminToken(null);
+            } catch (error) {
+                console.error('Error ending session:', error);
+            }
         }
     };
 
