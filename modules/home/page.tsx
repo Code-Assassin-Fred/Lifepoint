@@ -13,6 +13,7 @@ import {
     Timestamp,
 } from 'firebase/firestore';
 import { Home, Radio, Video, Heart, Plus, Play, Clock, User, Trash2 } from 'lucide-react';
+import LivestreamDashboard from '@/modules/livestream/LivestreamDashboard';
 import SessionUploadModal from '@/components/home/SessionUploadModal';
 
 interface Session {
@@ -127,15 +128,7 @@ export default function HomeModule() {
             <div>
                 {/* Livestream Tab */}
                 {activeTab === 'livestream' && (
-                    <div className="bg-gray-50 rounded-2xl p-12 py-24 text-center flex flex-col items-center justify-center border border-gray-100/50">
-                        <div className="w-16 h-16 rounded-full bg-gray-200/50 flex items-center justify-center mb-6">
-                            <Radio size={28} className="text-black/40" />
-                        </div>
-                        <h3 className="text-xl font-bold text-black mb-3">No Live Session</h3>
-                        <p className="text-black/60 text-sm max-w-sm mx-auto leading-relaxed">
-                            Check back during session times to watch live. Our sessions are streamed regularly.
-                        </p>
-                    </div>
+                    <LivestreamDashboard />
                 )}
 
                 {/* Sessions Tab */}
