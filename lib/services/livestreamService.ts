@@ -36,13 +36,19 @@ export const livestreamService = {
             limit(1)
         );
 
-        return onSnapshot(q, (snapshot) => {
-            if (snapshot.empty) {
-                callback(null);
-            } else {
-                const sessionDoc = snapshot.docs[0];
-                callback({ id: sessionDoc.id, ...sessionDoc.data() } as LiveSession);
+        return onSnapshot(q,
+            (snapshot) => {
+                if (snapshot.empty) {
+                    callback(null);
+                } else {
+                    const sessionDoc = snapshot.docs[0];
+                    callback({ id: sessionDoc.id, ...sessionDoc.data() } as LiveSession);
+                }
+            },
+            (error) => {
+                console.error('Livestream Firestore subscription error:', error);
+                // Potentially handle permission denied by retrying or showing a message
             }
-        });
+        );
     }
 };

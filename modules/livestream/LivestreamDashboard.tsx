@@ -8,7 +8,7 @@ import LiveViewer from './components/LiveViewer';
 import { Radio, AlertCircle } from 'lucide-react';
 
 export default function LivestreamDashboard() {
-    const { user, role } = useAuth();
+    const { user, role, loading: authLoading } = useAuth();
     const [activeSession, setActiveSession] = useState<LiveSession | null>(null);
     const [loading, setLoading] = useState(true);
     const [adminToken, setAdminToken] = useState<string | null>(null);
@@ -16,13 +16,15 @@ export default function LivestreamDashboard() {
     const isAdmin = role === 'admin';
 
     useEffect(() => {
+        if (authLoading) return;
+
         const unsubscribe = livestreamService.subscribeToActiveSession((session) => {
             setActiveSession(session);
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [authLoading]);
 
     const handleStartStream = async (title: string) => {
         try {

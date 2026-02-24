@@ -15,31 +15,60 @@ export default function LiveViewer({ roomUrl, token, onLeave }: LiveViewerProps)
     const callRef = useRef<DailyCall | null>(null);
 
     useEffect(() => {
-        if (!containerRef.current || callRef.current) return;
+        if (!containerRef.current) return;
 
-        // Initialize Daily Prebuilt iframe
-        const call: DailyCall = DailyIframe.createFrame(containerRef.current, {
-            iframeStyle: {
-                width: '100%',
-                height: '100%',
-                border: '0',
-                borderRadius: '16px',
-            },
-            showLeaveButton: true,
-            showFullscreenButton: true,
-        });
+        // Check if an instance already exists
+        let call = DailyIframe.getCallInstance();
+
+        if (!call) {
+            // Initialize Daily Prebuilt iframe
+            call = DailyIframe.createFrame(containerRef.current, {
+                iframeStyle: {
+                    width: '100%',
+                    height: '100%',
+                    border: '0',
+                    borderRadius: '16px',
+                },
+                showLeaveButton: true,
+                showFullscreenButton: true,
+            });
+        }
 
         callRef.current = call;
 
-        call.join({ url: roomUrl, token: token });
+        const handleJoined = () => {
+            console.log('Joined meeting');
+        };
 
-        call.on('left-meeting', () => {
+        const handleLeft = () => {
             onLeave?.();
-        });
+        };
+
+        const initJoin = async () => {
+            const state = call.meetingState();
+            if (state === 'joined-meeting' || state === 'joining-meeting') {
+                return;
+            }
+
+            const joinOptions: any = { url: roomUrl };
+            if (token && typeof token === 'string') {
+                joinOptions.token = token;
+            }
+
+            await call.join(joinOptions);
+        };
+
+        initJoin();
+        call.on('joined-meeting', handleJoined);
+        call.on('left-meeting', handleLeft);
 
         return () => {
-            call.destroy();
-            callRef.current = null;
+            if (call) {
+                call.off('joined-meeting', handleJoined);
+                call.off('left-meeting', handleLeft);
+                call.destroy();
+                callRef.current = null;
+            }
         };
     }, [roomUrl, token, onLeave]);
 
