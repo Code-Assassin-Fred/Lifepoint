@@ -91,11 +91,14 @@ export default function LivestreamDashboard() {
                     )}
                 </div>
 
-                <LiveViewer
-                    roomUrl={activeSession.roomUrl}
-                    token={isAdmin ? adminToken || undefined : undefined}
-                    onLeave={isAdmin ? handleEndStream : undefined}
-                />
+                <div className="h-[600px] w-full bg-black rounded-2xl overflow-hidden shadow-2xl">
+                    <LiveViewer
+                        roomUrl={activeSession.roomUrl}
+                        token={isAdmin ? adminToken || undefined : undefined}
+                        onLeave={isAdmin ? handleEndStream : undefined}
+                        userName={user?.displayName || (isAdmin ? 'Admin' : 'Guest')}
+                    />
+                </div>
             </div>
         );
     }

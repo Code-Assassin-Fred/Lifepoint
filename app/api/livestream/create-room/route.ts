@@ -22,9 +22,10 @@ export async function POST(req: Request) {
                 name: `lifepoint-${Date.now()}`,
                 properties: {
                     enable_chat: true,
+                    enable_screenshare: true,
                     start_video_off: false,
                     start_audio_off: false,
-                    exp: Math.floor(Date.now() / 1000) + 3600, // Expires in 1 hour
+                    exp: Math.floor(Date.now() / 1000) + 7200, // Expires in 2 hours
                 },
             }),
         });
