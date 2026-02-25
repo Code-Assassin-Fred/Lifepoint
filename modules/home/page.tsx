@@ -15,6 +15,7 @@ import {
 import { Home, Radio, Video, Heart, Plus, Play, Clock, User, Trash2 } from 'lucide-react';
 import LivestreamDashboard from '@/modules/livestream/LivestreamDashboard';
 import SessionUploadModal from '@/components/home/SessionUploadModal';
+import VideoPlayer from '@/components/media/VideoPlayer';
 
 interface Session {
     id: string;
@@ -34,6 +35,7 @@ export default function HomeModule() {
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState<string | null>(null);
+    const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
     const isAdmin = role === 'admin';
 
@@ -171,16 +173,14 @@ export default function HomeModule() {
                                                     <Video size={40} className="text-red-300" />
                                                 </div>
                                             )}
-                                            <a
-                                                href={session.videoUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all"
+                                            <div
+                                                onClick={() => setSelectedSession(session)}
+                                                className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all cursor-pointer"
                                             >
                                                 <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all shadow-lg">
                                                     <Play size={20} className="text-red-600 ml-0.5" />
                                                 </div>
-                                            </a>
+                                            </div>
 
                                             {/* Admin Delete Button */}
                                             {isAdmin && (
@@ -242,6 +242,15 @@ export default function HomeModule() {
                 isOpen={isUploadModalOpen}
                 onClose={() => setIsUploadModalOpen(false)}
             />
+
+            {/* Video Player */}
+            {selectedSession && (
+                <VideoPlayer
+                    url={selectedSession.videoUrl}
+                    title={selectedSession.title}
+                    onClose={() => setSelectedSession(null)}
+                />
+            )}
         </div>
     );
 }

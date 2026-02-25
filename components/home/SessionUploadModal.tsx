@@ -3,7 +3,8 @@
 import { useState, useRef, DragEvent } from 'react';
 import { X, Link2, Upload, Image } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/lib/context/AuthContext';
 
 interface SessionUploadModalProps {
@@ -21,9 +22,23 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
     const [thumbnailUrl, setThumbnailUrl] = useState('');
     const [isDragging, setIsDragging] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 100 * 1024 * 1024) { // 100MB limit
+                setError('File too large. Max 100MB.');
+                return;
+            }
+            setSelectedFile(file);
+            setError(null);
+        }
+    };
 
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -56,13 +71,39 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
 
         setLoading(true);
         setError(null);
+        setUploadProgress(0);
 
         try {
+            let finalVideoUrl = videoUrl.trim();
+
+            if (videoSource === 'upload' && selectedFile) {
+                const storageRef = ref(storage, `sessions/${Date.now()}_${selectedFile.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+                finalVideoUrl = await new Promise((resolve, reject) => {
+                    uploadTask.on(
+                        'state_changed',
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            setUploadProgress(progress);
+                        },
+                        (error) => {
+                            console.error('Upload error:', error);
+                            reject(error);
+                        },
+                        async () => {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            resolve(downloadURL);
+                        }
+                    );
+                });
+            }
+
             await addDoc(collection(db, 'sermons'), {
                 title: title.trim(),
                 speaker: speaker.trim(),
                 date: new Date(date),
-                videoUrl: videoUrl.trim(),
+                videoUrl: finalVideoUrl,
                 thumbnailUrl: thumbnailUrl.trim() || null,
                 createdAt: serverTimestamp(),
                 createdBy: user?.uid || 'unknown',
@@ -74,6 +115,8 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
             setDate(new Date().toISOString().split('T')[0]);
             setVideoUrl('');
             setThumbnailUrl('');
+            setSelectedFile(null);
+            setUploadProgress(0);
             onClose();
         } catch (err) {
             console.error('Error uploading session:', err);
@@ -216,8 +259,47 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
 
                     {/* Upload placeholder */}
                     {videoSource === 'upload' && (
-                        <div className="p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center">
-                            <p className="text-sm text-black/50">Video upload coming soon - use link for now</p>
+                        <div
+                            onClick={() => fileInputRef.current?.click()}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            className={`p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 ${isDragging
+                                ? 'border-red-500 bg-red-50'
+                                : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+                                }`}
+                        >
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileSelect}
+                                accept="video/*"
+                                className="hidden"
+                            />
+                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                                <Upload size={24} />
+                            </div>
+                            <div className="text-center">
+                                <p className="text-sm font-medium text-black">
+                                    {selectedFile ? selectedFile.name : 'Click or drag video to upload'}
+                                </p>
+                                <p className="text-xs text-black/40 mt-1">MP4, WebM or MOV up to 100MB</p>
+                            </div>
+
+                            {loading && uploadProgress > 0 && (
+                                <div className="w-full mt-4">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <span className="text-[10px] font-bold text-red-600 uppercase">Uploading</span>
+                                        <span className="text-[10px] font-bold text-red-600">{Math.round(uploadProgress)}%</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-red-100 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-red-600 transition-all duration-300"
+                                            style={{ width: `${uploadProgress}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

@@ -15,6 +15,7 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager
 } from 'firebase/firestore';
+import { getStorage, connectStorageEmulator, type FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -38,8 +39,9 @@ const createFirebaseApp = (): FirebaseApp => {
 
 const app = createFirebaseApp();
 
-// Auth & Firestore
+// Auth, Firestore & Storage
 export const auth: Auth = getAuth(app);
+export const storage: FirebaseStorage = getStorage(app);
 
 // Use initializeFirestore to enable settings like longPolling
 export const db: Firestore = initializeFirestore(app, {
@@ -53,6 +55,7 @@ export const googleProvider = new GoogleAuthProvider();
 type EmulatorConfig = { host: string; port: number };
 const authEmulator: EmulatorConfig = { host: 'localhost', port: 9099 };
 const firestoreEmulator: EmulatorConfig = { host: 'localhost', port: 8080 };
+const storageEmulator: EmulatorConfig = { host: 'localhost', port: 9199 };
 
 if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   if (!auth.emulatorConfig) {
@@ -61,4 +64,5 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULAT
     });
   }
   connectFirestoreEmulator(db, firestoreEmulator.host, firestoreEmulator.port);
+  connectStorageEmulator(storage, storageEmulator.host, storageEmulator.port);
 }
