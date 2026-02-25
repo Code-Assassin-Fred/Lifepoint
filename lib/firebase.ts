@@ -65,4 +65,7 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULAT
   }
   connectFirestoreEmulator(db, firestoreEmulator.host, firestoreEmulator.port);
   connectStorageEmulator(storage, storageEmulator.host, storageEmulator.port);
+  console.log('[firebase] Using emulators');
+} else {
+  console.log('[firebase] Using production');
 }

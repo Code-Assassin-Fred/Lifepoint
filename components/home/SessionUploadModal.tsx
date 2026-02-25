@@ -64,8 +64,12 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
             setError('Speaker is required');
             return;
         }
-        if (!videoUrl.trim()) {
+        if (videoSource === 'link' && !videoUrl.trim()) {
             setError('Video URL is required');
+            return;
+        }
+        if (videoSource === 'upload' && !selectedFile) {
+            setError('Please select a video file to upload');
             return;
         }
 
@@ -88,7 +92,8 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
                             setUploadProgress(progress);
                         },
                         (error) => {
-                            console.error('Upload error:', error);
+                            console.error('Full Upload error object:', error);
+                            setError(`Upload failed: ${error.message}`);
                             reject(error);
                         },
                         async () => {
