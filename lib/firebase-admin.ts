@@ -24,6 +24,7 @@ if (!admin.apps.length) {
       clientEmail,
       privateKey,
     }),
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   });
 
   console.log('[firebaseAdmin] Firebase Admin SDK initialized successfully');
@@ -31,6 +32,7 @@ if (!admin.apps.length) {
 
 export const adminAuth = admin.auth();
 export const adminDb = admin.firestore();
+export const adminStorage = admin.storage();
 
 // Ensure undefined fields are ignored in Firestore writes
 try {

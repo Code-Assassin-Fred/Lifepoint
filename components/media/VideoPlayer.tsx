@@ -1,6 +1,7 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface VideoPlayerProps {
     url: string;
@@ -10,6 +11,43 @@ interface VideoPlayerProps {
 
 export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
     const isExternal = url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
+    const [videoUrl, setVideoUrl] = useState<string | null>(isExternal ? url : null);
+    const [loading, setLoading] = useState(!isExternal);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchSignedUrl = async () => {
+            if (isExternal) {
+                setVideoUrl(url);
+                return;
+            }
+
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await fetch('/api/media/signed-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: url }),
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Failed to get signed URL');
+                }
+
+                const { signedUrl } = await response.json();
+                setVideoUrl(signedUrl);
+            } catch (err: any) {
+                console.error('Error fetching signed URL:', err);
+                setError(err.message || 'Error loading video');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSignedUrl();
+    }, [url, isExternal]);
 
     const getEmbedUrl = (url: string) => {
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
@@ -44,21 +82,37 @@ export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
                     </button>
                 </div>
 
-                {isExternal ? (
+                {loading ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-white/60 gap-4">
+                        <Loader2 className="animate-spin" size={40} />
+                        <p className="text-sm">Preparing secure stream...</p>
+                    </div>
+                ) : error ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-white/60 p-6 text-center">
+                        <p className="text-red-400 font-medium mb-2">Failed to Load Video</p>
+                        <p className="text-sm max-w-sm">{error}</p>
+                        <button
+                            onClick={onClose}
+                            className="mt-6 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition-all"
+                        >
+                            Close
+                        </button>
+                    </div>
+                ) : isExternal ? (
                     <iframe
-                        src={getEmbedUrl(url)}
+                        src={getEmbedUrl(videoUrl)}
                         className="w-full h-full border-0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                     />
-                ) : (
+                ) : videoUrl ? (
                     <video
-                        src={url}
+                        src={videoUrl}
                         controls
                         autoPlay
                         className="w-full h-full object-contain"
                     />
-                )}
+                ) : null}
             </div>
         </div>
     );

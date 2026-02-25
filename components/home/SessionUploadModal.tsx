@@ -81,27 +81,49 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
             let finalVideoUrl = videoUrl.trim();
 
             if (videoSource === 'upload' && selectedFile) {
-                const storageRef = ref(storage, `sessions/${Date.now()}_${selectedFile.name}`);
-                const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+                const storagePath = `sessions/${Date.now()}_${selectedFile.name}`;
 
-                finalVideoUrl = await new Promise((resolve, reject) => {
-                    uploadTask.on(
-                        'state_changed',
-                        (snapshot) => {
-                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            setUploadProgress(progress);
-                        },
-                        (error) => {
-                            console.error('Full Upload error object:', error);
-                            setError(`Upload failed: ${error.message}`);
-                            reject(error);
-                        },
-                        async () => {
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            resolve(downloadURL);
-                        }
-                    );
+                // 1. Get signed upload URL
+                const signedUrlResponse = await fetch('/api/media/signed-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: storagePath,
+                        method: 'write',
+                        contentType: selectedFile.type
+                    }),
                 });
+
+                if (!signedUrlResponse.ok) {
+                    const data = await signedUrlResponse.json();
+                    throw new Error(data.error || 'Failed to get upload authorization');
+                }
+
+                const { signedUrl } = await signedUrlResponse.json();
+
+                // 2. Upload file using PUT
+                // Note: We'll use a simple fetch here. For progress tracking, we'd normally use XHR.
+                // Since this is 100MB limit, we'll just set it to 100% on completion for now.
+                setUploadProgress(10); // Start progress
+
+                const uploadResponse = await fetch(signedUrl, {
+                    method: 'PUT',
+                    body: selectedFile,
+                    headers: {
+                        'Content-Type': selectedFile.type,
+                    },
+                });
+
+                if (!uploadResponse.ok) {
+                    throw new Error('Upload failed. Please try again.');
+                }
+
+                setUploadProgress(100);
+
+                // 3. Construct the public download URL (standard Firebase format)
+                // Even though we use signed URLs for playback, Firestore stores the reference path or URL.
+                // We'll store the path to be used with our signed-url API later.
+                finalVideoUrl = storagePath;
             }
 
             await addDoc(collection(db, 'sermons'), {
