@@ -57,16 +57,14 @@
     @apply rounded-full px-4 py-2 font-medium transition-all;
   }
 
-  /* Hide Scrollbar but keep functionality */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  /* Global scrollbar removal but keep functionality */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
+  *::-webkit-scrollbar {
+    display: none;
   }
 }
 
