@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { db } from '@/lib/firebase';
 import {
@@ -28,9 +29,10 @@ interface Session {
 
 type Tab = 'livestream' | 'sessions' | 'prayer';
 
-export default function HomeModule() {
+function HomeContent() {
     const { role } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('sessions');
+    const searchParams = useSearchParams();
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
@@ -38,6 +40,18 @@ export default function HomeModule() {
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
     const isAdmin = role === 'admin';
+
+    // Handle tab query parameter
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'livestream') {
+            setActiveTab('livestream');
+        } else if (tab === 'sessions') {
+            setActiveTab('sessions');
+        } else if (tab === 'prayer') {
+            setActiveTab('prayer');
+        }
+    }, [searchParams]);
 
     // Fetch sessions from Firestore
     useEffect(() => {
@@ -252,5 +266,17 @@ export default function HomeModule() {
                 />
             )}
         </div>
+    );
+}
+
+export default function HomeModule() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center py-24">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
+            </div>
+        }>
+            <HomeContent />
+        </Suspense>
     );
 }

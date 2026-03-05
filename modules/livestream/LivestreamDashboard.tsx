@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { livestreamService, LiveSession } from '@/lib/services/livestreamService';
 import LiveAdmin from './components/LiveAdmin';
 import LiveViewer from './components/LiveViewer';
-import { Radio, AlertCircle } from 'lucide-react';
+import { Radio, AlertCircle, Share2, Check } from 'lucide-react';
 
 export default function LivestreamDashboard() {
     const { user, role, loading: authLoading } = useAuth();
     const [activeSession, setActiveSession] = useState<LiveSession | null>(null);
     const [loading, setLoading] = useState(true);
     const [adminToken, setAdminToken] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
 
     const isAdmin = role === 'admin';
 
@@ -26,7 +27,18 @@ export default function LivestreamDashboard() {
         return () => unsubscribe();
     }, [authLoading]);
 
-    const handleStartStream = async (title: string) => {
+    const handleShare = useCallback(async () => {
+        try {
+            const shareUrl = `${window.location.origin}/dashboard/user/home?tab=livestream`;
+            await navigator.clipboard.writeText(shareUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+        }
+    }, []);
+
+    const handleStartStream = useCallback(async (title: string) => {
         try {
             const response = await fetch('/api/livestream/create-room', {
                 method: 'POST',
@@ -42,9 +54,9 @@ export default function LivestreamDashboard() {
             console.error('Error starting stream:', error);
             throw error;
         }
-    };
+    }, [user?.uid]);
 
-    const handleEndStream = async () => {
+    const handleEndStream = useCallback(async () => {
         if (activeSession?.id) {
             try {
                 const response = await fetch('/api/livestream/end-session', {
@@ -59,7 +71,7 @@ export default function LivestreamDashboard() {
                 console.error('Error ending session:', error);
             }
         }
-    };
+    }, [activeSession?.id]);
 
     if (loading) {
         return (
@@ -82,12 +94,24 @@ export default function LivestreamDashboard() {
                         </div>
                     </div>
                     {isAdmin && (
-                        <button
-                            onClick={handleEndStream}
-                            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-xl font-medium hover:bg-red-50 hover:text-red-600 transition-colors"
-                        >
-                            End Session
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleShare}
+                                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-xl font-medium transition-all ${copied
+                                    ? 'bg-green-50 text-green-600 border border-green-100'
+                                    : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {copied ? <Check size={16} /> : <Share2 size={16} />}
+                                {copied ? 'Link Copied!' : 'Share Session'}
+                            </button>
+                            <button
+                                onClick={handleEndStream}
+                                className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-xl font-medium hover:bg-red-50 hover:text-red-600 transition-colors"
+                            >
+                                End Session
+                            </button>
+                        </div>
                     )}
                 </div>
 
