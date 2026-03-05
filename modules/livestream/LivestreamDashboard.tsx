@@ -179,10 +179,15 @@ export default function LivestreamDashboard() {
                                 </div>
                                 <h5 className="font-bold text-sm text-gray-900 line-clamp-1">{session.title}</h5>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    {session.endedAt ? new Date(session.endedAt).toLocaleDateString('en-US', {
+                                    {session.endedAt ? new Date(
+                                        typeof session.endedAt === 'string'
+                                            ? session.endedAt
+                                            : (session.endedAt as any).toDate?.() || session.endedAt
+                                    ).toLocaleDateString('en-US', {
                                         month: 'short', day: 'numeric', year: 'numeric'
                                     }) : 'TBD'}
                                 </p>
+
                             </div>
                         ))}
                     </div>

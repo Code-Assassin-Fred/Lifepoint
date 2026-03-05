@@ -16,13 +16,14 @@ import {
 export interface LiveSession {
     id?: string;
     status: 'live' | 'ended';
-    startedAt: Timestamp;
-    endedAt?: Timestamp;
+    startedAt: Timestamp | string;
+    endedAt?: Timestamp | string;
     adminId: string;
     roomUrl: string;
     roomName: string;
     title: string;
 }
+
 
 const COLLECTION_NAME = 'livesessions';
 

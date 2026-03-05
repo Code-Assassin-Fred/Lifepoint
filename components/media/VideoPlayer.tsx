@@ -100,11 +100,12 @@ export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
                     </div>
                 ) : isExternal ? (
                     <iframe
-                        src={getEmbedUrl(videoUrl)}
+                        src={getEmbedUrl(videoUrl!)}
                         className="w-full h-full border-0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                     />
+
                 ) : videoUrl ? (
                     <video
                         src={videoUrl}
