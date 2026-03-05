@@ -210,7 +210,7 @@ export default function WisdomModule() {
         const titleMatch = text.match(/## Title\s*([\s\S]*?)(?=##|$)/);
         const scriptureMatch = text.match(/## Reference\s*([\s\S]*?)(?=##|$)/);
         const contentMatch = text.match(/## Insight Content\s*([\s\S]*?)(?=##|$)/);
-        const prayerMatch = text.match(/## Reflection Prompt\s*([\s\S]*?)(?=##|$)/);
+        const prayerMatch = text.match(/## Prayer Prompt\s*([\s\S]*?)(?=##|$)/);
 
         return {
             title: titleMatch ? titleMatch[1].trim() : '',
@@ -342,8 +342,8 @@ export default function WisdomModule() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as Tab)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                                            ? 'bg-white text-zinc-900 shadow-sm'
-                                            : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50'
+                                        ? 'bg-white text-zinc-900 shadow-sm'
+                                        : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50'
                                         }`}
                                 >
                                     <Icon size={16} className={isActive ? 'text-zinc-900' : 'text-zinc-400'} />
@@ -391,7 +391,7 @@ export default function WisdomModule() {
                                         <div className="relative z-10">
                                             <div className="flex items-center gap-2 mb-3 text-zinc-400">
                                                 <Sparkles size={16} />
-                                                <span className="text-xs font-bold uppercase tracking-widest">Reflection</span>
+                                                <span className="text-xs font-bold uppercase tracking-widest">Prayer</span>
                                             </div>
                                             <p className="text-zinc-200 text-lg leading-relaxed italic">"{todayInsight.prayerPrompt}"</p>
                                         </div>

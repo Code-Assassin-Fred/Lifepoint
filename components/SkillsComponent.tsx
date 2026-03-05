@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 export default function SkillsComponent() {
   const cards = [
-    { id: 1, title: "Home", submodules: ["Live Sessions", "Recent Insights", "Reflection Rooms"] },
+    { id: 1, title: "Home", submodules: ["Live Sessions", "Recent Insights", "Prayer Rooms"] },
     { id: 2, title: "Wisdom Hub & Skill Building", submodules: ["Foundations", "Deep-Dive Knowledge studies", "Reflections", "Action Plans"] },
     { id: 3, title: "Personal Growth", submodules: ["Purpose Discovery", "Confidence Building", "Communication Skills", "Life Skills"] },
     { id: 4, title: "Leadership Development", submodules: ["Leadership Programs", "Masterclasses", "Certificates", "Workshops"] },

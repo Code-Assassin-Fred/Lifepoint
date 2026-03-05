@@ -25,7 +25,7 @@ export const ALL_MODULES: Module[] = [
     {
         id: 'home',
         label: 'Home',
-        description: 'Live sessions, insights, and reflection room',
+        description: 'Live sessions, insights, and prayer room',
         icon: Home,
     },
     {

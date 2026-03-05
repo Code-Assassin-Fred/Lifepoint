@@ -10,7 +10,7 @@ const Navbar = () => {
   const menuItems = {
     Home: [
       { label: 'Live Sessions' },
-      { label: 'Reflection Rooms' },
+      { label: 'Prayer Rooms' },
       { label: 'Recent Insights' }
     ],
     'Wisdom Hub': [

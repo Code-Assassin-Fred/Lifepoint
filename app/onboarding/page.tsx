@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const MODULES = [
-  { id: 'home', name: 'Home', submodules: ['Live Sessions', 'Reflection Rooms', 'Recent Insights'] },
+  { id: 'home', name: 'Home', submodules: ['Live Sessions', 'Prayer Rooms', 'Recent Insights'] },
   { id: 'wisdom', name: 'Wisdom Hub', submodules: ['Knowledge Hub', 'Daily Reflection', 'AI Insight Guide'] },
   { id: 'development', name: 'Personal & Leadership Growth', submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development'] },
   { id: 'guidance', name: 'Mentorship & Coaching', submodules: ['Find a Mentor', 'Book Coaching', 'Youth Mentorship'] },
