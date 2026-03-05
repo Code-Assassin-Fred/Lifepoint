@@ -10,18 +10,22 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
-    const isExternal = url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com') || url.includes('daily.co');
-    const [videoUrl, setVideoUrl] = useState<string | null>(isExternal ? url : null);
-    const [loading, setLoading] = useState(!isExternal);
+    const isHttp = url.startsWith('http');
+    const isEmbed = url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
+
+    const [videoUrl, setVideoUrl] = useState<string | null>(isHttp ? url : null);
+    const [loading, setLoading] = useState(!isHttp);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchSignedUrl = async () => {
-            if (isExternal) {
-                setVideoUrl(url);
-                return;
-            }
+        if (isHttp) {
+            setVideoUrl(url);
+            setLoading(false);
+            return;
+        }
 
+        // Only fetch signed URL for internal storage paths
+        const fetchSignedUrl = async () => {
             setLoading(true);
             setError(null);
             try {
@@ -39,7 +43,7 @@ export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
                 const { signedUrl } = await response.json();
                 setVideoUrl(signedUrl);
             } catch (err: any) {
-                console.error('Error fetching signed URL:', err);
+                console.error('[VideoPlayer] Error fetching signed URL:', err);
                 setError(err.message || 'Error loading video');
             } finally {
                 setLoading(false);
@@ -47,25 +51,25 @@ export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
         };
 
         fetchSignedUrl();
-    }, [url, isExternal]);
+    }, [url, isHttp]);
 
-    const getEmbedUrl = (url: string) => {
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            const id = url.split('v=')[1] || url.split('/').pop();
+    const getEmbedUrl = (rawUrl: string) => {
+        if (rawUrl.includes('youtube.com') || rawUrl.includes('youtu.be')) {
+            const id = rawUrl.split('v=')[1] || rawUrl.split('/').pop();
             return `https://www.youtube.com/embed/${id}?autoplay=1`;
         }
-        if (url.includes('vimeo.com')) {
-            const id = url.split('/').pop();
+        if (rawUrl.includes('vimeo.com')) {
+            const id = rawUrl.split('/').pop();
             return `https://player.vimeo.com/video/${id}?autoplay=1`;
         }
-        return url;
+        return rawUrl;
     };
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                className="absolute inset-0 bg-black/90 backdrop-blur-sm"
                 onClick={onClose}
             />
 
@@ -98,14 +102,13 @@ export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
                             Close
                         </button>
                     </div>
-                ) : isExternal ? (
+                ) : isEmbed ? (
                     <iframe
                         src={getEmbedUrl(videoUrl!)}
                         className="w-full h-full border-0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                     />
-
                 ) : videoUrl ? (
                     <video
                         src={videoUrl}

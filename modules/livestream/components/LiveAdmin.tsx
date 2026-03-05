@@ -51,18 +51,18 @@ export default function LiveAdmin({ onStart, onEnd }: LiveAdminProps) {
                 </button>
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-4 w-full max-w-md">
-                <div className="p-4 bg-gray-50 rounded-xl flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
-                        <Video size={20} />
+            <div className="mt-8 grid grid-cols-2 gap-8 w-full max-w-md">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-600">
+                        <Video size={18} />
                     </div>
-                    <span className="text-sm font-medium">Auto-HD Video</span>
+                    <span className="text-sm font-semibold text-gray-900">Auto-HD Video</span>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-xl flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
-                        <Mic size={20} />
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-600">
+                        <Mic size={18} />
                     </div>
-                    <span className="text-sm font-medium">Crystal Audio</span>
+                    <span className="text-sm font-semibold text-gray-900">Crystal Audio</span>
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { db } from '@/lib/firebase';
 import {
@@ -42,8 +42,9 @@ type Tab = 'livestream' | 'sessions' | 'prayer';
 
 function HomeContent() {
     const { role } = useAuth();
-    const [activeTab, setActiveTab] = useState<Tab>('sessions');
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const [activeTab, setActiveTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'sessions');
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
@@ -238,7 +239,10 @@ function HomeContent() {
                     return (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => {
+                                setActiveTab(tab.id);
+                                router.push(`?tab=${tab.id}`, { scroll: false });
+                            }}
                             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${isActive
                                 ? 'border-red-600 text-red-600'
                                 : 'border-transparent text-black/60 hover:text-black'
@@ -295,14 +299,16 @@ function HomeContent() {
                                                 />
                                             ) : (
                                                 <div className="w-full h-full relative group">
-                                                    <video
-                                                        src={session.videoUrl}
-                                                        className="w-full h-full object-cover"
-                                                        preload="metadata"
-                                                        muted
-                                                        onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
-                                                        onMouseOut={(e) => (e.target as HTMLVideoElement).pause()}
-                                                    />
+                                                    {session.videoUrl.startsWith('http') && (
+                                                        <video
+                                                            src={session.videoUrl}
+                                                            className="w-full h-full object-cover"
+                                                            preload="metadata"
+                                                            muted
+                                                            onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
+                                                            onMouseOut={(e) => (e.target as HTMLVideoElement).pause()}
+                                                        />
+                                                    )}
                                                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/0 transition-all">
                                                         <Video size={32} className="text-white/80 group-hover:opacity-0 transition-opacity" />
                                                     </div>
