@@ -79,7 +79,7 @@ export default function DashboardLayout({
             />
 
             {/* Main Content */}
-            <div className="lg:pl-72">
+            <div className="lg:pl-[240px]">
                 {/* Spacer for mobile header */}
                 <div className="h-16 lg:hidden" />
 

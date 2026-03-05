@@ -43,19 +43,19 @@ export default function Sidebar({
     const NavItem = ({ href, icon: Icon, label, active, badge }: { href: string; icon: any; label: string; active?: boolean; badge?: string | number }) => (
         <Link
             href={href}
-            className={`flex items-center justify-between px-6 py-4 mb-1 transition-all duration-300 font-medium text-[16px] ${active
-                    ? 'bg-white text-black rounded-[2rem] mx-4 shadow-lg shadow-black/20'
-                    : 'text-zinc-400 hover:text-white px-10'
+            className={`flex items-center justify-between px-6 py-2.5 mb-1 transition-all duration-300 font-medium text-sm ${active
+                ? 'bg-white text-black rounded-[2rem] mx-4 shadow-lg shadow-black/20'
+                : 'text-zinc-400 hover:text-white px-10'
                 }`}
         >
-            <div className="flex items-center gap-4">
-                <Icon size={22} className={active ? 'text-black' : 'text-zinc-400 group-hover:text-white'} strokeWidth={2} />
+            <div className="flex items-center gap-3">
+                <Icon size={20} className={active ? 'text-black' : 'text-zinc-400 group-hover:text-white'} strokeWidth={2} />
                 <span>{label}</span>
             </div>
             {badge && (
                 <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${active
-                        ? 'bg-[#ccf381] text-black'
-                        : 'bg-[#ccf381] text-black'
+                    ? 'bg-[#ccf381] text-black'
+                    : 'bg-[#ccf381] text-black'
                     }`}>
                     {badge}
                 </span>
@@ -65,12 +65,9 @@ export default function Sidebar({
 
     const navContent = (
         <div className="flex flex-col h-full bg-[#18181b] text-white overflow-hidden">
-            {/* Branding - Restored Lifepoint but kept clean Flux style */}
-            <div className="px-8 pt-10 pb-8 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#ccf381] flex items-center justify-center relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-4 h-4 bg-white/30 rounded-bl-full group-hover:bg-white/50 transition-colors" />
-                </div>
-                <span className="text-2xl font-bold tracking-tight text-white">Lifepoint</span>
+            {/* Branding - Removed dot for cleaner look */}
+            <div className="px-8 pt-8 pb-6 flex items-center">
+                <span className="text-xl font-bold tracking-tight text-white">Lifepoint</span>
             </div>
 
             {/* Navigation - Hidden Scrollbar */}
@@ -110,12 +107,12 @@ export default function Sidebar({
                 <NavItem href="/profile" icon={Users} label="Profile" active={pathname === '/profile'} />
             </nav>
 
-            {/* Upgrade Badge (Bottom Left) - Kept generally relevant */}
-            <div className="p-6">
-                <div className="bg-[#ccf381] rounded-[2rem] p-6 text-black relative group cursor-pointer hover:bg-[#bbe075] transition-colors">
+            {/* Upgrade Badge (Bottom Left) - More compact */}
+            <div className="px-6 py-4">
+                <div className="bg-[#ccf381] rounded-2xl p-4 text-black relative group cursor-pointer hover:bg-[#bbe075] transition-colors">
                     <div className="relative z-10">
-                        <h4 className="font-extrabold text-xl mb-1">Upgrade Plan</h4>
-                        <p className="text-xs font-bold opacity-70 leading-relaxed max-w-[150px]">
+                        <h4 className="font-bold text-sm mb-1">Upgrade Plan</h4>
+                        <p className="text-[10px] font-medium opacity-70 leading-relaxed max-w-[150px]">
                             Unlock premium content and growth plans.
                         </p>
                     </div>
@@ -148,7 +145,7 @@ export default function Sidebar({
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#18181b] text-white p-4 h-16 flex items-center justify-between">
                 <span className="font-bold text-lg flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#ccf381]" /> Lifepoint
+                    Lifepoint
                 </span>
                 <button onClick={() => setMobileOpen(!mobileOpen)}>
                     {mobileOpen ? <X /> : <Menu />}
@@ -168,12 +165,12 @@ export default function Sidebar({
             )}
 
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:block fixed top-0 left-0 bottom-0 w-[280px] z-30 bg-[#18181b]">
+            <aside className="hidden lg:block fixed top-0 left-0 bottom-0 w-[240px] z-30 bg-[#18181b]">
                 {navContent}
             </aside>
 
             {/* Nav content shim */}
-            <div className="hidden lg:block w-[280px] flex-shrink-0" />
+            <div className="hidden lg:block w-[240px] flex-shrink-0" />
         </>
     );
 }

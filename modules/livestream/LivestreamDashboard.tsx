@@ -91,7 +91,7 @@ export default function LivestreamDashboard() {
                     )}
                 </div>
 
-                <div className="h-[600px] w-full bg-black rounded-2xl overflow-hidden shadow-2xl">
+                <div className="w-full">
                     <LiveViewer
                         roomUrl={activeSession.roomUrl}
                         token={isAdmin ? adminToken || undefined : undefined}
