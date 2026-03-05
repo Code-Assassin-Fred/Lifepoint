@@ -13,18 +13,33 @@ export default function LivestreamDashboard() {
     const [loading, setLoading] = useState(true);
     const [adminToken, setAdminToken] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [pastSessions, setPastSessions] = useState<LiveSession[]>([]);
+    const [loadingPast, setLoadingPast] = useState(true);
 
     const isAdmin = role === 'admin';
 
     useEffect(() => {
         if (authLoading) return;
 
-        const unsubscribe = livestreamService.subscribeToActiveSession((session) => {
+        const unsubscribeScroll = livestreamService.subscribeToActiveSession((session) => {
             setActiveSession(session);
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        const fetchPast = async () => {
+            try {
+                const past = await livestreamService.getPastSessions();
+                setPastSessions(past);
+            } catch (error) {
+                console.error('Error fetching past sessions:', error);
+            } finally {
+                setLoadingPast(false);
+            }
+        };
+
+        fetchPast();
+
+        return () => unsubscribeScroll();
     }, [authLoading]);
 
     const handleShare = useCallback(async () => {
@@ -67,6 +82,9 @@ export default function LivestreamDashboard() {
 
                 if (!response.ok) throw new Error('Failed to end session');
                 setAdminToken(null);
+                // Refresh past sessions
+                const past = await livestreamService.getPastSessions();
+                setPastSessions(past);
             } catch (error) {
                 console.error('Error ending session:', error);
             }
@@ -138,9 +156,38 @@ export default function LivestreamDashboard() {
                 <Radio size={28} className="text-black/40" />
             </div>
             <h3 className="text-xl font-bold text-black mb-3">No Live Session</h3>
-            <p className="text-black/60 text-sm max-w-sm mx-auto leading-relaxed">
+            <p className="text-black/60 text-sm max-w-sm mx-auto leading-relaxed mb-12">
                 Check back during session times to watch live. Our sessions are streamed regularly.
             </p>
+
+            {/* Past Sessions Section */}
+            {pastSessions.length > 0 && (
+                <div className="w-full max-w-4xl text-left">
+                    <h4 className="text-lg font-bold text-black mb-6 flex items-center gap-2">
+                        <Radio size={20} className="text-red-600" />
+                        Past Live Streams
+                    </h4>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {pastSessions.map((session) => (
+                            <div key={session.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                                <div className="aspect-video bg-gray-900 rounded-xl mb-3 flex items-center justify-center relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 to-orange-600/20" />
+                                    <Radio size={32} className="text-white/40 group-hover:scale-110 transition-transform" />
+                                    <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                                        Ended
+                                    </div>
+                                </div>
+                                <h5 className="font-bold text-sm text-gray-900 line-clamp-1">{session.title}</h5>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {session.endedAt ? new Date(session.endedAt).toLocaleDateString('en-US', {
+                                        month: 'short', day: 'numeric', year: 'numeric'
+                                    }) : 'TBD'}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

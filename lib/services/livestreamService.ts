@@ -50,5 +50,17 @@ export const livestreamService = {
                 // Potentially handle permission denied by retrying or showing a message
             }
         );
+    },
+
+    // Get all past sessions
+    async getPastSessions(): Promise<LiveSession[]> {
+        try {
+            const response = await fetch('/api/livestream/past-sessions');
+            if (!response.ok) throw new Error('Failed to fetch past sessions');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in getPastSessions:', error);
+            return [];
+        }
     }
 };

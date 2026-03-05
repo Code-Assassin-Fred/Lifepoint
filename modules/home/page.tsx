@@ -16,6 +16,7 @@ import {
 import { Home, Radio, Video, Heart, Plus, Play, Clock, User, Trash2 } from 'lucide-react';
 import LivestreamDashboard from '@/modules/livestream/LivestreamDashboard';
 import SessionUploadModal from '@/components/home/SessionUploadModal';
+import InsightReels from './components/InsightReels';
 import VideoPlayer from '@/components/media/VideoPlayer';
 
 interface Session {
@@ -38,6 +39,8 @@ function HomeContent() {
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState<string | null>(null);
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+    const [showReels, setShowReels] = useState(false);
+    const [initialReelIndex, setInitialReelIndex] = useState(0);
 
     const isAdmin = role === 'admin';
 
@@ -183,12 +186,25 @@ function HomeContent() {
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-100 to-orange-100">
-                                                    <Video size={40} className="text-red-300" />
+                                                <div className="w-full h-full relative group">
+                                                    <video
+                                                        src={session.videoUrl}
+                                                        className="w-full h-full object-cover"
+                                                        preload="metadata"
+                                                        muted
+                                                        onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
+                                                        onMouseOut={(e) => (e.target as HTMLVideoElement).pause()}
+                                                    />
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/0 transition-all">
+                                                        <Video size={32} className="text-white/80 group-hover:opacity-0 transition-opacity" />
+                                                    </div>
                                                 </div>
                                             )}
                                             <div
-                                                onClick={() => setSelectedSession(session)}
+                                                onClick={() => {
+                                                    setInitialReelIndex(sessions.indexOf(session));
+                                                    setShowReels(true);
+                                                }}
                                                 className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all cursor-pointer"
                                             >
                                                 <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all shadow-lg">
@@ -204,7 +220,7 @@ function HomeContent() {
                                                         handleDeleteSession(session.id);
                                                     }}
                                                     disabled={deleting === session.id}
-                                                    className="absolute top-2 right-2 p-2 bg-black/60 text-white rounded-lg hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                                                    className="absolute top-2 right-2 p-2 bg-black/60 text-white rounded-lg hover:bg-red-600 transition-colors z-20"
                                                 >
                                                     {deleting === session.id ? (
                                                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -257,7 +273,16 @@ function HomeContent() {
                 onClose={() => setIsUploadModalOpen(false)}
             />
 
-            {/* Video Player */}
+            {/* Insight Reels View */}
+            {showReels && (
+                <InsightReels
+                    sessions={sessions}
+                    initialIndex={initialReelIndex}
+                    onClose={() => setShowReels(false)}
+                />
+            )}
+
+            {/* Video Player (Original - kept for other uses if any, but now reels is preferred for insights) */}
             {selectedSession && (
                 <VideoPlayer
                     url={selectedSession.videoUrl}

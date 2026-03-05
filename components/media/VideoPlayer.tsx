@@ -72,7 +72,7 @@ export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
             {/* Container */}
             <div className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
                 {/* Header */}
-                <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-10 opacity-0 hover:opacity-100 transition-opacity">
+                <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-10 opacity-100 transition-opacity">
                     <h3 className="text-white font-bold text-lg drop-shadow-md">{title}</h3>
                     <button
                         onClick={onClose}
