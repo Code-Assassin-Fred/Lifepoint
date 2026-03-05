@@ -22,6 +22,8 @@ export interface LiveSession {
     roomUrl: string;
     roomName: string;
     title: string;
+    recordingUrl?: string;
+    recordingStatus?: 'ready' | 'processing';
 }
 
 

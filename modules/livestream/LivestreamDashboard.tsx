@@ -5,7 +5,8 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { livestreamService, LiveSession } from '@/lib/services/livestreamService';
 import LiveAdmin from './components/LiveAdmin';
 import LiveViewer from './components/LiveViewer';
-import { Radio, AlertCircle, Share2, Check } from 'lucide-react';
+import { Radio, AlertCircle, Share2, Check, PlayCircle } from 'lucide-react';
+import VideoPlayer from '@/components/media/VideoPlayer';
 
 export default function LivestreamDashboard() {
     const { user, role, loading: authLoading } = useAuth();
@@ -15,6 +16,8 @@ export default function LivestreamDashboard() {
     const [copied, setCopied] = useState(false);
     const [pastSessions, setPastSessions] = useState<LiveSession[]>([]);
     const [loadingPast, setLoadingPast] = useState(true);
+    const [selectedPlaybackSession, setSelectedPlaybackSession] = useState<LiveSession | null>(null);
+    const [fetchingRecording, setFetchingRecording] = useState<string | null>(null);
 
     const isAdmin = role === 'admin';
 
@@ -90,6 +93,27 @@ export default function LivestreamDashboard() {
             }
         }
     }, [activeSession?.id]);
+
+    const handlePlayRecording = useCallback(async (session: LiveSession) => {
+        if (!session.recordingId) return;
+        
+        setFetchingRecording(session.id || null);
+        try {
+            const res = await fetch(`/api/livestream/recording-url?recordingId=${session.recordingId}`);
+            if (!res.ok) throw new Error('Failed to fetch recording URL');
+            const { downloadUrl } = await res.json();
+            
+            setSelectedPlaybackSession({
+                ...session,
+                recordingUrl: downloadUrl
+            });
+        } catch (error) {
+            console.error('Error playing recording:', error);
+            alert('Failed to load recording. Please try again.');
+        } finally {
+            setFetchingRecording(null);
+        }
+    }, []);
 
     if (loading) {
         return (
@@ -188,10 +212,33 @@ export default function LivestreamDashboard() {
                                     }) : 'TBD'}
                                 </p>
 
+                                {session.recordingId && (
+                                    <button
+                                        onClick={() => handlePlayRecording(session)}
+                                        disabled={fetchingRecording === session.id}
+                                        className="mt-4 w-full flex items-center justify-center gap-2 py-2 bg-black text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition-all disabled:opacity-50"
+                                    >
+                                        {fetchingRecording === session.id ? (
+                                            <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <PlayCircle size={14} />
+                                        )}
+                                        {fetchingRecording === session.id ? 'Loading...' : 'Watch Replay'}
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>
                 </div>
+            )}
+
+            {/* Playback Modal */}
+            {selectedPlaybackSession?.recordingUrl && (
+                <VideoPlayer
+                    url={selectedPlaybackSession.recordingUrl}
+                    title={selectedPlaybackSession.title}
+                    onClose={() => setSelectedPlaybackSession(null)}
+                />
             )}
         </div>
     );

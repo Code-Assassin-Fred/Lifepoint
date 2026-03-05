@@ -10,7 +10,7 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({ url, onClose, title }: VideoPlayerProps) {
-    const isExternal = url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
+    const isExternal = url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com') || url.includes('daily.co');
     const [videoUrl, setVideoUrl] = useState<string | null>(isExternal ? url : null);
     const [loading, setLoading] = useState(!isExternal);
     const [error, setError] = useState<string | null>(null);
