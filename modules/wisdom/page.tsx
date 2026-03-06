@@ -308,29 +308,8 @@ export default function WisdomModule() {
 
     return (
         <div className="max-w-6xl mx-auto h-[calc(100vh-120px)] flex flex-col">
-            {/* Header */}
-            <div className="flex-none mb-8">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="glass-panel w-14 h-14 rounded-2xl flex items-center justify-center text-zinc-900 shadow-sm">
-                            <BookOpen size={28} strokeWidth={1.5} />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">Knowledge Hub</h2>
-                            <p className="text-zinc-500">Manage daily insights and growth plans</p>
-                        </div>
-                    </div>
-                    {isAdmin && (
-                        <div className="flex gap-3">
-                            <button onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 text-zinc-700 text-sm rounded-xl font-medium hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-sm"><Plus size={16} /> Insight</button>
-                            <button onClick={() => { setGrowthPlanInitialData(null); setIsGrowthPlanModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white text-sm rounded-xl font-medium hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-900/20"><Plus size={16} /> Growth Plan</button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex-none mb-6">
+            {/* Navigation & Actions */}
+            <div className="flex-none mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex p-1 bg-zinc-100/50 rounded-xl w-fit">
                     {[{ id: 'devotion', label: 'Daily Insight', icon: Sun }, { id: 'plans', label: 'Growth Plans', icon: BookMarked }, { id: 'ai', label: 'AI Insight', icon: Sparkles }, { id: 'admin-ai', label: 'Content Assistant', icon: Wand2, adminOnly: true }]
                         .filter(t => !t.adminOnly || isAdmin)
@@ -342,16 +321,33 @@ export default function WisdomModule() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as Tab)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                                        ? 'bg-white text-zinc-900 shadow-sm'
-                                        : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50'
+                                        ? 'bg-white text-red-600 shadow-sm'
+                                        : 'text-zinc-500 hover:text-red-600 hover:bg-red-50/50'
                                         }`}
                                 >
-                                    <Icon size={16} className={isActive ? 'text-zinc-900' : 'text-zinc-400'} />
+                                    <Icon size={16} className={isActive ? 'text-red-600' : 'text-zinc-400'} />
                                     {tab.label}
                                 </button>
                             );
                         })}
                 </div>
+
+                {isAdmin && (
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} 
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 text-zinc-700 text-sm rounded-xl font-medium hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-sm"
+                        >
+                            <Plus size={16} /> Insight
+                        </button>
+                        <button 
+                            onClick={() => { setGrowthPlanInitialData(null); setIsGrowthPlanModalOpen(true); }} 
+                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-200"
+                        >
+                            <Plus size={16} /> Growth Plan
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Content Area */}
@@ -403,7 +399,7 @@ export default function WisdomModule() {
                                 <Sun size={32} className="text-zinc-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-semibold text-zinc-900 mb-2">No Insight Today</h3>
                                 <p className="text-zinc-500 mb-6">Create a new insight to inspire the community.</p>
-                                {isAdmin && <button onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} className="px-5 py-2.5 bg-zinc-900 text-white rounded-xl font-medium hover:bg-zinc-800 transition-colors">Create Insight</button>}
+                                {isAdmin && <button onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} className="px-5 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-200">Create Insight</button>}
                             </div>
                         )}
                     </div>
@@ -446,7 +442,7 @@ export default function WisdomModule() {
                         <div className="glass-panel rounded-3xl p-2 shadow-lg shadow-zinc-900/5">
                             <div className="relative">
                                 <input type="text" value={aiQuestion} onChange={(e) => setAiQuestion(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAskAI('ask-question', aiQuestion)} placeholder="Ask about scripture..." className="w-full px-6 py-4 pr-14 bg-transparent border-none focus:ring-0 text-lg placeholder:text-zinc-300 text-zinc-900" />
-                                <button onClick={() => handleAskAI('ask-question', aiQuestion)} className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20">
+                                <button onClick={() => handleAskAI('ask-question', aiQuestion)} className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-200">
                                     {aiLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={20} />}
                                 </button>
                             </div>

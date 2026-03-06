@@ -90,51 +90,41 @@ export default function Sidebar({
                     />
                 ))}
 
-                {/* Admin Panel Link */}
+                {/* Admin Panel Link - Styled as text, not a button */}
                 {role === 'admin' && (
-                    <NavItem
+                    <Link
                         href="/dashboard/admin"
-                        icon={Shield}
-                        label="Admin Console"
-                        active={pathname.startsWith('/dashboard/admin') && pathname !== dashboardRoute}
-                    />
+                        className={`flex items-center gap-3 px-10 py-2.5 mb-1 transition-all duration-300 font-bold text-sm ${
+                            pathname.startsWith('/dashboard/admin') && pathname !== dashboardRoute
+                                ? 'text-red-500'
+                                : 'text-zinc-400 hover:text-red-500'
+                        }`}
+                    >
+                        <Shield size={20} strokeWidth={2} />
+                        <span>Admin Console</span>
+                    </Link>
                 )}
-
-                {/* Settings/Profile section */}
-                <div className="mt-4 pt-4 border-t border-zinc-800 mx-8 mb-2">
-                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Account</p>
-                </div>
-                <NavItem href="/profile" icon={Users} label="Profile" active={pathname === '/profile'} />
             </nav>
 
-            {/* Upgrade Badge (Bottom Left) - More compact */}
-            <div className="px-6 py-4">
-                <div className="bg-[#ccf381] rounded-2xl p-4 text-black relative group cursor-pointer hover:bg-[#bbe075] transition-colors">
-                    <div className="relative z-10">
-                        <h4 className="font-bold text-sm mb-1">Upgrade Plan</h4>
-                        <p className="text-[10px] font-medium opacity-70 leading-relaxed max-w-[150px]">
-                            Unlock premium content and growth plans.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* User Footer */}
-            <div className="px-8 pb-6 pt-2 flex items-center justify-between group">
-                <div className="flex items-center gap-3">
-                    {userPhoto ? (
-                        <img src={userPhoto} alt={userName} className="w-10 h-10 rounded-full object-cover ring-2 ring-zinc-800" />
-                    ) : (
-                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold border border-zinc-700">
-                            {userName.charAt(0).toUpperCase()}
+            {/* Upgrade Badge (Bottom Left) - Hidden for Admin */}
+            {role !== 'admin' && (
+                <div className="px-6 py-4">
+                    <div className="bg-[#ccf381] rounded-2xl p-4 text-black relative group cursor-pointer hover:bg-[#bbe075] transition-colors">
+                        <div className="relative z-10">
+                            <h4 className="font-bold text-sm mb-1">Upgrade Plan</h4>
+                            <p className="text-[10px] font-medium opacity-70 leading-relaxed max-w-[150px]">
+                                Unlock premium content and growth plans.
+                            </p>
                         </div>
-                    )}
-                    <div className="hidden group-hover:block transition-all animate-in fade-in slide-in-from-left-2">
-                        <p className="text-sm font-bold text-white truncate max-w-[100px]">{userName}</p>
                     </div>
                 </div>
-                <button onClick={onLogout} className="text-zinc-500 hover:text-white transition-colors">
+            )}
+
+            {/* User Footer - Logout only for cleaner look */}
+            <div className="px-8 pb-6 pt-2 flex items-center justify-end group">
+                <button onClick={onLogout} className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-colors font-medium text-sm">
                     <LogOut size={20} />
+                    <span>Logout</span>
                 </button>
             </div>
         </div>
