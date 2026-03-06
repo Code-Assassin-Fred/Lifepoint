@@ -10,7 +10,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const MODULES = [
   { id: 'home', name: 'Home', submodules: ['Live Sessions', 'Prayer Rooms', 'Recent Insights'] },
-  { id: 'wisdom', name: 'Wisdom Hub', submodules: ['Knowledge Hub', 'Daily Reflection', 'AI Insight Guide'] },
+  { id: 'wisdom', name: 'The Well', submodules: ['Daily Insights', 'Growth Plans', 'AI Companion'] },
   { id: 'development', name: 'Personal & Leadership Growth', submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development'] },
   { id: 'guidance', name: 'Mentorship & Coaching', submodules: ['Find a Mentor', 'Book Coaching', 'Youth Mentorship'] },
   { id: 'community', name: 'Community', submodules: ['Global Groups', 'Forums', 'Events'] },

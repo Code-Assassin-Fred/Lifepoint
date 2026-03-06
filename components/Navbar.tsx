@@ -13,10 +13,10 @@ const Navbar = () => {
       { label: 'Prayer Rooms' },
       { label: 'Recent Insights' }
     ],
-    'Wisdom Hub': [
-      { label: 'Knowledge Hub' },
-      { label: 'Daily Reflection' },
-      { label: 'AI Insight Guide' }
+    'The Well': [
+      { label: 'Daily Insights' },
+      { label: 'Growth Plans' },
+      { label: 'AI Companion' }
     ],
     Growth: [
       { label: 'Personal Growth' },

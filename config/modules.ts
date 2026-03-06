@@ -30,8 +30,8 @@ export const ALL_MODULES: Module[] = [
     },
     {
         id: 'wisdom',
-        label: 'Wisdom Hub',
-        description: 'Daily insights, growth plans, and personal notes',
+        label: 'The Well',
+        description: 'Daily insights, growth plans, and spiritual nourishment',
         icon: Library,
     },
     {

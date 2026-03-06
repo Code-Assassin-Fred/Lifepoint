@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface GrowthStep {
@@ -16,8 +16,10 @@ interface GrowthPlanModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialData?: {
+        id?: string;
         title?: string;
         description?: string;
+        category?: string;
         days?: GrowthStep[];
     };
 }
@@ -36,12 +38,20 @@ export default function GrowthPlanModal({ isOpen, onClose, initialData }: Growth
 
     // Load initial data
     useEffect(() => {
-        if (initialData) {
+        if (initialData && isOpen) {
             if (initialData.title) setTitle(initialData.title);
             if (initialData.description) setDescription(initialData.description);
+            if (initialData.category) setCategory(initialData.category);
             if (initialData.days && initialData.days.length > 0) {
                 setDays(initialData.days);
             }
+        } else if (!isOpen) {
+            // Reset
+            setTitle('');
+            setDescription('');
+            setCategory('Personal');
+            setDays([{ dayNumber: 1, title: '', scripture: '', content: '' }]);
+            setError(null);
         }
     }, [initialData, isOpen]);
 
@@ -77,26 +87,28 @@ export default function GrowthPlanModal({ isOpen, onClose, initialData }: Growth
         setError(null);
 
         try {
-            await addDoc(collection(db, 'studyPlans'), {
+            const data = {
                 title: title.trim(),
                 description: description.trim(),
                 category,
                 duration: `${validDays.length} steps`,
                 days: validDays,
-                createdAt: serverTimestamp(),
-            });
+                updatedAt: serverTimestamp(),
+            };
 
-            // Reset and close
-            if (!initialData) {
-                setTitle('');
-                setDescription('');
-                setCategory('Personal');
-                setDays([{ dayNumber: 1, title: '', scripture: '', content: '' }]);
+            if (initialData?.id) {
+                await updateDoc(doc(db, 'studyPlans', initialData.id), data);
+            } else {
+                await addDoc(collection(db, 'studyPlans'), {
+                    ...data,
+                    createdAt: serverTimestamp(),
+                });
             }
+
             onClose();
         } catch (err) {
-            console.error('Error creating growth plan:', err);
-            setError('Failed to create growth plan. Please try again.');
+            console.error('Error saving growth plan:', err);
+            setError('Failed to save growth plan. Please try again.');
         } finally {
             setLoading(false);
         }

@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface InsightModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialData?: {
+        id?: string;
         title?: string;
         scripture?: string;
         content?: string;
@@ -27,11 +28,18 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
 
     // Load initial data when available
     useEffect(() => {
-        if (initialData) {
+        if (initialData && isOpen) {
             if (initialData.title) setTitle(initialData.title);
             if (initialData.scripture) setScripture(initialData.scripture);
             if (initialData.content) setContent(initialData.content);
             if (initialData.prayerPrompt) setPrayerPrompt(initialData.prayerPrompt);
+        } else if (!isOpen) {
+            // Reset when closing
+            setTitle('');
+            setScripture('');
+            setContent('');
+            setPrayerPrompt('');
+            setError(null);
         }
     }, [initialData, isOpen]);
 
@@ -45,25 +53,30 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
         setError(null);
 
         try {
-            await addDoc(collection(db, 'devotions'), {
+            const data = {
                 date,
                 title: title.trim(),
                 scripture: scripture.trim(),
                 content: content.trim(),
                 prayerPrompt: prayerPrompt.trim() || null,
-                createdAt: serverTimestamp(),
-            });
+                updatedAt: serverTimestamp(),
+            };
 
-            // Reset and close
-            setDate(new Date().toISOString().split('T')[0]);
-            setTitle('');
-            setScripture('');
-            setContent('');
-            setPrayerPrompt('');
+            if (initialData?.id) {
+                // Update existing
+                await updateDoc(doc(db, 'devotions', initialData.id), data);
+            } else {
+                // Create new
+                await addDoc(collection(db, 'devotions'), {
+                    ...data,
+                    createdAt: serverTimestamp(),
+                });
+            }
+
             onClose();
         } catch (err) {
-            console.error('Error creating insight:', err);
-            setError('Failed to create insight. Please try again.');
+            console.error('Error saving insight:', err);
+            setError('Failed to save insight. Please try again.');
         } finally {
             setLoading(false);
         }

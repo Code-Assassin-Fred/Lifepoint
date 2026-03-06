@@ -51,7 +51,13 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { action, content, context, messages } = await req.json();
+        const { action, content, context, messages, format } = await req.json();
+
+        const generationConfig = {
+            temperature: 0.7,
+            maxOutputTokens: 2000,
+            responseMimeType: format === 'json' ? 'application/json' : 'text/plain',
+        };
 
         // Handle multi-turn chat
         if (action === 'chat') {
@@ -59,93 +65,106 @@ export async function POST(req: NextRequest) {
                 history: [
                     { role: 'user', parts: [{ text: ADMIN_ASSISTANT_PROMPT }] },
                     { role: 'model', parts: [{ text: "Understood. I will help you create high-quality theology curriculum and study materials." }] },
-                    ...messages.map((m: any) => ({
+                    ...(messages || []).map((m: any) => ({
                         role: m.role === 'assistant' ? 'model' : 'user',
                         parts: [{ text: m.content }]
                     }))
                 ],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 1500,
-                },
+                generationConfig,
             });
 
             // The last message in 'messages' is the actual prompt
-            const lastMessage = messages[messages.length - 1]?.content || '';
+            const lastMessage = messages && messages.length > 0 ? messages[messages.length - 1].content : content;
             const result = await chat.sendMessage(lastMessage);
             const responseText = result.response.text();
 
             return NextResponse.json({ response: responseText });
         }
 
-        // Handle single-turn actions (legacy/user actions)
+        // Handle single-turn actions (legacy/user actions / content generation)
         let systemPrompt = SYSTEM_PROMPT;
         let userMessage = '';
 
-        switch (action) {
-            case 'explain-scripture':
-                userMessage = `Explain this scripture passage in detail: "${content}"
-
-Help me understand:
-- What did this mean to the original audience?
-- What is the historical and cultural context?
-- Are there significant words in the original language?
-- How does this connect to the broader story of the Bible?
-- How can I apply this to my life today?
-
-${context ? `Additional context: ${context}` : ''}`;
-                break;
-
-            case 'study-insight':
-                userMessage = `I'm studying: "${content}"
-${context ? `Context: ${context}` : ''}
-
-Provide deep insights for my Bible study. Help me see things I might miss on a surface reading. Include original language insights where relevant.`;
-                break;
-
-            case 'devotion-reflection':
-                userMessage = `Today's devotion scripture is: "${content}"
-
-Help me reflect on this passage for my personal devotion time. Structure your response with:
-- A brief meditation thought
-- Key observations from the text
-- Questions for self-reflection
-- A closing prayer focus`;
-                break;
-
-            case 'prayer-guidance':
-                userMessage = `Based on this scripture: "${content}"
-
-Help me form a prayer response to God's Word. Structure your response with:
-- Themes to bring before God
-- Praise points from the passage
-- Personal application prayers
-- A sample prayer`;
-                break;
-
-            case 'ask-question':
-                userMessage = content;
-                break;
-
-            default:
-                userMessage = content;
+        if (format === 'json') {
+            systemPrompt = `You are a structured data generator for a church app. Output ONLY valid JSON matching the requested schema. Do not include markdown code blocks or additional text.`;
+            
+            if (action === 'generate-insight') {
+                userMessage = `Generate a daily devotional insight based on: "${content}". 
+                Schema: { "title": string, "scripture": string, "content": string, "prayerPrompt": string }`;
+            } else if (action === 'generate-plan') {
+                userMessage = `Generate a 3-7 day Bible study plan based on: "${content}". 
+                Schema: { 
+                    "title": string, 
+                    "description": string, 
+                    "category": "Personal" | "Leadership" | "Knowledge" | "Wisdom" | "Inspiration" | "Growth",
+                    "days": [
+                        { "dayNumber": number, "title": string, "scripture": string, "content": string }
+                    ]
+                }`;
+            }
+        } else {
+            switch (action) {
+                case 'explain-scripture':
+                    userMessage = `Explain this scripture passage in detail: "${content}"
+    
+    Help me understand:
+    - What did this mean to the original audience?
+    - What is the historical and cultural context?
+    - Are there significant words in the original language?
+    - How does this connect to the broader story of the Bible?
+    - How can I apply this to my life today?
+    
+    ${context ? `Additional context: ${context}` : ''}`;
+                    break;
+    
+                case 'study-insight':
+                    userMessage = `I'm studying: "${content}"
+    ${context ? `Context: ${context}` : ''}
+    
+    Provide deep insights for my Bible study. Help me see things I might miss on a surface reading. Include original language insights where relevant.`;
+                    break;
+    
+                case 'devotion-reflection':
+                    userMessage = `Today's devotion scripture is: "${content}"
+    
+    Help me reflect on this passage for my personal devotion time. Structure your response with:
+    - A brief meditation thought
+    - Key observations from the text
+    - Questions for self-reflection
+    - A closing prayer focus`;
+                    break;
+    
+                case 'prayer-guidance':
+                    userMessage = `Based on this scripture: "${content}"
+    
+    Help me form a prayer response to God's Word. Structure your response with:
+    - Themes to bring before God
+    - Praise points from the passage
+    - Personal application prayers
+    - A sample prayer`;
+                    break;
+    
+                case 'ask-question':
+                    userMessage = content;
+                    break;
+    
+                default:
+                    userMessage = content;
+            }
         }
 
         const result = await model.generateContent({
             contents: [
                 { role: 'user', parts: [{ text: systemPrompt }] },
-                { role: 'model', parts: [{ text: "Understood. I will provide scholarly and pastoral biblical guidance with the formatting you requested." }] },
+                { role: 'model', parts: [{ text: "Understood. I will provide the requested guidance in the specified format." }] },
                 { role: 'user', parts: [{ text: userMessage }] }
             ],
-            generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 1500,
-            }
+            generationConfig
         });
 
         const aiResponse = result.response.text();
 
-        return NextResponse.json({ response: aiResponse });
+        return NextResponse.json(format === 'json' ? JSON.parse(aiResponse) : { response: aiResponse });
     } catch (error) {
         console.error('AI route error:', error);
         return NextResponse.json(
