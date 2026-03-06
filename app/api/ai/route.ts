@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
             
             if (action === 'generate-insight') {
                 userMessage = `Generate a daily devotional insight based on: "${content}". 
-                Schema: { "title": string, "scripture": string, "content": string, "prayerPrompt": string }`;
+                Schema: { "title": string, "content": string, "prayerPrompt": string }`;
             } else if (action === 'generate-plan') {
                 userMessage = `Generate a 3-7 day Bible study plan based on: "${content}". 
                 Schema: { 

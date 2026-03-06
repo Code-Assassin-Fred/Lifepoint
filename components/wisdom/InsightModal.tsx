@@ -11,7 +11,6 @@ interface InsightModalProps {
     initialData?: {
         id?: string;
         title?: string;
-        scripture?: string;
         content?: string;
         prayerPrompt?: string;
     };
@@ -20,7 +19,6 @@ interface InsightModalProps {
 export default function InsightModal({ isOpen, onClose, initialData }: InsightModalProps) {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [title, setTitle] = useState('');
-    const [scripture, setScripture] = useState('');
     const [content, setContent] = useState('');
     const [prayerPrompt, setPrayerPrompt] = useState('');
     const [loading, setLoading] = useState(false);
@@ -30,13 +28,11 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
     useEffect(() => {
         if (initialData && isOpen) {
             if (initialData.title) setTitle(initialData.title);
-            if (initialData.scripture) setScripture(initialData.scripture);
             if (initialData.content) setContent(initialData.content);
             if (initialData.prayerPrompt) setPrayerPrompt(initialData.prayerPrompt);
         } else if (!isOpen) {
             // Reset when closing
             setTitle('');
-            setScripture('');
             setContent('');
             setPrayerPrompt('');
             setError(null);
@@ -44,8 +40,8 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
     }, [initialData, isOpen]);
 
     const handleSubmit = async () => {
-        if (!title.trim() || !scripture.trim() || !content.trim()) {
-            setError('Title, reference, and content are required');
+        if (!title.trim() || !content.trim()) {
+            setError('Title and content are required');
             return;
         }
 
@@ -56,7 +52,6 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
             const data = {
                 date,
                 title: title.trim(),
-                scripture: scripture.trim(),
                 content: content.trim(),
                 prayerPrompt: prayerPrompt.trim() || null,
                 updatedAt: serverTimestamp(),
@@ -86,7 +81,6 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
         if (!initialData) {
             setDate(new Date().toISOString().split('T')[0]);
             setTitle('');
-            setScripture('');
             setContent('');
             setPrayerPrompt('');
         }
@@ -139,16 +133,6 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-1.5">Reference *</label>
-                        <input
-                            type="text"
-                            value={scripture}
-                            onChange={(e) => setScripture(e.target.value)}
-                            placeholder="e.g., Wisdom Reference"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        />
-                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-black mb-1.5">Insight Content *</label>

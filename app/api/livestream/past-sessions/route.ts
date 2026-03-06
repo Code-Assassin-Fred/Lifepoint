@@ -53,14 +53,17 @@ export async function GET() {
 
         const sessions = await Promise.all(sessionsPromises);
 
+        // Filter to only include sessions that were recorded
+        const recordedSessions = sessions.filter(s => s.recordingUrl || s.recordingId);
+
         // Sort in memory to avoid "missing index" error
-        sessions.sort((a: any, b: any) => {
+        recordedSessions.sort((a: any, b: any) => {
             const dateA = a.endedAt ? new Date(a.endedAt).getTime() : 0;
             const dateB = b.endedAt ? new Date(b.endedAt).getTime() : 0;
             return dateB - dateA;
         });
 
-        return NextResponse.json(sessions);
+        return NextResponse.json(recordedSessions);
     } catch (error) {
         console.error('Error fetching past sessions via Admin SDK:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

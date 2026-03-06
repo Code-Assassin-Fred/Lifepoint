@@ -1,9 +1,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
 
 interface AuthContextProps {
     user: FirebaseUser | null;
@@ -35,31 +34,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(firebaseUser);
 
             if (firebaseUser) {
-                // Listen to real-time updates on user document
-                const userDocRef = doc(db, 'users', firebaseUser.uid);
-                const unsubscribeDoc = onSnapshot(
-                    userDocRef,
-                    (docSnap) => {
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            setRole(data.role || null);
-                            setSelectedModules(data.selectedModules || []);
-                            setOnboardingComplete(data.onboarded === true);
-                        } else {
-                            setRole(null);
-                            setSelectedModules([]);
-                            setOnboardingComplete(false);
+                // Fetch user document via Admin SDK (Semi-realtime via polling or single fetch)
+                const fetchUserProfile = async () => {
+                    try {
+                        const response = await fetch(`/api/auth/profile?userId=${firebaseUser.uid}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data) {
+                                setRole(data.role || null);
+                                setSelectedModules(data.selectedModules || []);
+                                setOnboardingComplete(data.onboarded === true);
+                            }
                         }
-                        setLoading(false);
-                    },
-                    (err) => {
-                        console.error('Firestore listener error:', err);
+                    } catch (error) {
+                        console.error('Error fetching user profile:', error);
+                    } finally {
                         setLoading(false);
                     }
-                );
+                };
 
-                // Cleanup doc listener when auth changes
-                return () => unsubscribeDoc();
+                fetchUserProfile();
+
+                // Poll user profile every 2 minutes for any role changes
+                const interval = setInterval(fetchUserProfile, 120000);
+                
+                return () => clearInterval(interval);
             } else {
                 setRole(null);
                 setSelectedModules([]);

@@ -7,10 +7,7 @@ import {
     collection,
     query,
     orderBy,
-    onSnapshot,
     limit,
-    deleteDoc,
-    doc,
     where,
     getDocs,
 } from 'firebase/firestore';
@@ -39,7 +36,7 @@ interface Insight {
     id: string;
     date: string;
     title: string;
-    scripture: string;
+    scripture?: string;
     content: string;
     prayerPrompt?: string;
 }
@@ -121,53 +118,28 @@ export default function WisdomModule() {
         return matchesSearch && matchesCategory;
     });
 
-    // Fetch insights (history)
+    // Fetch wisdom and engagement data (consolidated API call using Admin SDK)
     useEffect(() => {
-        const q = query(collection(db, 'devotions'), orderBy('date', 'desc'), limit(10));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Insight));
-            setInsights(list);
-            setLoadingInsights(false);
-        }, () => setLoadingInsights(false));
-        return () => unsubscribe();
-    }, []);
-
-    // Fetch growth plans
-    useEffect(() => {
-        const q = query(collection(db, 'studyPlans'), orderBy('createdAt', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const plans = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as GrowthPlan[];
-            setGrowthPlans(plans);
-            setLoadingPlans(false);
-        }, () => setLoadingPlans(false));
-        return () => unsubscribe();
-    }, []);
-
-    // Fetch user-specific engagement (bookmarks, enrollments)
-    useEffect(() => {
-        if (!user) return;
-
-        // Fetch Bookmarks
-        const bq = query(collection(db, 'userBookmarks'), where('userId', '==', user.uid));
-        const unsubscribeBookmarks = onSnapshot(bq, (snapshot) => {
-            setBookmarks(snapshot.docs.map(d => d.data().insightId));
-        });
-
-        // Fetch Enrollments
-        const eq = query(collection(db, 'planEnrollments'), where('userId', '==', user.uid));
-        const unsubscribeEnrollments = onSnapshot(eq, (snapshot) => {
-            const data: Record<string, { completedSteps: number[] }> = {};
-            snapshot.docs.forEach(d => {
-                const docData = d.data();
-                data[docData.planId] = { completedSteps: docData.completedSteps || [] };
-            });
-            setEnrollments(data);
-        });
-
-        return () => {
-            unsubscribeBookmarks();
-            unsubscribeEnrollments();
+        const fetchWisdomData = async () => {
+            try {
+                const url = user ? `/api/wisdom?userId=${user.uid}` : '/api/wisdom';
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch wisdom data');
+                const data = await response.json();
+                
+                setInsights(data.insights || []);
+                setGrowthPlans(data.growthPlans || []);
+                if (data.bookmarks) setBookmarks(data.bookmarks);
+                if (data.enrollments) setEnrollments(data.enrollments);
+            } catch (error) {
+                console.error('Error in Wisdom data fetching:', error);
+            } finally {
+                setLoadingInsights(false);
+                setLoadingPlans(false);
+            }
         };
+
+        fetchWisdomData();
     }, [user]);
 
     // Scroll to bottom of chats
@@ -513,7 +485,7 @@ export default function WisdomModule() {
                                                 </span>
                                                 <h3 className="text-3xl font-bold text-zinc-900 mb-2">{insight.title}</h3>
                                                 <p className="text-zinc-500 font-medium">{new Date(insight.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                                                <p className="text-red-600 font-serif italic mt-4 text-lg">{insight.scripture}</p>
+                                                {insight.scripture && <p className="text-red-600 font-serif italic mt-4 text-lg">{insight.scripture}</p>}
                                             </div>
                                             <div className="flex gap-1">
                                                 <button 

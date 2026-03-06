@@ -8,9 +8,6 @@ import {
     collection,
     query,
     orderBy,
-    onSnapshot,
-    deleteDoc,
-    doc,
     Timestamp,
     addDoc,
     serverTimestamp,
@@ -77,26 +74,22 @@ function HomeContent() {
         }
     }, [searchParams]);
 
-    // Fetch sessions from Firestore
+    // Fetch sessions (sermons) from API (Admin SDK)
     useEffect(() => {
-        const q = query(collection(db, 'sermons'), orderBy('date', 'desc'));
-        const unsubscribe = onSnapshot(
-            q,
-            (snapshot) => {
-                const sessionsData = snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                })) as Session[];
+        const fetchSessions = async () => {
+            try {
+                const response = await fetch('/api/sermons');
+                if (!response.ok) throw new Error('Failed to fetch sermons');
+                const sessionsData = await response.json();
                 setSessions(sessionsData);
-                setLoading(false);
-            },
-            (error) => {
+            } catch (error) {
                 console.error('Error fetching sessions:', error);
+            } finally {
                 setLoading(false);
             }
-        );
+        };
 
-        return () => unsubscribe();
+        fetchSessions();
     }, []);
 
     // Fetch prayer requests
@@ -192,7 +185,15 @@ function HomeContent() {
 
         setDeleting(sessionId);
         try {
-            await deleteDoc(doc(db, 'sermons', sessionId));
+            const response = await fetch('/api/sermons', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId, action: 'delete' }),
+            });
+
+            if (!response.ok) throw new Error('Failed to delete session');
+            
+            setSessions(prev => prev.filter(s => s.id !== sessionId));
         } catch (error) {
             console.error('Error deleting session:', error);
             alert('Failed to delete session');

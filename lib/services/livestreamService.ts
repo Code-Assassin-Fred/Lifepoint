@@ -30,29 +30,28 @@ export interface LiveSession {
 const COLLECTION_NAME = 'livesessions';
 
 export const livestreamService = {
-    // Get the currently active session
+    // Get the currently active session (Interval Polling using Admin SDK)
     subscribeToActiveSession(callback: (session: LiveSession | null) => void) {
-        const q = query(
-            collection(db, COLLECTION_NAME),
-            where('status', '==', 'live'),
-            orderBy('startedAt', 'desc'),
-            limit(1)
-        );
-
-        return onSnapshot(q,
-            (snapshot) => {
-                if (snapshot.empty) {
-                    callback(null);
-                } else {
-                    const sessionDoc = snapshot.docs[0];
-                    callback({ id: sessionDoc.id, ...sessionDoc.data() } as LiveSession);
-                }
-            },
-            (error) => {
-                console.error('Livestream Firestore subscription error:', error);
-                // Potentially handle permission denied by retrying or showing a message
+        const checkActive = async () => {
+            try {
+                const response = await fetch('/api/livestream/active-session');
+                if (!response.ok) throw new Error('Failed to fetch active session');
+                const session = await response.json();
+                callback(session);
+            } catch (error) {
+                console.error('Error in subscribeToActiveSession polling:', error);
+                callback(null);
             }
-        );
+        };
+
+        // Initial check
+        checkActive();
+
+        // Poll every 30 seconds for live status updates
+        const interval = setInterval(checkActive, 30000);
+
+        // Return a cleanup function
+        return () => clearInterval(interval);
     },
 
     // Get all past sessions
