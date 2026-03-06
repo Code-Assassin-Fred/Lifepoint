@@ -120,11 +120,17 @@ export default function Sidebar({
                 </div>
             )}
 
-            {/* User Footer - Logout only for cleaner look */}
-            <div className="px-8 pb-6 pt-2 flex items-center justify-end group">
-                <button onClick={onLogout} className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-colors font-medium text-sm">
-                    <LogOut size={20} />
-                    <span>Logout</span>
+            {/* User Footer - Show first name and logout only */}
+            <div className="px-10 pb-6 pt-4 flex items-center justify-between group border-t border-zinc-800 mx-4">
+                <p className="text-sm font-bold text-white truncate max-w-[120px]">
+                    {userName.split(' ')[0]}
+                </p>
+                <button 
+                    onClick={onLogout} 
+                    className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-all font-medium text-sm group/logout"
+                    title="Logout"
+                >
+                    <LogOut size={18} className="group-hover/logout:-translate-x-1 transition-transform" />
                 </button>
             </div>
         </div>
