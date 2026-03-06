@@ -31,7 +31,7 @@ export const ALL_MODULES: Module[] = [
     {
         id: 'wisdom',
         label: 'The Well',
-        description: 'Daily insights, growth plans, and spiritual nourishment',
+        description: 'Daily insights, bible study, and spiritual nourishment',
         icon: Library,
     },
     {

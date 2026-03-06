@@ -23,6 +23,7 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
     const [prayerPrompt, setPrayerPrompt] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
 
     // Load initial data when available
     useEffect(() => {
@@ -36,6 +37,7 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
             setContent('');
             setPrayerPrompt('');
             setError(null);
+            setSuccess(false);
         }
     }, [initialData, isOpen]);
 
@@ -68,7 +70,10 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
                 });
             }
 
-            onClose();
+            setSuccess(true);
+            setTimeout(() => {
+                onClose();
+            }, 2000);
         } catch (err) {
             console.error('Error saving insight:', err);
             setError('Failed to save insight. Please try again.');
@@ -112,6 +117,20 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
                         <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">{error}</div>
                     )}
 
+                    {success && (
+                        <div className="p-4 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl flex items-center gap-3 animate-in fade-in zoom-in duration-300">
+                            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="font-bold">Insight Saved Successfully!</p>
+                                <p className="opacity-80">This insight is now live for the community.</p>
+                            </div>
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-sm font-medium text-black mb-1.5">Date</label>
                         <input
@@ -146,11 +165,14 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-black mb-1.5">Reflection Prompt (optional)</label>
+                        <label className="block text-sm font-medium text-black mb-1.5 font-bold text-red-600 flex items-center gap-2">
+                             Prayer & Reflection Focus (optional)
+                             <span className="text-[10px] bg-red-50 px-2 py-0.5 rounded-full font-medium">Shown as "Prayer Focus" to users</span>
+                        </label>
                         <textarea
                             value={prayerPrompt}
                             onChange={(e) => setPrayerPrompt(e.target.value)}
-                            placeholder="A guiding prompt for reflection..."
+                            placeholder="A guiding prompt for prayer or personal reflection..."
                             rows={2}
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                         />

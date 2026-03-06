@@ -41,23 +41,7 @@ interface Insight {
     prayerPrompt?: string;
 }
 
-interface GrowthStep {
-    dayNumber: number;
-    title: string;
-    scripture: string;
-    content: string;
-}
-
-interface GrowthPlan {
-    id: string;
-    title: string;
-    description: string;
-    category: string;
-    duration: string;
-    days: GrowthStep[];
-}
-
-type Tab = 'devotion' | 'plans' | 'ai' | 'admin-ai';
+type Tab = 'devotion' | 'study' | 'ai' | 'admin-ai';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -70,19 +54,11 @@ export default function WisdomModule() {
 
     // Modals & Pre-filled Data
     const [isInsightModalOpen, setIsInsightModalOpen] = useState(false);
-    const [isGrowthPlanModalOpen, setIsGrowthPlanModalOpen] = useState(false);
     const [insightInitialData, setInsightInitialData] = useState<any>(null);
-    const [growthPlanInitialData, setGrowthPlanInitialData] = useState<any>(null);
 
     // Data
     const [insights, setInsights] = useState<Insight[]>([]);
-    const [growthPlans, setGrowthPlans] = useState<GrowthPlan[]>([]);
     const [loadingInsights, setLoadingInsights] = useState(true);
-    const [loadingPlans, setLoadingPlans] = useState(true);
-
-    // Growth Plan View
-    const [selectedPlan, setSelectedPlan] = useState<GrowthPlan | null>(null);
-    const [currentDay, setCurrentDay] = useState(0);
 
     // AI - User Chat
     const [userAiMessages, setUserAiMessages] = useState<Message[]>([]);
@@ -100,25 +76,7 @@ export default function WisdomModule() {
     const [bookmarks, setBookmarks] = useState<string[]>([]);
     const [enrollments, setEnrollments] = useState<Record<string, { completedSteps: number[] }>>({});
 
-    // Search and Filter
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('All');
-
-    const categoriesList = ['All', 'Personal', 'Leadership', 'Knowledge', 'Wisdom', 'Inspiration', 'Growth'];
-
-    const isAdmin = role === 'admin';
-    const { user } = useAuth();
-    const today = new Date();
-    const dateString = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-
-    const filteredPlans = growthPlans.filter(plan => {
-        const matchesSearch = plan.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                             plan.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'All' || plan.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
-
-    // Fetch wisdom and engagement data (consolidated API call using Admin SDK)
+    // Fetch wisdom and engagement data
     useEffect(() => {
         const fetchWisdomData = async () => {
             try {
@@ -128,19 +86,20 @@ export default function WisdomModule() {
                 const data = await response.json();
                 
                 setInsights(data.insights || []);
-                setGrowthPlans(data.growthPlans || []);
                 if (data.bookmarks) setBookmarks(data.bookmarks);
-                if (data.enrollments) setEnrollments(data.enrollments);
             } catch (error) {
                 console.error('Error in Wisdom data fetching:', error);
             } finally {
                 setLoadingInsights(false);
-                setLoadingPlans(false);
             }
         };
 
         fetchWisdomData();
     }, [user]);
+
+    const todayDateStr = new Date().toISOString().split('T')[0];
+    const todaysInsight = insights.find(i => i.date === todayDateStr);
+    const pastInsights = insights.filter(i => i.date !== todayDateStr);
 
     // Scroll to bottom of chats
     useEffect(() => {
@@ -264,31 +223,20 @@ export default function WisdomModule() {
         handleGenerateContent('insight', `Based on this conversation, create a devotional: ${text.substring(0, 500)}`);
     };
 
-    const handleSaveAsGrowthPlan = (text: string) => {
-        handleGenerateContent('plan', `Based on this conversation, create a multi-day study plan: ${text.substring(0, 500)}`);
-    };
-
     const handleDeleteInsight = async (id: string) => {
         if (!window.confirm('Are you sure you want to delete this insight?')) return;
         try {
             await deleteDoc(doc(db, 'devotions', id));
+            setInsights(prev => prev.filter(i => i.id !== id));
         } catch (err) {
             console.error('Error deleting insight:', err);
-        }
-    };
-
-    const handleDeletePlan = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this growth plan?')) return;
-        try {
-            await deleteDoc(doc(db, 'studyPlans', id));
-        } catch (err) {
-            console.error('Error deleting plan:', err);
         }
     };
 
     const toggleBookmark = async (insightId: string) => {
         if (!user) return;
         const isBookmarked = bookmarks.includes(insightId);
+        setBookmarks(prev => isBookmarked ? prev.filter(id => id !== insightId) : [...prev, insightId]);
         try {
             if (isBookmarked) {
                 const q = query(collection(db, 'userBookmarks'), where('userId', '==', user.uid), where('insightId', '==', insightId));
@@ -303,37 +251,6 @@ export default function WisdomModule() {
             }
         } catch (err) {
             console.error('Error toggling bookmark:', err);
-        }
-    };
-
-    const toggleStepCompletion = async (planId: string, dayNumber: number) => {
-        if (!user) return;
-        const currentSteps = enrollments[planId]?.completedSteps || [];
-        const isCompleted = currentSteps.includes(dayNumber);
-        const newSteps = isCompleted 
-            ? currentSteps.filter(s => s !== dayNumber)
-            : [...currentSteps, dayNumber];
-
-        try {
-            const q = query(collection(db, 'planEnrollments'), where('userId', '==', user.uid), where('planId', '==', planId));
-            const snap = await getDocs(q);
-            
-            if (!snap.empty) {
-                await updateDoc(doc(db, 'planEnrollments', snap.docs[0].id), {
-                    completedSteps: newSteps,
-                    updatedAt: serverTimestamp()
-                });
-            } else {
-                await addDoc(collection(db, 'planEnrollments'), {
-                    userId: user.uid,
-                    planId,
-                    completedSteps: [dayNumber],
-                    startedAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
-            }
-        } catch (err) {
-            console.error('Error updating progress:', err);
         }
     };
 
@@ -421,10 +338,9 @@ export default function WisdomModule() {
 
     return (
         <div className="max-w-6xl mx-auto h-[calc(100vh-120px)] flex flex-col">
-            {/* Navigation & Actions */}
             <div className="flex-none mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex p-1 bg-zinc-100/50 rounded-xl w-fit">
-                    {[{ id: 'devotion', label: 'Daily Insight', icon: Sun }, { id: 'plans', label: 'Growth Plans', icon: BookMarked }, { id: 'ai', label: 'AI Insight', icon: Sparkles }, { id: 'admin-ai', label: 'Content Assistant', icon: Wand2, adminOnly: true }]
+                    {[{ id: 'devotion', label: 'Daily Insight', icon: Sun }, { id: 'study', label: 'Bible Study', icon: BookOpen }, { id: 'ai', label: 'Ask Word', icon: Sparkles }, { id: 'admin-ai', label: 'Admin Helper', icon: Wand2, adminOnly: true }]
                         .filter(t => !t.adminOnly || isAdmin)
                         .map((tab) => {
                             const Icon = tab.icon;
@@ -449,15 +365,9 @@ export default function WisdomModule() {
                     <div className="flex gap-2">
                         <button 
                             onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} 
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 text-zinc-700 text-sm rounded-xl font-medium hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-sm"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white text-sm rounded-full font-bold hover:shadow-xl transition-all shadow-lg shadow-red-200"
                         >
-                            <Plus size={16} /> Insight
-                        </button>
-                        <button 
-                            onClick={() => { setGrowthPlanInitialData(null); setIsGrowthPlanModalOpen(true); }} 
-                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm rounded-xl font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-200"
-                        >
-                            <Plus size={16} /> Growth Plan
+                            <Plus size={16} /> New Insight
                         </button>
                     </div>
                 )}
@@ -466,191 +376,126 @@ export default function WisdomModule() {
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto min-h-0 pr-2 pb-8">
                 {activeTab === 'devotion' && (
-                    <div className="max-w-3xl space-y-6">
-                        {loadingInsights ? (
-                            <div className="space-y-4">
-                                <div className="h-48 bg-zinc-100 rounded-3xl animate-pulse" />
-                                <div className="h-24 bg-zinc-100 rounded-3xl animate-pulse" />
-                            </div>
-                        ) : insights.length > 0 ? (
-                            insights.map((insight, idx) => (
-                                <div key={insight.id} className={`animate-in fade-in slide-in-from-bottom-4 duration-500`} style={{ animationDelay: `${idx * 100}ms` }}>
-                                    <div className="glass-panel rounded-3xl p-8 mb-6 relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 p-32 bg-gradient-to-br from-red-500/5 to-orange-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-
-                                        <div className="flex items-start justify-between relative z-10">
-                                            <div>
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-semibold mb-3">
-                                                    {idx === 0 ? <><Sun size={12} /> Today's Word</> : 'Archive'}
-                                                </span>
-                                                <h3 className="text-3xl font-bold text-zinc-900 mb-2">{insight.title}</h3>
-                                                <p className="text-zinc-500 font-medium">{new Date(insight.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                                                {insight.scripture && <p className="text-red-600 font-serif italic mt-4 text-lg">{insight.scripture}</p>}
+                    <div className="max-w-4xl space-y-12">
+                        {/* Today's Insight Section */}
+                        <section>
+                            <h2 className="text-xs font-extrabold text-zinc-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                <div className="w-8 h-[1px] bg-zinc-200" />
+                                Today's Connection
+                                <div className="w-8 h-[1px] bg-zinc-200" />
+                            </h2>
+                            
+                            {loadingInsights ? (
+                                <div className="h-64 bg-zinc-100 rounded-[2rem] animate-pulse" />
+                            ) : todaysInsight ? (
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="glass-panel rounded-[2rem] p-10 relative overflow-hidden group border border-red-100/50">
+                                        <div className="absolute top-0 right-0 p-32 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                                        
+                                        <div className="relative z-10 flex flex-col md:flex-row gap-10">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <span className="px-3 py-1 bg-red-500 text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-lg shadow-red-200">Featured</span>
+                                                    <p className="text-zinc-500 font-bold text-sm">{new Date(todaysInsight.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                                                </div>
+                                                <h3 className="text-4xl font-extrabold text-zinc-900 mb-6 tracking-tight leading-tight uppercase">{todaysInsight.title}</h3>
+                                                {todaysInsight.scripture && <p className="text-red-600 font-serif italic text-2xl mb-8 border-l-4 border-red-500 pl-6 py-2">{todaysInsight.scripture}</p>}
+                                                <p className="text-zinc-700 leading-relaxed whitespace-pre-wrap text-xl font-medium mb-10">{todaysInsight.content}</p>
+                                                
+                                                {todaysInsight.prayerPrompt && (
+                                                    <div className="bg-zinc-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-800 rounded-full blur-2xl -mr-12 -mt-12 opacity-50" />
+                                                        <div className="relative z-10">
+                                                            <div className="flex items-center gap-2 mb-3 text-red-500">
+                                                                <Sparkles size={16} />
+                                                                <span className="text-[10px] font-extrabold uppercase tracking-[0.2em]">Prayer Focus</span>
+                                                            </div>
+                                                            <p className="text-zinc-200 text-lg leading-relaxed italic font-medium">"{todaysInsight.prayerPrompt}"</p>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex gap-1">
-                                                <button 
-                                                    onClick={() => toggleBookmark(insight.id)}
-                                                    className={`p-2 rounded-xl transition-colors ${
-                                                        bookmarks.includes(insight.id) 
-                                                        ? 'text-red-600 bg-red-50' 
-                                                        : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100'
-                                                    }`}
-                                                >
-                                                    <BookMarked size={18} fill={bookmarks.includes(insight.id) ? "currentColor" : "none"} />
+                                            
+                                            <div className="md:w-px h-full md:bg-zinc-100 flex-shrink-0" />
+                                            
+                                            <div className="flex flex-col gap-3">
+                                                <button onClick={() => toggleBookmark(todaysInsight.id)} className={`flex items-center justify-center gap-2 w-full md:w-16 h-16 rounded-2xl transition-all border ${bookmarks.includes(todaysInsight.id) ? 'bg-red-500 text-white border-red-500 shadow-lg' : 'bg-white text-zinc-400 border-zinc-100 hover:border-red-500 hover:text-red-500 shadow-sm'}`}>
+                                                    <BookMarked size={24} fill={bookmarks.includes(todaysInsight.id) ? "currentColor" : "none"} />
                                                 </button>
                                                 {isAdmin && (
                                                     <>
-                                                        <button 
-                                                            onClick={() => { setInsightInitialData(insight); setIsInsightModalOpen(true); }} 
-                                                            className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors"
-                                                        >
-                                                            <Save size={18} />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleDeleteInsight(insight.id)} 
-                                                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
+                                                        <button onClick={() => { setInsightInitialData(todaysInsight); setIsInsightModalOpen(true); }} className="flex items-center justify-center w-16 h-16 bg-white text-zinc-400 border border-zinc-100 rounded-2xl hover:border-black hover:text-black transition-all shadow-sm"><Save size={20} /></button>
+                                                        <button onClick={() => handleDeleteInsight(todaysInsight.id)} className="flex items-center justify-center w-16 h-16 bg-white text-zinc-400 border border-zinc-100 rounded-2xl hover:border-red-600 hover:text-red-600 transition-all shadow-sm"><Trash2 size={20} /></button>
                                                     </>
                                                 )}
                                             </div>
                                         </div>
-
-                                        <div className="mt-8 pt-8 border-t border-zinc-100">
-                                            <p className="text-zinc-700 leading-relaxed whitespace-pre-wrap text-lg">{insight.content}</p>
-                                        </div>
-
-                                        {insight.prayerPrompt && (
-                                            <div className="mt-8 bg-zinc-900 rounded-2xl p-6 text-white relative overflow-hidden">
-                                                <div className="absolute top-0 right-0 p-16 bg-zinc-800 rounded-full blur-2xl -mr-8 -mt-8 opacity-50 pointer-events-none" />
-                                                <div className="relative z-10">
-                                                    <div className="flex items-center gap-2 mb-2 text-zinc-400">
-                                                        <Sparkles size={14} />
-                                                        <span className="text-[10px] font-bold uppercase tracking-widest">Prayer Focus</span>
-                                                    </div>
-                                                    <p className="text-zinc-200 text-base leading-relaxed italic">"{insight.prayerPrompt}"</p>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="glass-panel rounded-3xl p-12 text-center border-dashed border-2 border-zinc-200">
-                                <Sun size={32} className="text-zinc-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-zinc-900 mb-2">No Insights Yet</h3>
-                                <p className="text-zinc-500 mb-6">Create the first insight to inspire the community.</p>
-                                {isAdmin && <button onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} className="px-5 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-200">Create Insight</button>}
-                            </div>
+                            ) : (
+                                <div className="glass-panel rounded-[2rem] p-16 text-center border-dashed border-2 border-zinc-200 flex flex-col items-center">
+                                    <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
+                                        <Sun size={40} className="text-zinc-300" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-zinc-900 mb-3 uppercase tracking-tight">No insights from the bishop today</h3>
+                                    <p className="text-zinc-500 mb-8 max-w-sm font-medium">While you wait for today's word, feel free to explore our archive or ask the AI for spiritual guidance.</p>
+                                    {isAdmin && <button onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} className="px-8 py-3 bg-red-600 text-white rounded-full font-bold hover:shadow-xl transition-all shadow-lg shadow-red-200">UPLOAD TODAY'S WORD</button>}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* Archive Section */}
+                        {pastInsights.length > 0 && (
+                            <section>
+                                <h2 className="text-xs font-extrabold text-zinc-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                    <div className="w-8 h-[1px] bg-zinc-200" />
+                                    The Archive
+                                    <div className="w-8 h-[1px] bg-zinc-200" />
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {pastInsights.map((insight) => (
+                                        <div key={insight.id} className="glass-panel rounded-3xl p-6 hover:shadow-xl transition-all group cursor-pointer border-transparent hover:border-red-500/20" onClick={() => { setInsightInitialData(insight); setTab('devotion'); }}>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(insight.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                                <div className="flex gap-2">
+                                                    <BookMarked size={14} className={bookmarks.includes(insight.id) ? 'text-red-500' : 'text-zinc-300'} />
+                                                </div>
+                                            </div>
+                                            <h4 className="font-bold text-zinc-900 group-hover:text-red-500 transition-colors uppercase leading-tight mb-2 line-clamp-1">{insight.title}</h4>
+                                            <p className="text-zinc-500 text-sm line-clamp-2 leading-relaxed">{insight.content}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
                         )}
                     </div>
                 )}
 
-                {activeTab === 'plans' && (
-                    <div className="space-y-6">
-                        {/* Search and Filters */}
-                        <div className="flex flex-col md:flex-row gap-4 mb-2">
-                            <div className="relative flex-1">
-                                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search plans by title or description..." 
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-white border border-zinc-100 rounded-2xl text-sm focus:ring-2 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all shadow-sm"
-                                />
-                            </div>
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
-                                {categoriesList.map(cat => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setSelectedCategory(cat)}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                                            selectedCategory === cat
-                                            ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-200'
-                                            : 'bg-white text-zinc-500 border border-zinc-100 hover:border-zinc-200 shadow-sm'
-                                        }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
+                {activeTab === 'study' && (
+                    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+                        <div className="text-center mb-10">
+                            <h2 className="text-4xl font-extrabold text-zinc-900 tracking-tight uppercase">Bible Study</h2>
+                            <p className="text-zinc-500 mt-2 font-medium">Deepen your understanding through structured topical and character studies.</p>
                         </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {loadingPlans ? (
-                                [1, 2, 3].map(i => (
-                                    <div key={i} className="h-40 bg-zinc-100 rounded-2xl animate-pulse" />
-                                ))
-                            ) : filteredPlans.length === 0 ? (
-                                <div className="col-span-full glass-panel rounded-3xl p-12 text-center border-dashed border-2 border-zinc-200">
-                                    <BookMarked size={32} className="text-zinc-300 mx-auto mb-4" />
-                                    <h3 className="text-lg font-semibold text-zinc-900 mb-2">
-                                        {searchQuery || selectedCategory !== 'All' ? 'No results found' : 'No Growth Plans'}
-                                    </h3>
-                                    <p className="text-zinc-500">Try adjusting your search or filters.</p>
-                                </div>
-                            ) : (
-                                filteredPlans.map((plan) => (
-                                    <div key={plan.id} className="group glass-panel rounded-2xl p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-zinc-200 relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-white" onClick={() => setSelectedPlan(plan)} />
-                                        <div className="relative z-10">
-                                            <div className="flex justify-between items-start mb-3">
-                                                <span className="inline-block px-2 py-1 bg-zinc-100 text-zinc-600 rounded-md text-[10px] font-bold uppercase tracking-wider">{plan.category}</span>
-                                                {isAdmin && (
-                                                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                                                        <button 
-                                                            onClick={() => { setGrowthPlanInitialData(plan); setIsGrowthPlanModalOpen(true); }} 
-                                                            className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-zinc-100"
-                                                        >
-                                                            <Save size={14} />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleDeletePlan(plan.id)} 
-                                                            className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-zinc-100"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div onClick={() => setSelectedPlan(plan)}>
-                                                <h4 className="font-bold text-zinc-900 text-lg mb-2 pr-6">{plan.title}</h4>
-                                                <p className="text-zinc-500 text-sm line-clamp-2">{plan.description}</p>
-                                                <div className="mt-4 flex flex-col gap-3">
-                                                    {enrollments[plan.id] && (
-                                                        <div className="space-y-1.5">
-                                                            <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                                                                <span>Progress</span>
-                                                                <span>{Math.round((enrollments[plan.id].completedSteps.length / plan.days.length) * 100)}%</span>
-                                                            </div>
-                                                            <div className="w-full h-1 bg-zinc-100 rounded-full overflow-hidden">
-                                                                <div 
-                                                                    className="h-full bg-green-500 transition-all duration-500" 
-                                                                    style={{ width: `${(enrollments[plan.id].completedSteps.length / plan.days.length) * 100}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2 text-xs text-zinc-400 font-medium">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
-                                                            {plan.duration}
-                                                            {enrollments[plan.id] && (
-                                                                <span className="flex items-center gap-1 text-green-600 ml-2">
-                                                                    <Sparkles size={10} /> In Progress
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <ChevronRight size={18} className="text-zinc-300 group-hover:text-zinc-900 group-hover:translate-x-1 transition-all" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                        
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[
+                                { title: "Spiritual Disciplines", desc: "Prayer, Fasting, and Meditation", icon: "✨" },
+                                { title: "Parables of Jesus", desc: "Understanding the Kingdom of Heaven", icon: "📖" },
+                                { title: "The Armor of God", desc: "Standing firm in spiritual warfare", icon: "🛡️" },
+                                { title: "Women of the Bible", desc: "Stories of faith and courage", icon: "🌸" },
+                                { title: "Old Testament Kings", desc: "Leadership and its consequences", icon: "👑" },
+                                { title: "The Fruit of the Spirit", desc: "Living a life of character", icon: "🍇" }
+                            ].map((study, idx) => (
+                                <div key={idx} className="glass-panel rounded-[2rem] p-8 hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer group border border-transparent hover:border-red-500/20">
+                                    <div className="text-4xl mb-6">{study.icon}</div>
+                                    <h3 className="text-xl font-bold mb-2 uppercase tracking-tight group-hover:text-red-600 transition-colors">{study.title}</h3>
+                                    <p className="text-zinc-500 text-sm font-medium leading-relaxed">{study.desc}</p>
+                                    <div className="mt-8 flex items-center gap-2 text-[10px] font-bold text-red-600 uppercase tracking-widest bg-red-50 w-fit px-3 py-1 rounded-full">
+                                        Coming Soon
                                     </div>
-                                ))
-                            )}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
@@ -745,16 +590,16 @@ export default function WisdomModule() {
                                         <Wand2 size={32} className="text-purple-600" />
                                     </div>
                                     <h3 className="font-bold text-zinc-900 text-xl">Content Assistant</h3>
-                                    <p className="text-zinc-500 max-w-sm mt-2 mb-8">I can help you create devotions, study plans, and more. Try a quick starter below.</p>
+                                    <p className="text-zinc-500 max-w-sm mt-2 mb-8">I can help you create devotions, Bible studies, and spiritual content. Try a quick starter below.</p>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
-                                        <button onClick={() => handleQuickAdminAction("Generate a daily devotion about 'Hope in Hard Times'")} className="p-4 bg-white border border-dashed border-zinc-300 rounded-xl text-sm text-zinc-600 hover:border-purple-400 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium text-left">
+                                        <button onClick={() => handleQuickAdminAction("Generate a daily devotion about 'Hope in Hard Times'")} className="p-4 bg-white border border-dashed border-zinc-300 rounded-xl text-sm text-zinc-600 hover:border-red-400 hover:text-red-700 hover:bg-red-50 transition-all font-medium text-left">
                                             <span className="block text-xs uppercase text-zinc-400 font-bold mb-1">Devotion</span>
                                             Hope in Hard Times
                                         </button>
-                                        <button onClick={() => handleQuickAdminAction("Create a 5-day study plan on 'The Fruit of the Spirit'")} className="p-4 bg-white border border-dashed border-zinc-300 rounded-xl text-sm text-zinc-600 hover:border-indigo-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all font-medium text-left">
-                                            <span className="block text-xs uppercase text-zinc-400 font-bold mb-1">Study Plan</span>
-                                            Fruit of the Spirit
+                                        <button onClick={() => handleQuickAdminAction("Outline a Bible study on 'The Armor of God'")} className="p-4 bg-white border border-dashed border-zinc-300 rounded-xl text-sm text-zinc-600 hover:border-red-400 hover:text-red-700 hover:bg-red-50 transition-all font-medium text-left">
+                                            <span className="block text-xs uppercase text-zinc-400 font-bold mb-1">Bible Study</span>
+                                            Armor of God
                                         </button>
                                     </div>
                                 </div>
