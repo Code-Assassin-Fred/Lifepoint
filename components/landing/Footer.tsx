@@ -37,22 +37,8 @@ const Footer = () => {
         {/* Top Section */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
 
-          {/* Logo + Description */}
+          {/* Description */}
           <div className="space-y-4">
-            <div
-              className="w-24 h-24 cursor-pointer"
-              onClick={() => router.push('/')}
-              style={{
-                clipPath:
-                  'polygon(29.3% 0%, 70.7% 0%, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0% 70.7%, 0% 29.3%)'
-              }}
-            >
-              <img
-                src="/logo.jpg"
-                alt="Lifepoint Logo"
-                className="w-full h-full object-cover"
-              />
-            </div>
             <p className="text-sm md:text-base">
               Lifepoint is a global online community and growth platform empowering youth, adults, and leaders to rise in potential, purpose, and influence.
             </p>
