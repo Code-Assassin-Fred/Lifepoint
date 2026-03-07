@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { LiveSession } from '@/lib/services/livestreamService';
 
 export async function GET() {
     try {
@@ -19,7 +20,7 @@ export async function GET() {
                     const recRes = await fetch(`https://api.daily.co/v1/recordings?room_name=${data.roomName}`, {
                         headers: { Authorization: `Bearer ${DAILY_API_KEY}` }
                     });
-                    
+
                     if (recRes.ok) {
                         const recData = await recRes.json();
                         if (recData.data && recData.data.length > 0) {
@@ -28,7 +29,7 @@ export async function GET() {
                             if (recording) {
                                 recordingUrl = recording.download_url; // Note: Daily download URLs are temporary but we'll fetch them on each request for now
                                 // Update Firestore so we know it has a recording
-                                await doc.ref.update({ 
+                                await doc.ref.update({
                                     recordingUrl: recordingUrl,
                                     recordingId: recording.id,
                                     recordingStatus: 'ready'
@@ -48,13 +49,13 @@ export async function GET() {
                 // Convert Firestore timestamps to ISO strings for easy client consumption
                 endedAt: data.endedAt?.toDate ? data.endedAt.toDate().toISOString() : data.endedAt,
                 startedAt: data.startedAt?.toDate ? data.startedAt.toDate().toISOString() : data.startedAt
-            };
+            } as LiveSession;
         });
 
         const sessions = await Promise.all(sessionsPromises);
 
         // Filter to only include sessions that were recorded
-        const recordedSessions = sessions.filter(s => s.recordingUrl || s.recordingId);
+        const recordedSessions = sessions.filter((s: LiveSession) => s.recordingUrl || s.recordingId);
 
         // Sort in memory to avoid "missing index" error
         recordedSessions.sort((a: any, b: any) => {
