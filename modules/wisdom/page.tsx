@@ -22,6 +22,7 @@ import {
     ChevronRight,
     ChevronLeft,
     Plus,
+    Calendar,
     Sparkles,
     Send,
     Trash2,
@@ -43,6 +44,21 @@ interface Insight {
     scripture?: string;
     content: string;
     prayerPrompt?: string;
+}
+
+interface WeeklySession {
+    id: string;
+    theme: string;
+    summary: string;
+    weekStarting: string;
+    lessons: {
+        dayNumber: number;
+        title: string;
+        scripture: string;
+        content: string;
+        reflectionQuestions: string[];
+        prayerPoint: string;
+    }[];
 }
 
 type Tab = 'devotion' | 'study' | 'ai' | 'admin-ai';
@@ -70,6 +86,9 @@ export default function WisdomModule() {
     // Data
     const [insights, setInsights] = useState<Insight[]>([]);
     const [loadingInsights, setLoadingInsights] = useState(true);
+    const [weeklySession, setWeeklySession] = useState<WeeklySession | null>(null);
+    const [activeLessonDay, setActiveLessonDay] = useState(1);
+    const [loadingWeekly, setLoadingWeekly] = useState(true);
 
     // AI - User Chat
     const [userAiMessages, setUserAiMessages] = useState<Message[]>([]);
@@ -98,10 +117,18 @@ export default function WisdomModule() {
 
                 setInsights(data.insights || []);
                 if (data.bookmarks) setBookmarks(data.bookmarks);
+
+                // Fetch weekly session
+                const sessionRes = await fetch('/api/wisdom/weekly');
+                if (sessionRes.ok) {
+                    const sessionData = await sessionRes.json();
+                    setWeeklySession(sessionData);
+                }
             } catch (error) {
                 console.error('Error in Wisdom data fetching:', error);
             } finally {
                 setLoadingInsights(false);
+                setLoadingWeekly(false);
             }
         };
 
@@ -281,7 +308,7 @@ export default function WisdomModule() {
                 <button onClick={() => { setSelectedPlan(null); setCurrentDay(0); setAiResponse(''); }} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 mb-6 transition-colors">
                     <ChevronLeft size={18} /> Back to Growth Plans
                 </button>
-                <div className="glass-panel rounded-2xl p-8 mb-6 border-l-4 border-l-red-500">
+                <div className="bg-white rounded-2xl p-8 mb-6 border-l-4 border-l-red-500 border border-zinc-200 shadow-sm">
                     <span className="text-xs px-2.5 py-1 bg-red-50 text-red-600 rounded-full font-bold uppercase tracking-wider">{selectedPlan.category}</span>
                     <h2 className="text-2xl font-bold text-zinc-900 mt-3">{selectedPlan.title}</h2>
                     <p className="text-zinc-500 mt-2 leading-relaxed">{selectedPlan.description}</p>
@@ -349,7 +376,7 @@ export default function WisdomModule() {
     return (
         <div className="max-w-6xl mx-auto h-[calc(100vh-120px)] flex flex-col">
             <div className="flex-none mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex p-1 bg-zinc-100/50 rounded-xl w-fit">
+                <div className="flex p-1 bg-zinc-100 rounded-xl w-fit">
                     {[{ id: 'devotion', label: 'Daily Insight', icon: Sun }, { id: 'study', label: 'Bible Study', icon: BookOpen }, { id: 'ai', label: 'Ask Word', icon: Sparkles }, { id: 'admin-ai', label: 'Admin Helper', icon: Wand2, adminOnly: true }]
                         .filter(t => !t.adminOnly || isAdmin)
                         .map((tab) => {
@@ -399,7 +426,7 @@ export default function WisdomModule() {
                                 <div className="h-64 bg-zinc-100 rounded-[2rem] animate-pulse" />
                             ) : todaysInsight ? (
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="glass-panel rounded-[2rem] p-10 relative overflow-hidden group border border-red-100/50">
+                                    <div className="bg-white rounded-[2rem] p-10 relative overflow-hidden group border border-zinc-200 shadow-sm">
                                         <div className="absolute top-0 right-0 p-32 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
 
                                         <div className="relative z-10 flex flex-col md:flex-row gap-10">
@@ -437,7 +464,7 @@ export default function WisdomModule() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="glass-panel rounded-[2rem] p-16 text-center border-dashed border-2 border-zinc-200 flex flex-col items-center">
+                                <div className="bg-white rounded-[2rem] p-16 text-center border-dashed border-2 border-zinc-200 flex flex-col items-center shadow-sm">
                                     <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
                                         <Sun size={40} className="text-zinc-300" />
                                     </div>
@@ -458,7 +485,7 @@ export default function WisdomModule() {
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {pastInsights.map((insight) => (
-                                        <div key={insight.id} className="glass-panel rounded-3xl p-6 hover:shadow-xl transition-all group cursor-pointer border-transparent hover:border-red-500/20" onClick={() => { setInsightInitialData(insight); setActiveTab('devotion'); }}>
+                                        <div key={insight.id} className="bg-white rounded-3xl p-6 hover:shadow-xl transition-all group cursor-pointer border border-zinc-100 hover:border-red-500/20 shadow-sm" onClick={() => { setInsightInitialData(insight); setActiveTab('devotion'); }}>
                                             <div className="flex justify-between items-start mb-4">
                                                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(insight.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                                                 <div className="flex gap-2">
@@ -477,30 +504,163 @@ export default function WisdomModule() {
 
                 {activeTab === 'study' && (
                     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
-                        <div className="text-center mb-10">
-                            <h2 className="text-2xl font-extrabold text-zinc-900 tracking-tight uppercase">Bible Study</h2>
-                            <p className="text-zinc-500 mt-2 font-medium text-sm">Deepen your understanding through structured topical and character studies.</p>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[
-                                { title: "Spiritual Disciplines", desc: "Prayer, Fasting, and Meditation", icon: "✨" },
-                                { title: "Parables of Jesus", desc: "Understanding the Kingdom of Heaven", icon: "📖" },
-                                { title: "The Armor of God", desc: "Standing firm in spiritual warfare", icon: "🛡️" },
-                                { title: "Women of the Bible", desc: "Stories of faith and courage", icon: "🌸" },
-                                { title: "Old Testament Kings", desc: "Leadership and its consequences", icon: "👑" },
-                                { title: "The Fruit of the Spirit", desc: "Living a life of character", icon: "🍇" }
-                            ].map((study, idx) => (
-                                <div key={idx} className="glass-panel rounded-[2rem] p-8 hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer group border border-transparent hover:border-red-500/20">
-                                    <div className="text-4xl mb-6">{study.icon}</div>
-                                    <h3 className="text-lg font-bold mb-2 uppercase tracking-tight group-hover:text-red-600 transition-colors">{study.title}</h3>
-                                    <p className="text-zinc-500 text-xs font-medium leading-relaxed">{study.desc}</p>
-                                    <div className="mt-8 flex items-center gap-2 text-[10px] font-bold text-red-600 uppercase tracking-widest bg-red-50 w-fit px-3 py-1 rounded-full">
-                                        Coming Soon
+                        {loadingWeekly ? (
+                            <div className="h-96 bg-zinc-50 rounded-3xl animate-pulse border border-zinc-200" />
+                        ) : weeklySession ? (
+                            <div className="flex flex-col gap-8">
+                                {/* Theme Header */}
+                                <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="px-3 py-1 bg-red-600 text-white text-[10px] font-bold rounded-md uppercase tracking-widest">Weekly Theme</div>
+                                        <p className="text-zinc-500 font-bold text-sm">Week of {new Date(weeklySession.weekStarting).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
                                     </div>
+                                    <h2 className="text-3xl font-extrabold text-zinc-900 mb-4 tracking-tight uppercase">{weeklySession.theme}</h2>
+                                    <p className="text-zinc-600 leading-relaxed font-medium max-w-3xl">{weeklySession.summary}</p>
                                 </div>
-                            ))}
-                        </div>
+
+                                {/* 7-Day Navigation */}
+                                <div className="bg-white rounded-2xl p-2 border border-zinc-200 flex justify-between gap-2 overflow-x-auto">
+                                    {weeklySession.lessons.map((lesson) => {
+                                        const isActive = activeLessonDay === lesson.dayNumber;
+                                        return (
+                                            <button
+                                                key={lesson.dayNumber}
+                                                onClick={() => setActiveLessonDay(lesson.dayNumber)}
+                                                className={`flex-1 min-w-[100px] flex flex-col items-center py-4 rounded-xl transition-all ${isActive
+                                                    ? 'bg-zinc-900 text-white shadow-lg'
+                                                    : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
+                                                    }`}
+                                            >
+                                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] mb-1 opacity-60">Day</span>
+                                                <span className="text-2xl font-black">{lesson.dayNumber}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Lesson Content */}
+                                {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay) && (
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                                        <div className="lg:col-span-2 space-y-8">
+                                            <div className="bg-white rounded-3xl p-10 border border-zinc-200 shadow-sm">
+                                                <h3 className="text-2xl font-bold text-zinc-900 mb-6 uppercase tracking-tight">
+                                                    {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.title}
+                                                </h3>
+                                                <div className="bg-red-50 border-l-4 border-red-600 p-6 mb-8">
+                                                    <p className="text-red-700 font-serif italic text-xl leading-relaxed">
+                                                        {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture}
+                                                    </p>
+                                                </div>
+                                                <div className="prose prose-zinc max-w-none text-zinc-700 font-medium leading-relaxed">
+                                                    <ReactMarkdown components={markdownComponents}>
+                                                        {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.content || ''}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            </div>
+
+                                            {/* Reflection & Prayer */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="bg-zinc-900 rounded-3xl p-8 text-white shadow-lg">
+                                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-500 mb-6">Reflection Questions</h4>
+                                                    <ul className="space-y-4">
+                                                        {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.reflectionQuestions.map((q, i) => (
+                                                            <li key={i} className="flex gap-4">
+                                                                <span className="text-red-500 font-bold">{i + 1}.</span>
+                                                                <p className="text-zinc-300 text-sm font-medium leading-relaxed">{q}</p>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                                <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
+                                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-600 mb-6">Prayer Focus</h4>
+                                                    <p className="text-zinc-700 font-medium italic text-lg leading-relaxed">
+                                                        "{weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.prayerPoint}"
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* AI Assistant Side Panel */}
+                                        <div className="lg:sticky lg:top-8 space-y-6">
+                                            <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
+                                                <div className="flex items-center gap-3 mb-6">
+                                                    <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-100">
+                                                        <Sparkles size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-zinc-900">Study Assistant</h4>
+                                                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">On-the-fly Help</p>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-zinc-500 mb-6 font-medium leading-relaxed">Ask anything about today's scripture or lesson. Gemini is ready to help.</p>
+
+                                                <div className="space-y-3 mb-6">
+                                                    {['Explain verse', 'Original Greek/Hebrew', 'Practical examples'].map((hint) => (
+                                                        <button
+                                                            key={hint}
+                                                            onClick={() => handleAskAI('ask-question', hint, weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture)}
+                                                            className="w-full text-left px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-xs font-bold text-zinc-600 hover:border-red-200 hover:text-red-700 transition-all font-bold"
+                                                        >
+                                                            {hint}
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        value={userAiInput}
+                                                        onChange={(e) => setUserAiInput(e.target.value)}
+                                                        onKeyDown={(e) => e.key === 'Enter' && handleAskAI('ask-question', userAiInput, weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture)}
+                                                        placeholder="Type a question..."
+                                                        className="w-full px-4 py-3 pr-10 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-0 focus:border-red-600 outline-none transition-all"
+                                                    />
+                                                    <button
+                                                        onClick={() => handleAskAI('ask-question', userAiInput, weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture)}
+                                                        disabled={userAiLoading || !userAiInput.trim()}
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-red-600 hover:bg-white rounded-lg transition-colors"
+                                                    >
+                                                        {userAiLoading ? <div className="w-3 h-3 border-2 border-red-200 border-t-red-600 rounded-full animate-spin" /> : <Send size={14} />}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {userAiMessages.length > 0 && activeTab === 'study' && (
+                                                <div className="bg-white rounded-3xl p-6 border border-zinc-200 max-h-[300px] overflow-y-auto space-y-4 no-scrollbar shadow-sm">
+                                                    {userAiMessages.map((msg, i) => (
+                                                        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                            <div className={`max-w-[90%] rounded-2xl p-4 text-xs ${msg.role === 'user' ? 'bg-zinc-900 text-white' : 'bg-zinc-50 text-zinc-900 border border-zinc-100'}`}>
+                                                                <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-[3rem] p-20 text-center border-dashed border-2 border-zinc-200 flex flex-col items-center shadow-sm">
+                                <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mb-8">
+                                    <BookOpen size={48} className="text-zinc-200" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-zinc-900 mb-4 uppercase tracking-tight">No Weekly Session Active</h3>
+                                <p className="text-zinc-500 mb-10 max-w-sm font-medium text-base">
+                                    {isAdmin
+                                        ? "The discipleship path is empty. Use the planner to architect this week's 7-day study curriculum."
+                                        : "Check back soon for the new weekly Bible study path."}
+                                </p>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => window.location.href = '/dashboard/admin/wisdom/planner'}
+                                        className="px-10 py-4 bg-zinc-900 text-white rounded-xl font-bold hover:shadow-2xl transition-all shadow-xl"
+                                    >
+                                        GOTO PLANNER
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -595,7 +755,7 @@ export default function WisdomModule() {
                                     <h3 className="font-bold text-zinc-900 text-lg">Content Assistant</h3>
                                     <p className="text-zinc-500 max-w-sm mt-2 mb-8 text-xs">I can help you create devotions, Bible studies, and spiritual content. Try a quick starter below.</p>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg mb-8">
                                         <button onClick={() => handleQuickAdminAction("Generate a daily devotion about 'Hope in Hard Times'")} className="p-4 bg-white border border-dashed border-zinc-300 rounded-xl text-sm text-zinc-600 hover:border-red-400 hover:text-red-700 hover:bg-red-50 transition-all font-medium text-left">
                                             <span className="block text-xs uppercase text-zinc-400 font-bold mb-1">Devotion</span>
                                             Hope in Hard Times
@@ -603,6 +763,16 @@ export default function WisdomModule() {
                                         <button onClick={() => handleQuickAdminAction("Outline a Bible study on 'The Armor of God'")} className="p-4 bg-white border border-dashed border-zinc-300 rounded-xl text-sm text-zinc-600 hover:border-red-400 hover:text-red-700 hover:bg-red-50 transition-all font-medium text-left">
                                             <span className="block text-xs uppercase text-zinc-400 font-bold mb-1">Bible Study</span>
                                             Armor of God
+                                        </button>
+                                    </div>
+
+                                    <div className="pt-8 border-t border-zinc-100 w-full max-w-lg">
+                                        <button
+                                            onClick={() => window.location.href = '/dashboard/admin/wisdom/planner'}
+                                            className="w-full py-4 bg-zinc-900 text-white rounded-xl font-bold hover:bg-zinc-800 transition-all shadow-lg flex items-center justify-center gap-2"
+                                        >
+                                            <Calendar size={18} />
+                                            OPEN 7-DAY SESSION PLANNER
                                         </button>
                                     </div>
                                 </div>
