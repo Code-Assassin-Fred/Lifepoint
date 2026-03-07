@@ -40,7 +40,7 @@ const Footer = () => {
           {/* Description */}
           <div className="space-y-4">
             <p className="text-sm md:text-base">
-              Lifepoint is a global online community and growth platform empowering youth, adults, and leaders to rise in potential, purpose, and influence.
+              Lifepoint is an online community and growth platform empowering youth, adults, and leaders to rise in potential, purpose, and influence.
             </p>
           </div>
 
