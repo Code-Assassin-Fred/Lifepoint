@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Play, Send, ChevronRight } from 'lucide-react';
+import { Mail, Play, Send, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const Contact = () => {
@@ -40,7 +40,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="w-full bg-[#2d4156] py-24 px-6 md:px-12 lg:px-24">
+    <section id="contact" className="w-full bg-[#2d4156] py-16 px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
@@ -86,7 +86,7 @@ const Contact = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="bg-gray-50/95 rounded-lg p-8 md:p-12 shadow-2xl relative overflow-hidden"
+            className="bg-gray-50/95 rounded-md p-8 md:p-12 shadow-2xl relative overflow-hidden"
           >
             {/* Form Background Accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff9d2e]/10 rounded-full -mr-16 -mt-16 blur-3xl" />
@@ -99,8 +99,8 @@ const Contact = () => {
                     name="name"
                     required
                     type="text"
-                    placeholder="John Doe"
-                    className="w-full px-6 py-4 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all placeholder:text-gray-400"
+                    placeholder="Name"
+                    className="w-full px-6 py-4 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all placeholder:text-gray-400"
                   />
                 </div>
                 <div className="space-y-2">
@@ -109,23 +109,28 @@ const Contact = () => {
                     name="email"
                     required
                     type="email"
-                    placeholder="john@example.com"
-                    className="w-full px-6 py-4 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all placeholder:text-gray-400"
+                    placeholder="Email Address"
+                    className="w-full px-6 py-4 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all placeholder:text-gray-400"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-[#2d4156] text-xs font-black uppercase tracking-widest">Subject</label>
-                <select
-                  name="subject"
-                  className="w-full px-6 py-4 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all appearance-none cursor-pointer"
-                >
-                  <option>General Inquiry</option>
-                  <option>Mentorship Program</option>
-                  <option>Leadership Coaching</option>
-                  <option>Prayer Request</option>
-                </select>
+                <div className="relative">
+                  <select
+                    name="subject"
+                    className="w-full px-6 py-4 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all appearance-none cursor-pointer pr-12"
+                  >
+                    <option>General Inquiry</option>
+                    <option>Mentorship Program</option>
+                    <option>Leadership Coaching</option>
+                    <option>Prayer Request</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                    <ChevronDown size={20} />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -135,13 +140,13 @@ const Contact = () => {
                   required
                   rows={4}
                   placeholder="How can we help you rise..."
-                  className="w-full px-6 py-4 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all resize-none placeholder:text-gray-400"
+                  className="w-full px-6 py-4 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all resize-none placeholder:text-gray-400"
                 />
               </div>
 
               <button
                 disabled={isSubmitting}
-                className="w-full py-5 bg-[#2d4156] text-white rounded-xl font-bold uppercase tracking-[0.2em] text-sm flex items-center justify-center space-x-3 hover:bg-[#1a2a3a] transition-all shadow-xl shadow-[#2d4156]/20 disabled:opacity-50"
+                className="w-full py-5 bg-[#2d4156] text-white rounded-md font-bold uppercase tracking-[0.2em] text-sm flex items-center justify-center space-x-3 hover:bg-[#1a2a3a] transition-all shadow-xl shadow-[#2d4156]/20 disabled:opacity-50"
               >
                 <span>{isSubmitting ? "Sending..." : "Send Message"}</span>
                 <Send size={18} />
