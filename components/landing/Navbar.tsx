@@ -107,19 +107,19 @@ const Navbar = () => {
             {/* Desktop Links */}
             <div className="hidden md:flex items-center space-x-8">
               <button
-                onClick={() => router.push('/about')}
+                onClick={() => router.push('/auth')}
                 className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
               >
                 About
               </button>
               <button
-                onClick={() => router.push('/events')}
+                onClick={() => router.push('/auth')}
                 className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
               >
                 Upcoming Events
               </button>
               <button
-                onClick={() => router.push('/contact')}
+                onClick={() => router.push('/auth')}
                 className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
               >
                 Contact Us

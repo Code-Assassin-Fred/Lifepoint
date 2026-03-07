@@ -28,19 +28,19 @@ const VideoTile = ({
     const video = tileVideoRef.current;
     if (!video || hasInitialized.current) return;
     hasInitialized.current = true;
-    
+
     // Set unique offset immediately
     const offset = (index * 2) % video.duration;
     video.currentTime = offset;
-    
+
     // Start playing immediately so it's always moving in the background
-    video.play().catch(() => {});
+    video.play().catch(() => { });
   }, [index]);
 
   const handleCanPlay = () => setIsReady(true);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: isReady ? 1 : 0 }}
       className="w-full h-full bg-black"
@@ -114,7 +114,7 @@ const Hero = () => {
 
   useEffect(() => {
     const current = mediaItems[currentIndex];
-    
+
     // Set auto-advance timers for all slide types
     const duration = current.type === 'image' ? 10000 : 15000;
     timerRef.current = setTimeout(goToNext, duration);
@@ -128,10 +128,10 @@ const Hero = () => {
   useEffect(() => {
     const video = coverVideoRef.current;
     if (video) {
-        video.play().catch(() => {});
-        if (currentIndex === 2) {
-            video.currentTime = 0;
-        }
+      video.play().catch(() => { });
+      if (currentIndex === 2) {
+        video.currentTime = 0;
+      }
     }
   }, [currentIndex]);
 
@@ -240,7 +240,7 @@ const Hero = () => {
 
       <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 z-20">
         <button
-          onClick={() => router.push('/contact')}
+          onClick={() => router.push('/auth')}
           className="bg-[#2d4156]/80 backdrop-blur-sm text-white px-5 py-2.5 rounded shadow-lg border border-white/10 hover:bg-[#2d4156] transition-all text-xs font-medium tracking-widest uppercase"
         >
           Get In Touch

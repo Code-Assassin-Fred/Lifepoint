@@ -70,7 +70,8 @@ const Contact = () => {
 
                 <button
                   onClick={() => router.push('/auth')}
-                  className="flex items-center space-x-3 text-[#ff9d2e] font-black uppercase tracking-widest text-lg hover:translate-x-2 transition-transform duration-300 w-fit">
+                  className="flex items-center space-x-3 text-[#ff9d2e] font-black uppercase tracking-widest text-lg hover:translate-x-2 transition-transform duration-300 w-fit"
+                >
                   <Play size={24} fill="currentColor" />
                   <span>Join Us Now</span>
                 </button>

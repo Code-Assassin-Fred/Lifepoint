@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -45,12 +47,14 @@ const Services = () => {
               <div className="flex flex-wrap gap-4 pt-2">
                 <button
                   onClick={() => router.push('/auth')}
-                  className="px-6 py-2.5 bg-[#1a2a3a] text-white rounded-full font-bold uppercase tracking-wider text-[10px] hover:bg-[#2d4156] transition-all">
+                  className="px-6 py-2.5 bg-[#1a2a3a] text-white rounded-full font-bold uppercase tracking-wider text-[10px] hover:bg-[#2d4156] transition-all"
+                >
                   Our Programs
                 </button>
                 <button
                   onClick={() => router.push('/auth')}
-                  className="px-6 py-2.5 border border-[#1a2a3a] text-[#1a2a3a] rounded-full font-bold uppercase tracking-wider text-[10px] hover:bg-black/5 transition-all">
+                  className="px-6 py-2.5 border border-[#1a2a3a] text-[#1a2a3a] rounded-full font-bold uppercase tracking-wider text-[10px] hover:bg-black/5 transition-all"
+                >
                   Join Us
                 </button>
               </div>

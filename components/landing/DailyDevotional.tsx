@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -22,7 +24,8 @@ const DailyDevotional = () => {
 
             <button
               onClick={() => router.push('/auth')}
-              className="self-start px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-widest text-sm hover:bg-white hover:text-[#1c7ca6] transition-all duration-300">
+              className="self-start px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-widest text-sm hover:bg-white hover:text-[#1c7ca6] transition-all duration-300"
+            >
               Subscribe to Daily Devotional
             </button>
           </div>
@@ -48,7 +51,8 @@ const DailyDevotional = () => {
               <div className="mt-8">
                 <button
                   onClick={() => router.push('/auth')}
-                  className="text-white font-bold uppercase tracking-widest text-sm underline underline-offset-8 hover:text-white/80 transition-all">
+                  className="text-white font-bold uppercase tracking-widest text-sm underline underline-offset-8 hover:text-white/80 transition-all"
+                >
                   Read More
                 </button>
               </div>

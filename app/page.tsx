@@ -1,10 +1,12 @@
-import Navbar from '@/components/Navbar';
-import Hero from '@/components/Hero';
-import Mission from '@/components/Mission';
-import Services from '@/components/Services';
-import SkillsComponent from '@/components/SkillsComponent';
-import InsideValuetainment from '@/components/InsideLifepoint';
-import Footer from '@/components/Footer';
+import Navbar from '@/components/landing/Navbar';
+import Hero from '@/components/landing/Hero';
+import Mission from '@/components/landing/Mission';
+import Services from '@/components/landing/Services';
+import DailyDevotional from '@/components/landing/DailyDevotional';
+import Resources from '@/components/landing/Resources';
+import LeadBishop from '@/components/landing/LeadBishop';
+import Contact from '@/components/landing/Contact';
+import Footer from '@/components/landing/Footer';
 
 export default function Home() {
   return (
@@ -13,8 +15,10 @@ export default function Home() {
       <Hero />
       <Mission />
       <Services />
-      <SkillsComponent />
-      <InsideValuetainment />
+      <DailyDevotional />
+      <Resources />
+      <LeadBishop />
+      <Contact />
       <Footer />
     </>
   );

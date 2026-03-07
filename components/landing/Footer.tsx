@@ -8,17 +8,17 @@ const Footer = () => {
   const router = useRouter();
 
   const quickLinks = [
-    { label: 'Home', href: '#' },
-    { label: 'Wisdom Hub', href: '#' },
-    { label: 'Growth', href: '#' },
-    { label: 'Mentorship', href: '#' },
-    { label: 'Community', href: '#' },
-    { label: 'Media', href: '#' },
+    { label: 'Home', href: '/auth' },
+    { label: 'Wisdom Hub', href: '/auth' },
+    { label: 'Growth', href: '/auth' },
+    { label: 'Mentorship', href: '/auth' },
+    { label: 'Community', href: '/auth' },
+    { label: 'Media', href: '/auth' },
   ];
 
   const resources = [
-    { label: 'Events', href: '#' },
-    { label: 'Support', href: '#' },
+    { label: 'Events', href: '/auth' },
+    { label: 'Support', href: '/auth' },
   ];
 
   const socialLinks = [

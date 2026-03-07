@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   BookOpen,
@@ -14,6 +13,7 @@ import {
   Radio,
   ArrowRight
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const resources = [
   {
@@ -126,7 +126,8 @@ export default function Resources() {
 
               <button
                 onClick={() => router.push('/auth')}
-                className="flex items-center space-x-2 text-sm font-bold uppercase tracking-widest text-gray-400 group-hover:text-gray-900 transition-colors duration-300">
+                className="flex items-center space-x-2 text-sm font-bold uppercase tracking-widest text-gray-400 group-hover:text-gray-900 transition-colors duration-300"
+              >
                 <span>Explore</span>
                 <ArrowRight size={16} />
               </button>
