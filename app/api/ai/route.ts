@@ -23,7 +23,8 @@ IMPORTANT FORMATTING RULES:
 4. Keep paragraphs short for readability
 5. End with a "Further Study" section with 2-3 related passages
 
-You speak with authority but humility, always pointing people to God's Word. Keep responses focused - around 300-400 words unless more detail is requested.`;
+You speak with authority but humility, always pointing people to God's Word. Keep responses focused - around 300-400 words unless more detail is requested.
+CRITICAL: DO NOT use em dashes (—). Use commas, colons, or parentheses instead.`;
 
 const ADMIN_ASSISTANT_PROMPT = `You are an expert theology curriculum designer helping church leaders create Bible study content. 
 
@@ -40,7 +41,8 @@ IMPORTANT: Format your responses with clear structure using markdown:
 - Use numbered lists for study days
 - Use bullet points for questions/prompts
 
-Be thorough but practical. Provide content that can be directly used or easily adapted.`;
+Be thorough but practical. Provide content that can be directly used or easily adapted.
+CRITICAL: DO NOT use em dashes (—). Use commas, colons, or parentheses instead.`;
 
 export async function POST(req: NextRequest) {
     if (!GEMINI_API_KEY || !model) {
@@ -90,8 +92,54 @@ export async function POST(req: NextRequest) {
 
         if (format === 'json') {
             systemPrompt = `You are a structured data generator for a church app. Output ONLY valid JSON matching the requested schema. Do not include markdown code blocks or additional text.`;
-            
-            if (action === 'generate-insight') {
+
+            if (action === 'generate-skeleton') {
+                userMessage = `Act as a Head of Curriculum. Create a 7-day Bible study outline based on the theme: "${content}".
+                ${material ? `Source Material: ${material.substring(0, 5000)}` : ''}
+                Output JSON with:
+                {
+                    "theme": string,
+                    "summary": string,
+                    "skeleton": [
+                        { "dayNumber": number, "title": string, "scripture": string }
+                    ]
+                }`;
+            } else if (action === 'generate-lesson') {
+                const { skeleton, dayNumber } = body;
+                userMessage = `Act as a Pastoral Content Writer. Expand Day ${dayNumber} of this curriculum.
+                Theme: ${content}
+                Daily Title: ${skeleton.title}
+                Scripture: ${skeleton.scripture}
+                ${material ? `Source Material: ${material.substring(0, 8000)}` : ''}
+                ${specifications ? `Specs: ${specifications}` : ''}
+                
+                Generate a full lesson reflecting the theme and source material. 
+                Output JSON:
+                {
+                    "dayNumber": ${dayNumber},
+                    "title": string,
+                    "scripture": string,
+                    "content": string (250-350 words),
+                    "reflectionQuestions": string[] (3 items),
+                    "prayerPoint": string
+                }`;
+            } else if (action === 'verify-lesson') {
+                const { lesson } = body;
+                systemPrompt = `You are a Theological Reviewer. Critique the following lesson for:
+1. Theological accuracy
+2. Alignment with source material
+3. Hallucinations (making up quotes/facts not in scripture or material)
+4. Missing context or depth
+5. CRITICAL: Check for any em dashes (—). If found, flag as NEEDS_FIX.
+
+Output ONLY JSON:
+{
+    "status": "APPROVED" | "NEEDS_FIX",
+    "feedback": string (Concise critique if NEEDS_FIX),
+    "suggestedFix": string (Specific instruction for the writer)
+}`;
+                userMessage = `Review this lesson:\n${JSON.stringify(lesson)}\n\nSource Material: ${material ? material.substring(0, 5000) : 'None provided'}`;
+            } else if (action === 'generate-insight') {
                 userMessage = `Generate a daily devotional insight based on: "${content}". 
                 Schema: { "title": string, "content": string, "prayerPrompt": string }`;
             } else if (action === 'generate-plan') {
@@ -114,7 +162,8 @@ export async function POST(req: NextRequest) {
                 The curriculum MUST include:
                 1. A weekly theme title and summary.
                 2. Seven individual daily lessons.
-                3. Each lesson must have:
+                3. CRITICAL: DO NOT use em dashes (—) in any part of the response.
+                4. Each lesson must have:
                    - dayNumber (1-7)
                    - title (Specific to the day)
                    - scripture (Full reference and text snippet)
@@ -152,14 +201,14 @@ export async function POST(req: NextRequest) {
     
     ${context ? `Additional context: ${context}` : ''}`;
                     break;
-    
+
                 case 'study-insight':
                     userMessage = `I'm studying: "${content}"
     ${context ? `Context: ${context}` : ''}
     
     Provide deep insights for my Bible study. Help me see things I might miss on a surface reading. Include original language insights where relevant.`;
                     break;
-    
+
                 case 'devotion-reflection':
                     userMessage = `Today's devotion scripture is: "${content}"
     
@@ -169,7 +218,7 @@ export async function POST(req: NextRequest) {
     - Questions for self-reflection
     - A closing prayer focus`;
                     break;
-    
+
                 case 'prayer-guidance':
                     userMessage = `Based on this scripture: "${content}"
     
@@ -179,11 +228,11 @@ export async function POST(req: NextRequest) {
     - Personal application prayers
     - A sample prayer`;
                     break;
-    
+
                 case 'ask-question':
                     userMessage = content;
                     break;
-    
+
                 default:
                     userMessage = content;
             }

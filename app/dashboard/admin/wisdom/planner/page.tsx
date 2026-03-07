@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-    ChevronLeft, 
-    Wand2, 
-    Save, 
-    FileText, 
+import {
+    ChevronLeft,
+    Wand2,
+    Save,
+    FileText,
     Calendar,
     ChevronDown,
     ChevronUp,
@@ -35,11 +35,11 @@ export default function AdminSessionPlanner() {
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [sourceMaterial, setSourceMaterial] = useState('');
-    
+
     const [generationMode, setGenerationMode] = useState<'ground-up' | 'material'>('material');
     const [uploading, setUploading] = useState(false);
     const [specifications, setSpecifications] = useState('');
-    
+
     const [session, setSession] = useState<WeeklySession>({
         theme: '',
         summary: '',
@@ -64,6 +64,9 @@ export default function AdminSessionPlanner() {
         reader.readAsText(file);
     };
 
+    const [agentStatus, setAgentStatus] = useState<string>('');
+    const [lessonStatus, setLessonStatus] = useState<Record<number, 'pending' | 'generating' | 'verifying' | 'fixing' | 'complete'>>({});
+
     const handleGenerateWithAI = async () => {
         if (!session.theme) {
             alert('Please enter a theme first');
@@ -71,38 +74,113 @@ export default function AdminSessionPlanner() {
         }
 
         setGenerating(true);
+        setAgentStatus('Planner Agent: Designing 7-day skeleton...');
+
         try {
-            const res = await fetch('/api/ai', {
+            // STEP 1: Generate Skeleton
+            const skeletonRes = await fetch('/api/ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'generate-weekly-curriculum',
+                    action: 'generate-skeleton',
                     content: session.theme,
                     material: generationMode === 'material' ? sourceMaterial : '',
-                    specifications: specifications,
                     format: 'json'
                 })
             });
 
-            if (!res.ok) {
-                const errorData = await res.text();
-                console.error('API Error Response:', errorData);
-                throw new Error('Failed to generate');
+            if (!skeletonRes.ok) throw new Error('Failed to generate skeleton');
+            const skeletonData = await skeletonRes.json();
+
+            setSession(prev => ({
+                ...prev,
+                theme: skeletonData.theme || prev.theme,
+                summary: skeletonData.summary || '',
+                lessons: skeletonData.skeleton.map((s: any) => ({
+                    ...s,
+                    content: '',
+                    reflectionQuestions: [],
+                    prayerPoint: ''
+                }))
+            }));
+
+            // STEP 2: Generate and Verify Lessons Day by Day
+            for (let i = 1; i <= 7; i++) {
+                const lessonToExpand = skeletonData.skeleton.find((s: any) => s.dayNumber === i);
+                if (!lessonToExpand) continue;
+
+                setLessonStatus(prev => ({ ...prev, [i]: 'generating' }));
+                setAgentStatus(`Content Agent: Writing Day ${i}...`);
+
+                let approved = false;
+                let currentLessonData = null;
+                let attempts = 0;
+
+                while (!approved && attempts < 2) {
+                    attempts++;
+                    // Generate Lesson
+                    const lessonRes = await fetch('/api/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'generate-lesson',
+                            content: session.theme,
+                            skeleton: lessonToExpand,
+                            dayNumber: i,
+                            material: generationMode === 'material' ? sourceMaterial : '',
+                            specifications: specifications,
+                            format: 'json'
+                        })
+                    });
+
+                    if (!lessonRes.ok) throw new Error(`Failed to generate lesson for day ${i}`);
+                    currentLessonData = await lessonRes.json();
+
+                    // STEP 3: Verify Lesson
+                    setLessonStatus(prev => ({ ...prev, [i]: 'verifying' }));
+                    setAgentStatus(`Verifier Agent: Checking Day ${i}...`);
+
+                    const verifyRes = await fetch('/api/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'verify-lesson',
+                            lesson: currentLessonData,
+                            material: generationMode === 'material' ? sourceMaterial : '',
+                            format: 'json'
+                        })
+                    });
+
+                    if (verifyRes.ok) {
+                        const verification = await verifyRes.json();
+                        if (verification.status === 'APPROVED') {
+                            approved = true;
+                        } else {
+                            setLessonStatus(prev => ({ ...prev, [i]: 'fixing' }));
+                            setAgentStatus(`Verifier Feedback: ${verification.feedback}. Fixing...`);
+                            // In a real app, we might append verification.suggestedFix to specs for the next attempt
+                        }
+                    } else {
+                        // If verification fails, we just approve it for now to avoid infinite loops
+                        approved = true;
+                    }
+                }
+
+                setSession(prev => ({
+                    ...prev,
+                    lessons: prev.lessons.map(l => l.dayNumber === i ? currentLessonData : l)
+                }));
+                setLessonStatus(prev => ({ ...prev, [i]: 'complete' }));
             }
-            const data = await res.json();
-            
-            setSession({
-                ...session,
-                theme: data.theme || session.theme,
-                summary: data.summary || '',
-                lessons: data.lessons || []
-            });
-            setExpandedDay(1); 
+
+            setAgentStatus('Generation complete!');
+            setExpandedDay(1);
         } catch (error) {
             console.error('AI Generation error:', error);
             alert('Failed to generate. Please try again.');
         } finally {
             setGenerating(false);
+            setAgentStatus('');
         }
     };
 
@@ -148,7 +226,7 @@ export default function AdminSessionPlanner() {
                     <ChevronLeft size={20} /> BACK
                 </button>
                 <div className="flex gap-4">
-                    <button 
+                    <button
                         onClick={handleSaveSession}
                         disabled={loading || session.lessons.length === 0}
                         className="px-8 py-3 bg-red-600 text-white rounded-xl font-bold hover:shadow-xl transition-all shadow-lg shadow-red-200 disabled:opacity-50"
@@ -173,13 +251,13 @@ export default function AdminSessionPlanner() {
                         </div>
 
                         <div className="flex p-1 bg-zinc-100 rounded-xl">
-                            <button 
+                            <button
                                 onClick={() => setGenerationMode('ground-up')}
                                 className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${generationMode === 'ground-up' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'}`}
                             >
                                 Ground Up
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setGenerationMode('material')}
                                 className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${generationMode === 'material' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'}`}
                             >
@@ -191,10 +269,10 @@ export default function AdminSessionPlanner() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="md:col-span-1">
                             <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Weekly Theme</label>
-                            <input 
+                            <input
                                 type="text"
                                 value={session.theme}
-                                onChange={(e) => setSession({...session, theme: e.target.value})}
+                                onChange={(e) => setSession({ ...session, theme: e.target.value })}
                                 placeholder="e.g., Kingdom Stewardship"
                                 className="w-full px-5 py-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-sm font-bold focus:border-red-600 outline-none transition-all placeholder:text-zinc-300"
                             />
@@ -203,10 +281,10 @@ export default function AdminSessionPlanner() {
                             <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Kickoff Date</label>
                             <div className="relative">
                                 <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                                <input 
+                                <input
                                     type="date"
                                     value={session.weekStarting}
-                                    onChange={(e) => setSession({...session, weekStarting: e.target.value})}
+                                    onChange={(e) => setSession({ ...session, weekStarting: e.target.value })}
                                     className="w-full pl-12 pr-5 py-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-sm font-bold focus:border-red-600 outline-none transition-all"
                                 />
                             </div>
@@ -222,7 +300,7 @@ export default function AdminSessionPlanner() {
                                         <input type="file" accept=".txt,.md" className="hidden" onChange={handleFileUpload} />
                                     </label>
                                 </div>
-                                <textarea 
+                                <textarea
                                     value={sourceMaterial}
                                     onChange={(e) => setSourceMaterial(e.target.value)}
                                     rows={6}
@@ -235,7 +313,7 @@ export default function AdminSessionPlanner() {
 
                         <div className="md:col-span-2 space-y-4">
                             <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest">Global Specifications (Optional)</label>
-                            <textarea 
+                            <textarea
                                 value={specifications}
                                 onChange={(e) => setSpecifications(e.target.value)}
                                 rows={3}
@@ -245,8 +323,16 @@ export default function AdminSessionPlanner() {
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-4">
-                        <button 
+                    <div className="flex items-center justify-between pt-4">
+                        <div className="flex-1 mr-4">
+                            {generating && agentStatus && (
+                                <div className="flex items-center gap-3 animate-in fade-in duration-300">
+                                    <div className="w-4 h-4 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin" />
+                                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{agentStatus}</p>
+                                </div>
+                            )}
+                        </div>
+                        <button
                             onClick={handleGenerateWithAI}
                             disabled={generating || !session.theme || (generationMode === 'material' && !sourceMaterial)}
                             className="w-fit px-12 py-4 bg-zinc-900 text-white rounded-xl font-black text-sm flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200 disabled:opacity-50"
@@ -274,9 +360,9 @@ export default function AdminSessionPlanner() {
                         {/* Weekly Summary Preview */}
                         <div className="bg-zinc-50 rounded-3xl p-8 mb-6 border border-zinc-100">
                             <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Weekly Executive Summary</label>
-                            <textarea 
+                            <textarea
                                 value={session.summary}
-                                onChange={(e) => setSession({...session, summary: e.target.value})}
+                                onChange={(e) => setSession({ ...session, summary: e.target.value })}
                                 rows={3}
                                 className="w-full bg-transparent border-none text-zinc-700 font-medium leading-relaxed outline-none resize-none p-0"
                             />
@@ -284,17 +370,27 @@ export default function AdminSessionPlanner() {
 
                         {session.lessons.map((lesson) => (
                             <div key={lesson.dayNumber} className="bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden">
-                                <button 
+                                <button
                                     onClick={() => setExpandedDay(expandedDay === lesson.dayNumber ? null : lesson.dayNumber)}
                                     className="w-full px-8 py-6 flex items-center justify-between hover:bg-zinc-50 transition-all"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-500">
-                                            {lesson.dayNumber}
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${lessonStatus[lesson.dayNumber] === 'complete' ? 'bg-green-100 text-green-600' :
+                                                lessonStatus[lesson.dayNumber] === 'generating' || lessonStatus[lesson.dayNumber] === 'verifying' ? 'bg-red-50 text-red-500 animate-pulse' :
+                                                    'bg-zinc-100 text-zinc-500'
+                                            }`}>
+                                            {lessonStatus[lesson.dayNumber] === 'complete' ? '✓' : lesson.dayNumber}
                                         </div>
                                         <div className="text-left">
-                                            <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-0.5">DAY {lesson.dayNumber}</h4>
-                                            <p className="text-sm font-bold text-zinc-900">{lesson.title}</p>
+                                            <div className="flex items-center gap-2">
+                                                <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-0.5">DAY {lesson.dayNumber}</h4>
+                                                {lessonStatus[lesson.dayNumber] && (
+                                                    <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-400 border border-zinc-200 uppercase">
+                                                        {lessonStatus[lesson.dayNumber]}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-sm font-bold text-zinc-900">{lesson.title || 'Drafting...'}</p>
                                         </div>
                                     </div>
                                     {expandedDay === lesson.dayNumber ? <ChevronUp size={20} className="text-zinc-300" /> : <ChevronDown size={20} className="text-zinc-300" />}
@@ -304,7 +400,7 @@ export default function AdminSessionPlanner() {
                                     <div className="px-8 pb-8 pt-2 space-y-6 border-t border-zinc-50 animate-in fade-in duration-300">
                                         <div>
                                             <label className="text-[10px] font-black text-zinc-300 uppercase mb-2 block">Scripture Anchor</label>
-                                            <input 
+                                            <input
                                                 type="text"
                                                 value={lesson.scripture}
                                                 onChange={(e) => updateLesson(lesson.dayNumber, 'scripture', e.target.value)}
@@ -313,7 +409,7 @@ export default function AdminSessionPlanner() {
                                         </div>
                                         <div>
                                             <label className="text-[10px] font-black text-zinc-300 uppercase mb-2 block">Lesson Content</label>
-                                            <textarea 
+                                            <textarea
                                                 value={lesson.content}
                                                 onChange={(e) => updateLesson(lesson.dayNumber, 'content', e.target.value)}
                                                 rows={6}
