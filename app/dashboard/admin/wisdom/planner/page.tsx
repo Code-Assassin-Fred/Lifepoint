@@ -10,7 +10,11 @@ import {
     Calendar,
     ChevronDown,
     ChevronUp,
-    Sparkles
+    Sparkles,
+    CheckCircle2,
+    AlertCircle,
+    Info,
+    X
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -49,6 +53,15 @@ export default function AdminSessionPlanner() {
 
     const [expandedDay, setExpandedDay] = useState<number | null>(null);
 
+    const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
+
+    const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+        setNotification({ type, message });
+        if (type !== 'error') {
+            setTimeout(() => setNotification(null), 5000);
+        }
+    };
+
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -69,12 +82,13 @@ export default function AdminSessionPlanner() {
 
     const handleGenerateWithAI = async () => {
         if (!session.theme) {
-            alert('Please enter a theme first');
+            showNotification('info', 'Please enter a theme first');
             return;
         }
 
         setGenerating(true);
         setAgentStatus('Planner Agent: Designing 7-day skeleton...');
+        setNotification(null);
 
         try {
             // STEP 1: Generate Skeleton
@@ -177,7 +191,7 @@ export default function AdminSessionPlanner() {
             setExpandedDay(1);
         } catch (error) {
             console.error('AI Generation error:', error);
-            alert('Failed to generate. Please try again.');
+            showNotification('error', 'Failed to generate curriculum. The AI might be having trouble with the source material.');
         } finally {
             setGenerating(false);
             setAgentStatus('');
@@ -186,11 +200,12 @@ export default function AdminSessionPlanner() {
 
     const handleSaveSession = async () => {
         if (!session.theme || !session.weekStarting || session.lessons.length === 0) {
-            alert('Please generate the curriculum before publishing.');
+            showNotification('info', 'Please generate the curriculum before publishing.');
             return;
         }
 
         setLoading(true);
+        setNotification(null);
         try {
             const res = await fetch('/api/wisdom/weekly', {
                 method: 'POST',
@@ -199,11 +214,13 @@ export default function AdminSessionPlanner() {
             });
 
             if (!res.ok) throw new Error('Save failed');
-            alert('Weekly Session published & approved!');
-            router.push('/dashboard/admin/wisdom');
+            showNotification('success', 'Weekly Session published & approved! Redirecting...');
+            setTimeout(() => {
+                router.push('/dashboard/admin/wisdom');
+            }, 2000);
         } catch (error) {
             console.error('Save error:', error);
-            alert('Failed to save.');
+            showNotification('error', 'Failed to save the session. Please check your connection.');
         } finally {
             setLoading(false);
         }
@@ -220,6 +237,31 @@ export default function AdminSessionPlanner() {
 
     return (
         <div className="max-w-4xl mx-auto pb-20 px-4">
+            {/* Inline Notification */}
+            {notification && (
+                <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 min-w-[320px] max-w-md animate-in slide-in-from-top-4 duration-300`}>
+                    <div className={`flex items-center gap-4 p-4 rounded-2xl border shadow-2xl ${notification.type === 'success' ? 'bg-green-50 border-green-100 text-green-800' :
+                            notification.type === 'error' ? 'bg-red-50 border-red-100 text-red-800' :
+                                'bg-zinc-900 border-zinc-800 text-white'
+                        }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notification.type === 'success' ? 'bg-green-500 text-white' :
+                                notification.type === 'error' ? 'bg-red-500 text-white' :
+                                    'bg-zinc-800 text-zinc-400'
+                            }`}>
+                            {notification.type === 'success' && <CheckCircle2 size={20} />}
+                            {notification.type === 'error' && <AlertCircle size={20} />}
+                            {notification.type === 'info' && <Info size={20} />}
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-bold leading-tight">{notification.message}</p>
+                        </div>
+                        <button onClick={() => setNotification(null)} className="p-1.5 hover:bg-black/5 rounded-lg transition-colors">
+                            <X size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Minimal Header */}
             <div className="flex items-center justify-between mb-10 mt-6">
                 <button onClick={() => router.back()} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 font-bold transition-all">
@@ -376,8 +418,8 @@ export default function AdminSessionPlanner() {
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${lessonStatus[lesson.dayNumber] === 'complete' ? 'bg-green-100 text-green-600' :
-                                                lessonStatus[lesson.dayNumber] === 'generating' || lessonStatus[lesson.dayNumber] === 'verifying' ? 'bg-red-50 text-red-500 animate-pulse' :
-                                                    'bg-zinc-100 text-zinc-500'
+                                            lessonStatus[lesson.dayNumber] === 'generating' || lessonStatus[lesson.dayNumber] === 'verifying' ? 'bg-red-50 text-red-500 animate-pulse' :
+                                                'bg-zinc-100 text-zinc-500'
                                             }`}>
                                             {lessonStatus[lesson.dayNumber] === 'complete' ? '✓' : lesson.dayNumber}
                                         </div>

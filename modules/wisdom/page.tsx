@@ -19,19 +19,22 @@ import {
     BookOpen,
     Sun,
     BookMarked,
-    ChevronRight,
-    ChevronLeft,
     Plus,
     Calendar,
-    Sparkles,
-    Send,
     Trash2,
-    Lightbulb,
-    Wand2,
     Save,
-    MessageSquare,
-    Bot,
     Search,
+    CheckCircle2,
+    AlertCircle,
+    Info,
+    X,
+    Lock,
+    FileText,
+    LayoutGrid,
+    ChevronDown,
+    ChevronUp,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import InsightModal from '@/components/wisdom/InsightModal';
@@ -61,12 +64,21 @@ interface WeeklySession {
     }[];
 }
 
-type Tab = 'devotion' | 'study' | 'ai' | 'admin-ai';
+type Tab = 'devotion' | 'study';
 
-interface Message {
-    role: 'user' | 'assistant';
-    content: string;
-}
+
+
+const markdownComponents = {
+    p: ({ children }: any) => <p className="mb-4 last:mb-0 leading-relaxed text-zinc-600 font-medium">{children}</p>,
+    strong: ({ children }: any) => <span className="font-bold text-zinc-900">{children}</span>,
+    em: ({ children }: any) => <span className="italic">{children}</span>,
+    ul: ({ children }: any) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
+    ol: ({ children }: any) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
+    li: ({ children }: any) => <li className="leading-relaxed text-zinc-600 font-medium">{children}</li>,
+    h1: ({ children }: any) => <h1 className="text-2xl font-black text-zinc-900 mb-6 uppercase tracking-tight">{children}</h1>,
+    h2: ({ children }: any) => <h2 className="text-xl font-black text-zinc-900 mb-4 uppercase tracking-tight">{children}</h2>,
+    h3: ({ children }: any) => <h3 className="text-lg font-black text-zinc-900 mb-3 uppercase tracking-tight">{children}</h3>,
+};
 
 export default function WisdomModule() {
     const { user, role } = useAuth();
@@ -90,17 +102,39 @@ export default function WisdomModule() {
     const [activeLessonDay, setActiveLessonDay] = useState(1);
     const [loadingWeekly, setLoadingWeekly] = useState(true);
 
-    // AI - User Chat
-    const [userAiMessages, setUserAiMessages] = useState<Message[]>([]);
-    const [userAiInput, setUserAiInput] = useState('');
-    const [userAiLoading, setUserAiLoading] = useState(false);
 
-    // AI - Admin Chat
-    const [adminMessages, setAdminMessages] = useState<Message[]>([]);
-    const [adminInput, setAdminInput] = useState('');
-    const [adminAiLoading, setAdminAiLoading] = useState(false);
-    const adminChatEndRef = useRef<HTMLDivElement>(null);
-    const [aiResponse, setAiResponse] = useState('');
+
+
+
+    // UI Feedback
+    const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
+    const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+    const [confirmDeleteWeekly, setConfirmDeleteWeekly] = useState<string | null>(null);
+    const [pastSessions, setPastSessions] = useState<WeeklySession[]>([]);
+    const [isDocumentView, setIsDocumentView] = useState(isAdmin);
+    const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+    const [loadingHistory, setLoadingHistory] = useState(true);
+    const [isStudyExpanded, setIsStudyExpanded] = useState(!isAdmin);
+
+    const getLockedStatus = (session: WeeklySession, dayNumber: number) => {
+        if (isAdmin) return false;
+        const startDate = new Date(session.weekStarting);
+        startDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        // Important: Diff is in days. If startDate is 2026-03-08, and today is 2026-03-08, diff is 0.
+        // Day 1 starts on the startDate.
+        const diffTime = today.getTime() - startDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        return dayNumber > diffDays;
+    };
+
+    const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+        setNotification({ type, message });
+        if (type !== 'error') {
+            setTimeout(() => setNotification(null), 5000);
+        }
+    };
 
     // Engagement State
     const [bookmarks, setBookmarks] = useState<string[]>([]);
@@ -124,150 +158,77 @@ export default function WisdomModule() {
                     const sessionData = await sessionRes.json();
                     setWeeklySession(sessionData);
                 }
+
+                // Fetch past studies history
+                const historyRes = await fetch('/api/wisdom/weekly?action=history');
+                if (historyRes.ok) {
+                    const historyData = await historyRes.json();
+                    setPastSessions(historyData);
+                }
             } catch (error) {
                 console.error('Error in Wisdom data fetching:', error);
             } finally {
                 setLoadingInsights(false);
                 setLoadingWeekly(false);
+                setLoadingHistory(false);
             }
         };
 
         fetchWisdomData();
     }, [user]);
 
+    useEffect(() => {
+        setIsDocumentView(isAdmin);
+        setIsStudyExpanded(!isAdmin);
+    }, [isAdmin]);
+
+    useEffect(() => {
+        if (weeklySession) {
+            const startDate = new Date(weeklySession.weekStarting);
+            startDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+            const currentDay = Math.max(1, Math.min(7, diffDays));
+            setActiveLessonDay(currentDay);
+        }
+    }, [weeklySession]);
+
     const todayDateStr = new Date().toISOString().split('T')[0];
     const todaysInsight = insights.find(i => i.date === todayDateStr);
     const pastInsights = insights.filter(i => i.date !== todayDateStr);
 
-    // Scroll to bottom of chats
-    useEffect(() => {
-        if (activeTab === 'admin-ai' || activeTab === 'ai') {
-            adminChatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [adminMessages, userAiMessages, activeTab]);
 
-    const handleAskAI = async (action: string, content: string, context?: string) => {
-        if (!content.trim() || !user) return;
 
-        const newMessage: Message = { role: 'user', content };
-        setUserAiMessages(prev => [...prev, newMessage]);
-        setUserAiInput('');
-        setUserAiLoading(true);
 
+
+    const handleDeleteWeekly = async (id: string) => {
         try {
-            const res = await fetch('/api/ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'chat',
-                    messages: [...userAiMessages, newMessage],
-                    context
-                }),
-            });
-            if (!res.ok) throw new Error('Failed');
-            const data = await res.json();
-            setUserAiMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-        } catch {
-            setUserAiMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
-        } finally {
-            setUserAiLoading(false);
+            const res = await fetch(`/api/wisdom/weekly?id=${id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Failed to delete study');
+
+            showNotification('success', 'Study record deleted successfully');
+            if (weeklySession?.id === id) setWeeklySession(null);
+            setPastSessions(prev => prev.filter(s => s.id !== id));
+            if (selectedHistoryId === id) setSelectedHistoryId(null);
+            setConfirmDeleteWeekly(null);
+        } catch (error) {
+            console.error('Delete study error:', error);
+            showNotification('error', 'Failed to delete study');
         }
     };
 
-    const handleAdminSend = async () => {
-        if (!adminInput.trim()) return;
 
-        const newMessage: Message = { role: 'user', content: adminInput };
-        setAdminMessages(prev => [...prev, newMessage]);
-        setAdminInput('');
-        setAdminAiLoading(true);
-
-        try {
-            const res = await fetch('/api/ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'chat',
-                    messages: [...adminMessages, newMessage]
-                }),
-            });
-            if (!res.ok) throw new Error('Failed');
-            const data = await res.json();
-            setAdminMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-        } catch {
-            setAdminMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
-        } finally {
-            setAdminAiLoading(false);
-        }
-    };
-
-    const handleQuickAdminAction = (prompt: string) => {
-        setAdminInput(prompt);
-        // Optional: auto-send
-        // handleAdminSend() would need adminInput updated first, better to just call logic directly
-        const newMessage: Message = { role: 'user', content: prompt };
-        setAdminMessages(prev => [...prev, newMessage]);
-        setAdminInput('');
-        setAdminAiLoading(true);
-
-        fetch('/api/ai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'chat', messages: [...adminMessages, newMessage] }),
-        })
-            .then(r => r.json())
-            .then(data => {
-                setAdminMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-                setAdminAiLoading(false);
-            })
-            .catch(() => {
-                setAdminMessages(prev => [...prev, { role: 'assistant', content: 'Error getting response.' }]);
-                setAdminAiLoading(false);
-            });
-    };
-
-    // Admin AI - Generate Structured Content
-    const handleGenerateContent = async (type: 'insight' | 'plan', prompt: string) => {
-        setAdminAiLoading(true);
-        try {
-            const res = await fetch('/api/ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: type === 'insight' ? 'generate-insight' : 'generate-plan',
-                    content: prompt,
-                    format: 'json'
-                }),
-            });
-            if (!res.ok) throw new Error('Failed');
-            const data = await res.json();
-
-            if (type === 'insight') {
-                setInsightInitialData(data);
-                setIsInsightModalOpen(true);
-            } else {
-                setGrowthPlanInitialData(data);
-                setIsGrowthPlanModalOpen(true);
-            }
-        } catch (err) {
-            console.error('Generation error:', err);
-            alert('Failed to generate content. Please try again.');
-        } finally {
-            setAdminAiLoading(false);
-        }
-    };
-
-    const handleSaveAsInsight = (text: string) => {
-        handleGenerateContent('insight', `Based on this conversation, create a devotional: ${text.substring(0, 500)}`);
-    };
 
     const handleDeleteInsight = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this insight?')) return;
         try {
             await deleteDoc(doc(db, 'devotions', id));
             setInsights(prev => prev.filter(i => i.id !== id));
+            showNotification('success', 'Insight deleted successfully.');
+            setConfirmDelete(null);
         } catch (err) {
             console.error('Error deleting insight:', err);
+            showNotification('error', 'Failed to delete insight.');
         }
     };
 
@@ -288,24 +249,14 @@ export default function WisdomModule() {
         // Persist to Firebase if needed
     };
 
-    const handleSaveAsGrowthPlan = (text: string) => {
-        handleGenerateContent('plan', `Based on this conversation, create a growth plan: ${text.substring(0, 500)}`);
-    };
 
-    const markdownComponents = {
-        h2: ({ children }: any) => <h2 className="text-lg font-bold text-zinc-900 mt-4 mb-2 first:mt-0">{children}</h2>,
-        h3: ({ children }: any) => <h3 className="text-base font-semibold text-zinc-900 mt-3 mb-1">{children}</h3>,
-        p: ({ children }: any) => <p className="text-zinc-600 mb-2 leading-relaxed">{children}</p>,
-        ul: ({ children }: any) => <ul className="list-disc list-inside mb-2 text-zinc-600 space-y-1">{children}</ul>,
-        ol: ({ children }: any) => <ol className="list-decimal list-inside mb-2 text-zinc-600 space-y-1">{children}</ol>,
-        li: ({ children }: any) => <li>{children}</li>,
-    };
+
 
     if (selectedPlan) {
         const day = selectedPlan.days[currentDay];
         return (
             <div className="max-w-4xl mx-auto animate-in fade-in duration-300">
-                <button onClick={() => { setSelectedPlan(null); setCurrentDay(0); setAiResponse(''); }} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 mb-6 transition-colors">
+                <button onClick={() => { setSelectedPlan(null); setCurrentDay(0); }} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 mb-6 transition-colors">
                     <ChevronLeft size={18} /> Back to Growth Plans
                 </button>
                 <div className="bg-white rounded-2xl p-8 mb-6 border-l-4 border-l-red-500 border border-zinc-200 shadow-sm">
@@ -315,9 +266,9 @@ export default function WisdomModule() {
                 </div>
 
                 <div className="flex items-center justify-between mb-6">
-                    <button onClick={() => { setCurrentDay(Math.max(0, currentDay - 1)); setAiResponse(''); }} disabled={currentDay === 0} className="p-2 text-zinc-400 hover:text-zinc-900 disabled:opacity-30 transition-colors"><ChevronLeft size={24} /></button>
+                    <button onClick={() => { setCurrentDay(Math.max(0, currentDay - 1)); }} disabled={currentDay === 0} className="p-2 text-zinc-400 hover:text-zinc-900 disabled:opacity-30 transition-colors"><ChevronLeft size={24} /></button>
                     <span className="font-mono text-sm text-zinc-400 uppercase tracking-widest">Step {day.dayNumber} / {selectedPlan.days.length}</span>
-                    <button onClick={() => { setCurrentDay(Math.min(selectedPlan.days.length - 1, currentDay + 1)); setAiResponse(''); }} disabled={currentDay === selectedPlan.days.length - 1} className="p-2 text-zinc-400 hover:text-zinc-900 disabled:opacity-30 transition-colors"><ChevronRight size={24} /></button>
+                    <button onClick={() => { setCurrentDay(Math.min(selectedPlan.days.length - 1, currentDay + 1)); }} disabled={currentDay === selectedPlan.days.length - 1} className="p-2 text-zinc-400 hover:text-zinc-900 disabled:opacity-30 transition-colors"><ChevronRight size={24} /></button>
                 </div>
 
                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-zinc-100 mb-6 relative group">
@@ -337,48 +288,75 @@ export default function WisdomModule() {
                     {day.content && <p className="text-zinc-600 leading-relaxed whitespace-pre-wrap">{day.content}</p>}
                 </div>
 
-                <div className="bg-gradient-to-br from-amber-50/50 to-orange-50/50 rounded-3xl p-6 border border-amber-100/50">
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-                            <Lightbulb size={18} />
-                        </div>
-                        <span className="font-bold text-zinc-900">AI Study Companion</span>
-                    </div>
 
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        <button onClick={() => handleAskAI('explain-scripture', day.scripture, `Study: ${selectedPlan.title}`)} disabled={userAiLoading} className="px-3 py-1.5 bg-white text-xs font-medium text-zinc-600 rounded-lg hover:text-amber-700 hover:border-amber-200 border border-transparent shadow-sm transition-all disabled:opacity-50">Explain passage</button>
-                        <button onClick={() => handleAskAI('study-insight', day.scripture, day.title)} disabled={userAiLoading} className="px-3 py-1.5 bg-white text-xs font-medium text-zinc-600 rounded-lg hover:text-amber-700 hover:border-amber-200 border border-transparent shadow-sm transition-all disabled:opacity-50">Deeper insights</button>
-                        <button onClick={() => handleAskAI('prayer-guidance', day.scripture)} disabled={userAiLoading} className="px-3 py-1.5 bg-white text-xs font-medium text-zinc-600 rounded-lg hover:text-amber-700 hover:border-amber-200 border border-transparent shadow-sm transition-all disabled:opacity-50">Guide my prayer</button>
-                    </div>
-
-                    <div className="relative mb-4">
-                        <input type="text" value={userAiInput} onChange={(e) => setUserAiInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAskAI('ask-question', userAiInput)} placeholder="Ask a question about today's study..." className="w-full px-4 py-3 pr-12 bg-white border border-amber-200/50 rounded-xl text-sm focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400 outline-none transition-all" />
-                        <button onClick={() => handleAskAI('ask-question', userAiInput)} disabled={userAiLoading || !userAiInput.trim()} className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg disabled:opacity-50 transition-colors">
-                            {userAiLoading ? <div className="w-4 h-4 border-2 border-amber-200 border-t-amber-600 rounded-full animate-spin" /> : <Send size={16} />}
-                        </button>
-                    </div>
-                    {userAiMessages.length > 0 && (
-                        <div className="space-y-4 max-h-[300px] overflow-y-auto no-scrollbar">
-                            {userAiMessages.map((msg, i) => (
-                                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[85%] rounded-xl p-3 text-sm ${msg.role === 'user' ? 'bg-amber-100 text-amber-900' : 'bg-white border border-amber-100 shadow-sm'}`}>
-                                        <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-6xl mx-auto h-[calc(100vh-120px)] flex flex-col">
+        <div className="max-w-6xl mx-auto h-[calc(100vh-120px)] flex flex-col relative">
+            {/* Inline Notification */}
+            {notification && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] min-w-[320px] max-w-md animate-in slide-in-from-top-4 duration-300">
+                    <div className={`flex items-center gap-4 p-4 rounded-2xl border shadow-2xl ${notification.type === 'success' ? 'bg-green-50 border-green-100 text-green-800' :
+                        notification.type === 'error' ? 'bg-red-50 border-red-100 text-red-800' :
+                            'bg-zinc-900 border-zinc-800 text-white'
+                        }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notification.type === 'success' ? 'bg-green-500 text-white' :
+                            notification.type === 'error' ? 'bg-red-500 text-white' :
+                                'bg-zinc-800 text-zinc-400'
+                            }`}>
+                            {notification.type === 'success' && <CheckCircle2 size={20} />}
+                            {notification.type === 'error' && <AlertCircle size={20} />}
+                            {notification.type === 'info' && <Info size={20} />}
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-bold leading-tight">{notification.message}</p>
+                        </div>
+                        <button onClick={() => setNotification(null)} className="p-1.5 hover:bg-black/5 rounded-lg transition-colors">
+                            <X size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal for Weekly Study */}
+            {confirmDeleteWeekly && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-6">
+                            <Trash2 size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-zinc-900 mb-2 uppercase">Delete Bible Study?</h3>
+                        <p className="text-zinc-500 text-sm mb-8 font-medium italic">This will permanently remove this Bible study session and all its lessons. This action cannot be undone.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setConfirmDeleteWeekly(null)} className="flex-1 px-4 py-3 bg-zinc-100 text-zinc-600 rounded-xl font-bold hover:bg-zinc-200 transition-all">CANCEL</button>
+                            <button onClick={() => handleDeleteWeekly(confirmDeleteWeekly)} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">DELETE</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {confirmDelete && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-6">
+                            <Trash2 size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-zinc-900 mb-2 uppercase">Delete Insight?</h3>
+                        <p className="text-zinc-500 text-sm mb-8 font-medium italic">This action cannot be undone. Are you sure you want to remove this piece of wisdom?</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setConfirmDelete(null)} className="flex-1 px-4 py-3 bg-zinc-100 text-zinc-600 rounded-xl font-bold hover:bg-zinc-200 transition-all">CANCEL</button>
+                            <button onClick={() => handleDeleteInsight(confirmDelete)} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">DELETE</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex-none mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex p-1 bg-zinc-100 rounded-xl w-fit">
-                    {[{ id: 'devotion', label: 'Daily Insight', icon: Sun }, { id: 'study', label: 'Bible Study', icon: BookOpen }, { id: 'ai', label: 'Ask Word', icon: Sparkles }, { id: 'admin-ai', label: 'Admin Helper', icon: Wand2, adminOnly: true }]
-                        .filter(t => !t.adminOnly || isAdmin)
+                    {[{ id: 'devotion', label: 'Daily Insight', icon: Sun }, { id: 'study', label: 'Bible Study', icon: BookOpen }]
                         .map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -427,7 +405,7 @@ export default function WisdomModule() {
                             ) : todaysInsight ? (
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <div className="bg-white rounded-[2rem] p-10 relative overflow-hidden group border border-zinc-200 shadow-sm">
-                                        <div className="absolute top-0 right-0 p-32 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+
 
                                         <div className="relative z-10 flex flex-col md:flex-row gap-10">
                                             <div className="flex-1">
@@ -436,12 +414,12 @@ export default function WisdomModule() {
                                                     <p className="text-zinc-500 font-bold text-sm">{new Date(todaysInsight.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                                                 </div>
                                                 <h3 className="text-2xl font-extrabold text-zinc-900 mb-4 tracking-tight leading-tight uppercase">{todaysInsight.title}</h3>
-                                                {todaysInsight.scripture && <p className="text-red-600 font-serif italic text-lg mb-6 border-l-4 border-red-500 pl-4 py-1">{todaysInsight.scripture}</p>}
+                                                {todaysInsight.scripture && <p className="text-red-600 font-serif italic text-lg mb-6">{todaysInsight.scripture}</p>}
                                                 <p className="text-zinc-700 leading-relaxed whitespace-pre-wrap text-base font-medium mb-8">{todaysInsight.content}</p>
 
                                                 {todaysInsight.prayerPrompt && (
                                                     <div className="bg-zinc-900 rounded-2xl p-6 text-white relative overflow-hidden shadow-xl">
-                                                        <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-800 rounded-full blur-2xl -mr-10 -mt-10 opacity-50" />
+
                                                         <div className="relative z-10">
                                                             <div className="flex items-center gap-2 mb-2 text-red-500">
                                                                 <Sparkles size={14} />
@@ -453,11 +431,10 @@ export default function WisdomModule() {
                                                 )}
                                             </div>
 
-                                            <div className="md:w-px h-full md:bg-zinc-100 flex-shrink-0" />
 
                                             <div className="flex flex-col gap-3">
                                                 {isAdmin && (
-                                                    <button onClick={() => handleDeleteInsight(todaysInsight.id)} className="flex items-center justify-center w-12 h-12 bg-white text-zinc-400 border border-zinc-100 rounded-xl hover:border-red-600 hover:text-red-600 transition-all shadow-sm"><Trash2 size={18} /></button>
+                                                    <button onClick={() => setConfirmDelete(todaysInsight.id)} className="flex items-center justify-center w-12 h-12 bg-white text-zinc-400 border border-zinc-100 rounded-xl hover:border-red-600 hover:text-red-600 transition-all shadow-sm"><Trash2 size={18} /></button>
                                                 )}
                                             </div>
                                         </div>
@@ -503,340 +480,273 @@ export default function WisdomModule() {
                 )}
 
                 {activeTab === 'study' && (
-                    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+                    <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">
                         {loadingWeekly ? (
                             <div className="h-96 bg-zinc-50 rounded-3xl animate-pulse border border-zinc-200" />
-                        ) : weeklySession ? (
-                            <div className="flex flex-col gap-8">
-                                {/* Theme Header */}
-                                <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="px-3 py-1 bg-red-600 text-white text-[10px] font-bold rounded-md uppercase tracking-widest">Weekly Theme</div>
-                                        <p className="text-zinc-500 font-bold text-sm">Week of {new Date(weeklySession.weekStarting).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
-                                    </div>
-                                    <h2 className="text-3xl font-extrabold text-zinc-900 mb-4 tracking-tight uppercase">{weeklySession.theme}</h2>
-                                    <p className="text-zinc-600 leading-relaxed font-medium max-w-3xl">{weeklySession.summary}</p>
-                                </div>
-
-                                {/* 7-Day Navigation */}
-                                <div className="bg-white rounded-2xl p-2 border border-zinc-200 flex justify-between gap-2 overflow-x-auto">
-                                    {weeklySession.lessons.map((lesson) => {
-                                        const isActive = activeLessonDay === lesson.dayNumber;
-                                        return (
-                                            <button
-                                                key={lesson.dayNumber}
-                                                onClick={() => setActiveLessonDay(lesson.dayNumber)}
-                                                className={`flex-1 min-w-[100px] flex flex-col items-center py-4 rounded-xl transition-all ${isActive
-                                                    ? 'bg-zinc-900 text-white shadow-lg'
-                                                    : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
-                                                    }`}
-                                            >
-                                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] mb-1 opacity-60">Day</span>
-                                                <span className="text-2xl font-black">{lesson.dayNumber}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Lesson Content */}
-                                {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay) && (
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                                        <div className="lg:col-span-2 space-y-8">
-                                            <div className="bg-white rounded-3xl p-10 border border-zinc-200 shadow-sm">
-                                                <h3 className="text-2xl font-bold text-zinc-900 mb-6 uppercase tracking-tight">
-                                                    {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.title}
-                                                </h3>
-                                                <div className="bg-red-50 border-l-4 border-red-600 p-6 mb-8">
-                                                    <p className="text-red-700 font-serif italic text-xl leading-relaxed">
-                                                        {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture}
-                                                    </p>
-                                                </div>
-                                                <div className="prose prose-zinc max-w-none text-zinc-700 font-medium leading-relaxed">
-                                                    <ReactMarkdown components={markdownComponents}>
-                                                        {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.content || ''}
-                                                    </ReactMarkdown>
-                                                </div>
-                                            </div>
-
-                                            {/* Reflection & Prayer */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="bg-zinc-900 rounded-3xl p-8 text-white shadow-lg">
-                                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-500 mb-6">Reflection Questions</h4>
-                                                    <ul className="space-y-4">
-                                                        {weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.reflectionQuestions.map((q, i) => (
-                                                            <li key={i} className="flex gap-4">
-                                                                <span className="text-red-500 font-bold">{i + 1}.</span>
-                                                                <p className="text-zinc-300 text-sm font-medium leading-relaxed">{q}</p>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                                <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
-                                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-600 mb-6">Prayer Focus</h4>
-                                                    <p className="text-zinc-700 font-medium italic text-lg leading-relaxed">
-                                                        "{weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.prayerPoint}"
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* AI Assistant Side Panel */}
-                                        <div className="lg:sticky lg:top-8 space-y-6">
-                                            <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
-                                                <div className="flex items-center gap-3 mb-6">
-                                                    <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-100">
-                                                        <Sparkles size={20} />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-zinc-900">Study Assistant</h4>
-                                                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">On-the-fly Help</p>
-                                                    </div>
-                                                </div>
-                                                <p className="text-xs text-zinc-500 mb-6 font-medium leading-relaxed">Ask anything about today's scripture or lesson. Gemini is ready to help.</p>
-
-                                                <div className="space-y-3 mb-6">
-                                                    {['Explain verse', 'Original Greek/Hebrew', 'Practical examples'].map((hint) => (
-                                                        <button
-                                                            key={hint}
-                                                            onClick={() => handleAskAI('ask-question', hint, weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture)}
-                                                            className="w-full text-left px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-xs font-bold text-zinc-600 hover:border-red-200 hover:text-red-700 transition-all font-bold"
-                                                        >
-                                                            {hint}
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                <div className="relative">
-                                                    <input
-                                                        type="text"
-                                                        value={userAiInput}
-                                                        onChange={(e) => setUserAiInput(e.target.value)}
-                                                        onKeyDown={(e) => e.key === 'Enter' && handleAskAI('ask-question', userAiInput, weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture)}
-                                                        placeholder="Type a question..."
-                                                        className="w-full px-4 py-3 pr-10 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-0 focus:border-red-600 outline-none transition-all"
-                                                    />
-                                                    <button
-                                                        onClick={() => handleAskAI('ask-question', userAiInput, weeklySession.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture)}
-                                                        disabled={userAiLoading || !userAiInput.trim()}
-                                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-red-600 hover:bg-white rounded-lg transition-colors"
-                                                    >
-                                                        {userAiLoading ? <div className="w-3 h-3 border-2 border-red-200 border-t-red-600 rounded-full animate-spin" /> : <Send size={14} />}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {userAiMessages.length > 0 && activeTab === 'study' && (
-                                                <div className="bg-white rounded-3xl p-6 border border-zinc-200 max-h-[300px] overflow-y-auto space-y-4 no-scrollbar shadow-sm">
-                                                    {userAiMessages.map((msg, i) => (
-                                                        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                                            <div className={`max-w-[90%] rounded-2xl p-4 text-xs ${msg.role === 'user' ? 'bg-zinc-900 text-white' : 'bg-zinc-50 text-zinc-900 border border-zinc-100'}`}>
-                                                                <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
+                        ) : !weeklySession && !selectedHistoryId ? (
                             <div className="bg-white rounded-[3rem] p-20 text-center border-dashed border-2 border-zinc-200 flex flex-col items-center shadow-sm">
                                 <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mb-8">
                                     <BookOpen size={48} className="text-zinc-200" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-zinc-900 mb-4 uppercase tracking-tight">No Weekly Session Active</h3>
-                                <p className="text-zinc-500 mb-10 max-w-sm font-medium text-base">
-                                    {isAdmin
-                                        ? "The discipleship path is empty. Use the planner to architect this week's 7-day study curriculum."
-                                        : "Check back soon for the new weekly Bible study path."}
-                                </p>
-                                {isAdmin && (
-                                    <button
-                                        onClick={() => window.location.href = '/dashboard/admin/wisdom/planner'}
-                                        className="px-10 py-4 bg-zinc-900 text-white rounded-xl font-bold hover:shadow-2xl transition-all shadow-xl"
-                                    >
-                                        GOTO PLANNER
-                                    </button>
-                                )}
+                                <h3 className="text-2xl font-bold text-zinc-900 mb-4 uppercase tracking-tight">No Active Session</h3>
+                                <p className="text-zinc-500 mb-10 max-w-sm font-medium text-base">Check back later or browse the archive below.</p>
                             </div>
-                        )}
-                    </div>
-                )}
+                        ) : (() => {
+                            const session = selectedHistoryId ? pastSessions.find(s => s.id === selectedHistoryId) : weeklySession;
+                            if (!session) return null;
 
-                {activeTab === 'ai' && (
-                    <div className="max-w-3xl mx-auto h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex-none text-center mb-8">
-                            <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-orange-100 rounded-3xl mx-auto flex items-center justify-center mb-4 text-amber-600 shadow-sm border border-amber-200/50">
-                                <Bot size={32} strokeWidth={1.5} />
-                            </div>
-                            <h3 className="font-bold text-zinc-900 text-xl tracking-tight">The Well</h3>
-                            <p className="text-zinc-500 mt-2 text-xs leading-relaxed max-w-sm mx-auto">Draw from the well — ask questions about scripture, faith, or personal growth.</p>
-                        </div>
+                            return (
+                                <div className="flex flex-col gap-10">
+                                    {/* Session Title Card (The "One UI Component") */}
+                                    <div className="bg-white rounded-[2.5rem] p-10 border border-zinc-200 shadow-sm relative overflow-hidden group">
 
-                        {/* Chat Messages */}
-                        <div className="flex-1 overflow-y-auto space-y-6 px-4 pb-4 no-scrollbar">
-                            {userAiMessages.length === 0 && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto mt-4">
-                                    {[
-                                        "How do I find peace in stress?",
-                                        "Explain the theme of Grace.",
-                                        "Scripture for hard decisions",
-                                        "Help me with my daily prayer"
-                                    ].map((prompt) => (
-                                        <button
-                                            key={prompt}
-                                            onClick={() => handleAskAI('ask-question', prompt)}
-                                            className="p-4 bg-white border border-zinc-100 rounded-2xl text-xs font-bold text-zinc-500 hover:border-amber-200 hover:text-amber-700 transition-all text-left shadow-sm"
-                                        >
-                                            {prompt}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
 
-                            {userAiMessages.map((msg, idx) => (
-                                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[85%] rounded-[1.5rem] p-5 shadow-sm ${msg.role === 'user'
-                                        ? 'bg-zinc-900 text-white rounded-br-none'
-                                        : 'bg-white border border-zinc-100 text-zinc-900 rounded-bl-none'
-                                        }`}>
-                                        <div className={`prose prose-sm max-w-none ${msg.role === 'user' ? 'prose-invert' : 'prose-p:text-zinc-600'}`}>
-                                            <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+                                        <div className="relative z-10">
+                                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="px-4 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg shadow-red-100">
+                                                        {selectedHistoryId ? 'Archived Study' : 'Active Study'}
+                                                    </div>
+                                                    <p className="text-zinc-500 font-bold text-sm tracking-tight text-center sm:text-left">
+                                                        Week of {new Date(session.weekStarting).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                    </p>
+                                                </div>
+
+                                                {isAdmin && (
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteWeekly(session.id); }}
+                                                            className="flex items-center gap-2 px-5 py-3 bg-white text-red-600 border border-red-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all shadow-sm"
+                                                        >
+                                                            <Trash2 size={14} /> Delete Study
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {(isStudyExpanded || !isAdmin) && (
+                                                    <div className="flex items-center gap-2 p-1 bg-zinc-100 rounded-xl">
+                                                        <button
+                                                            onClick={() => setIsDocumentView(false)}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${!isDocumentView ? 'bg-white text-red-600 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
+                                                        >
+                                                            <LayoutGrid size={14} /> Daily
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setIsDocumentView(true)}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${isDocumentView ? 'bg-white text-red-600 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
+                                                        >
+                                                            <FileText size={14} /> Document
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <h2 className="text-4xl font-black text-zinc-900 mb-6 tracking-tight uppercase leading-[0.9]">{session.theme}</h2>
+                                            <p className="text-zinc-500 leading-relaxed font-medium max-w-3xl text-lg italic pr-12">"{session.summary}"</p>
+
+                                            <div className="flex items-center gap-4 mt-10">
+                                                {(isAdmin || selectedHistoryId) && (
+                                                    <button
+                                                        onClick={() => setIsStudyExpanded(!isStudyExpanded)}
+                                                        className="flex items-center gap-2 px-6 py-3 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200"
+                                                    >
+                                                        {isStudyExpanded ? <><ChevronUp size={14} /> Collapse Study</> : <><ChevronDown size={14} /> Expand to View</>}
+                                                    </button>
+                                                )}
+
+                                                {selectedHistoryId && (
+                                                    <button
+                                                        onClick={() => setSelectedHistoryId(null)}
+                                                        className="text-xs font-black text-red-600 uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all ml-4"
+                                                    >
+                                                        <ChevronLeft size={14} /> Back to current study
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                            {userAiLoading && (
-                                <div className="flex justify-start">
-                                    <div className="bg-white border border-zinc-100 rounded-2xl rounded-bl-none p-4 flex items-center gap-2 shadow-sm">
-                                        <div className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" />
-                                        <div className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <div className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                    </div>
-                                </div>
-                            )}
-                            <div ref={adminChatEndRef} />
-                        </div>
 
-                        {/* Input Area */}
-                        <div className="flex-none p-4 mt-auto">
-                            <div className="relative max-w-2xl mx-auto shadow-2xl shadow-zinc-900/5 rounded-2xl overflow-hidden">
-                                <input
-                                    type="text"
-                                    value={userAiInput}
-                                    onChange={(e) => setUserAiInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleAskAI('ask-question', userAiInput)}
-                                    placeholder="Message your companion..."
-                                    className="w-full px-6 py-4 pr-14 bg-white border-none focus:ring-0 text-base placeholder:text-zinc-300 text-zinc-900"
-                                />
-                                <button
-                                    onClick={() => handleAskAI('ask-question', userAiInput)}
-                                    disabled={userAiLoading || !userAiInput.trim()}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 disabled:opacity-50"
-                                >
-                                    {userAiLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={20} />}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                                    {/* Lessons Content (Revealed when expanded) */}
+                                    {(isStudyExpanded || (!isAdmin && !selectedHistoryId)) && (
+                                        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                                            {isDocumentView ? (
+                                                <div className="space-y-12">
+                                                    {session.lessons.map((lesson) => {
+                                                        const isLocked = getLockedStatus(session, lesson.dayNumber);
+                                                        return (
+                                                            <div key={lesson.dayNumber} className={`relative pt-12 ${isLocked ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                                                                <div className="absolute top-0 left-0 flex items-center gap-4 w-full">
+                                                                    <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-white font-black text-xl shadow-xl">{lesson.dayNumber}</div>
+                                                                    <div className="h-px bg-zinc-100 flex-1" />
+                                                                </div>
 
-                {/* Admin Content Assistant - Chat Interface */}
-                {activeTab === 'admin-ai' && isAdmin && (
-                    <div className="flex flex-col h-full bg-zinc-50 rounded-3xl border border-zinc-200 overflow-hidden">
-                        {/* Chat Area */}
-                        <div className="flex-1 overflow-y-auto space-y-6 p-6">
-                            {adminMessages.length === 0 && (
-                                <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-0 animate-in fade-in duration-500 opacity-100">
-                                    <div className="w-16 h-16 rounded-3xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-4">
-                                        <Wand2 size={32} className="text-purple-600" />
-                                    </div>
-                                    <h3 className="font-bold text-zinc-900 text-lg">Content Assistant</h3>
-                                    <p className="text-zinc-500 max-w-sm mt-2 mb-8 text-xs">I can help you create devotions, Bible studies, and spiritual content. Try a quick starter below.</p>
+                                                                <div className="bg-white rounded-[2rem] p-10 border border-zinc-200 shadow-sm mt-6">
+                                                                    <div className="flex justify-between items-start gap-4 mb-8">
+                                                                        <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight leading-tight">{lesson.title}</h3>
+                                                                        {isLocked && <Lock className="text-zinc-300" size={24} />}
+                                                                    </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg mb-8">
-                                        <button onClick={() => handleQuickAdminAction("Generate a daily devotion about 'Hope in Hard Times'")} className="p-4 bg-white border border-dashed border-zinc-300 rounded-xl text-sm text-zinc-600 hover:border-red-400 hover:text-red-700 hover:bg-red-50 transition-all font-medium text-left">
-                                            <span className="block text-xs uppercase text-zinc-400 font-bold mb-1">Devotion</span>
-                                            Hope in Hard Times
-                                        </button>
-                                        <button onClick={() => handleQuickAdminAction("Outline a Bible study on 'The Armor of God'")} className="p-4 bg-white border border-dashed border-zinc-300 rounded-xl text-sm text-zinc-600 hover:border-red-400 hover:text-red-700 hover:bg-red-50 transition-all font-medium text-left">
-                                            <span className="block text-xs uppercase text-zinc-400 font-bold mb-1">Bible Study</span>
-                                            Armor of God
-                                        </button>
-                                    </div>
+                                                                    <p className="text-red-600 font-serif italic text-xl mb-10 leading-relaxed">{lesson.scripture}</p>
 
-                                    <div className="pt-8 border-t border-zinc-100 w-full max-w-lg">
-                                        <button
-                                            onClick={() => window.location.href = '/dashboard/admin/wisdom/planner'}
-                                            className="w-full py-4 bg-zinc-900 text-white rounded-xl font-bold hover:bg-zinc-800 transition-all shadow-lg flex items-center justify-center gap-2"
-                                        >
-                                            <Calendar size={18} />
-                                            OPEN 7-DAY SESSION PLANNER
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                                                                    <div className="prose prose-zinc max-w-none text-zinc-700 font-medium leading-relaxed mb-12">
+                                                                        <ReactMarkdown components={markdownComponents}>{lesson.content}</ReactMarkdown>
+                                                                    </div>
 
-                            {adminMessages.map((msg, idx) => (
-                                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[85%] rounded-2xl p-5 shadow-sm ${msg.role === 'user' ? 'bg-zinc-900 text-white rounded-br-none' : 'bg-white border border-zinc-100 text-zinc-900 rounded-bl-none'}`}>
-                                        {msg.role === 'assistant' ? (
-                                            <div>
-                                                <div className="prose prose-sm max-w-none mb-3 prose-p:text-zinc-600 prose-headings:text-zinc-900">
-                                                    <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-10 border-t border-zinc-100">
+                                                                        <div>
+                                                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600 mb-6">Reflection Questions</h4>
+                                                                            <div className="space-y-4">
+                                                                                {lesson.reflectionQuestions.map((q, i) => (
+                                                                                    <div key={i} className="flex gap-4">
+                                                                                        <span className="text-red-500 font-bold">{i + 1}.</span>
+                                                                                        <p className="text-zinc-600 text-sm font-medium leading-relaxed">{q}</p>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="bg-zinc-50 rounded-2xl p-8">
+                                                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-4">Prayer Focus</h4>
+                                                                            <p className="text-zinc-700 font-medium italic text-lg leading-relaxed">"{lesson.prayerPoint}"</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
-                                                {/* Action Buttons for AI Responses */}
-                                                <div className="flex flex-wrap gap-2 pt-3 border-t border-zinc-100 mt-2">
-                                                    <button onClick={() => handleSaveAsInsight(msg.content)} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-purple-100 transition-colors">
-                                                        <Save size={14} /> Save Insight
-                                                    </button>
-                                                    <button onClick={() => handleSaveAsGrowthPlan(msg.content)} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-indigo-100 transition-colors">
-                                                        <Save size={14} /> Save Plan
-                                                    </button>
+                                            ) : (
+                                                <div className="flex flex-col gap-8">
+                                                    {/* 7-Day Navigation */}
+                                                    <div className="bg-white rounded-3xl p-3 border border-zinc-200 flex justify-between gap-3 overflow-x-auto shadow-sm">
+                                                        {session.lessons.map((lesson) => {
+                                                            const isActive = activeLessonDay === lesson.dayNumber;
+                                                            const isLocked = getLockedStatus(session, lesson.dayNumber);
+                                                            return (
+                                                                <button
+                                                                    key={lesson.dayNumber}
+                                                                    disabled={isLocked}
+                                                                    onClick={() => setActiveLessonDay(lesson.dayNumber)}
+                                                                    className={`flex-1 min-w-[120px] flex flex-col items-center py-5 rounded-2xl transition-all relative ${isActive ? 'bg-zinc-900 text-white shadow-2xl scale-105 z-10' :
+                                                                        isLocked ? 'bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-50' :
+                                                                            'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
+                                                                        }`}
+                                                                >
+                                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] mb-1 opacity-60">Study Day</span>
+                                                                    <span className="text-3xl font-black">{lesson.dayNumber}</span>
+                                                                    {isLocked && <Lock className="absolute top-2 right-2 opacity-40" size={12} />}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+
+                                                    {/* Individual Lesson Content */}
+                                                    {session.lessons.find(l => l.dayNumber === activeLessonDay) && (
+                                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                            <div className="bg-white rounded-[2.5rem] p-12 border border-zinc-200 shadow-sm">
+                                                                <div className="flex justify-between items-center mb-8">
+                                                                    <h3 className="text-3xl font-black text-zinc-900 uppercase tracking-tight">
+                                                                        {session.lessons.find(l => l.dayNumber === activeLessonDay)?.title}
+                                                                    </h3>
+                                                                </div>
+
+                                                                <p className="text-red-600 font-serif italic text-2xl mb-12 leading-relaxed">
+                                                                    {session.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture}
+                                                                </p>
+
+                                                                <div className="prose prose-zinc max-w-none text-zinc-700 font-medium leading-relaxed text-lg">
+                                                                    <ReactMarkdown components={markdownComponents}>
+                                                                        {session.lessons.find(l => l.dayNumber === activeLessonDay)?.content || ''}
+                                                                    </ReactMarkdown>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                                <div className="bg-zinc-900 rounded-[2rem] p-10 text-white shadow-2xl relative overflow-hidden">
+                                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500 mb-8 flex items-center gap-2">
+                                                                        Reflection Questions
+                                                                    </h4>
+                                                                    <div className="space-y-6">
+                                                                        {session.lessons.find(l => l.dayNumber === activeLessonDay)?.reflectionQuestions.map((q, i) => (
+                                                                            <div key={i} className="flex gap-5">
+                                                                                <span className="text-red-500 font-black text-lg">{i + 1}.</span>
+                                                                                <p className="text-zinc-300 text-sm font-medium leading-relaxed">{q}</p>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="bg-white rounded-[2rem] p-10 border border-zinc-200 shadow-sm">
+                                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600 mb-8">Prayer Focus</h4>
+                                                                    <p className="text-zinc-700 font-medium italic text-xl leading-relaxed">
+                                                                        "{session.lessons.find(l => l.dayNumber === activeLessonDay)?.prayerPoint}"
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Past Studies Archive Section */}
+                                    {pastSessions.length > 0 && (
+                                        <div className="mt-20 pt-20 border-t border-zinc-100">
+                                            <div className="flex items-center gap-4 mb-10">
+                                                <div className="h-px bg-zinc-100 flex-1" />
+                                                <h2 className="text-xs font-black text-zinc-400 uppercase tracking-[0.3em] whitespace-nowrap">Past Weekly Studies</h2>
+                                                <div className="h-px bg-zinc-100 flex-1" />
                                             </div>
-                                        ) : (
-                                            <p className="whitespace-pre-wrap font-medium">{msg.content}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                            {adminAiLoading && (
-                                <div className="flex justify-start">
-                                    <div className="bg-white border border-zinc-100 rounded-2xl rounded-bl-none p-4 flex items-center gap-2 shadow-sm">
-                                        <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" />
-                                        <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                    </div>
-                                </div>
-                            )}
-                            <div ref={adminChatEndRef} />
-                        </div>
 
-                        {/* Input Area */}
-                        <div className="p-4 bg-white border-t border-zinc-200">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={adminInput}
-                                    onChange={(e) => setAdminInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleAdminSend()}
-                                    placeholder="Message the assistant..."
-                                    className="w-full px-4 py-3 pr-12 bg-zinc-50 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all placeholder:text-zinc-400 text-sm"
-                                    disabled={adminAiLoading}
-                                />
-                                <button
-                                    onClick={handleAdminSend}
-                                    disabled={adminAiLoading || !adminInput.trim()}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg disabled:opacity-50 transition-colors"
-                                >
-                                    <Send size={18} />
-                                </button>
-                            </div>
-                        </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                {pastSessions.map((session) => (
+                                                    <button
+                                                        key={session.id}
+                                                        onClick={() => {
+                                                            setSelectedHistoryId(session.id);
+                                                            setIsDocumentView(true);
+                                                            setIsStudyExpanded(false); // Collapse archive when selected to follow pattern
+                                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                        }}
+                                                        className="group bg-white rounded-[2rem] p-8 border border-zinc-100 hover:border-red-500/30 hover:shadow-2xl transition-all text-left shadow-sm relative overflow-hidden"
+                                                    >
+                                                        <div className="absolute top-0 right-0 p-12 bg-zinc-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-colors pointer-events-none" />
+                                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 group-hover:text-red-500 transition-colors">
+                                                            {new Date(session.weekStarting).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        </p>
+                                                        <h3 className="text-xl font-black text-zinc-900 group-hover:text-red-600 transition-colors uppercase tracking-tight leading-tight mb-4">
+                                                            {session.theme}
+                                                        </h3>
+                                                        <p className="text-zinc-500 text-xs line-clamp-2 leading-relaxed font-medium transition-colors">
+                                                            {session.summary}
+                                                        </p>
+                                                        <div className="mt-8 flex items-center justify-between">
+                                                            <span className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.2em] group-hover:text-zinc-500">View Document</span>
+                                                            <div className="flex items-center gap-2">
+                                                                {isAdmin && (
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); setConfirmDeleteWeekly(session.id); }}
+                                                                        className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-all z-10"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                )}
+                                                                <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-red-600 group-hover:text-white transition-all">
+                                                                    <ChevronRight size={14} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
                 )}
+
+
             </div>
 
             <InsightModal isOpen={isInsightModalOpen} onClose={() => setIsInsightModalOpen(false)} initialData={insightInitialData} />

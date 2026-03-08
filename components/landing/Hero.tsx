@@ -153,7 +153,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="w-full h-[120vh] relative overflow-hidden z-0 flex items-center justify-center bg-black">
+    <section id="hero" className="w-full h-[120vh] relative overflow-hidden z-0 flex items-center justify-center bg-black">
       <div className="absolute inset-0 z-0 overflow-hidden">
         {mediaItems.map((media, i) => {
           const isActive = i === currentIndex;
@@ -215,8 +215,7 @@ const Hero = () => {
       {/* Hero Content */}
       <div className="relative z-10 px-6 max-w-3xl text-center">
         <h1 className="text-white text-2xl md:text-3xl lg:text-4xl tracking-wide leading-snug uppercase">
-          Where <span className="font-bold">Fellowship</span> Meets <span className="text-[#ff9d2e] font-bold">Growth</span><br />
-          And <span className="font-bold">Leaders</span> <span className="text-[#ff9d2e] font-bold">Rise</span>
+          Where <span className="font-bold">Spiritual Growth</span> Meets <span className="text-[#ff9d2e] font-bold">Leadership Development</span>
         </h1>
 
         <div className="mt-8 flex justify-center">
@@ -227,20 +226,20 @@ const Hero = () => {
             <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center">
               <Play size={14} fill="white" className="ml-0.5" />
             </div>
-            <span className="text-sm md:text-base font-bold uppercase tracking-[0.25em]">Join the fellowship</span>
+            <span className="text-sm md:text-base font-bold uppercase tracking-[0.25em]">Start Your Journey</span>
           </button>
         </div>
 
         <div className="mt-6 space-y-0.5">
-          <p className="text-white/70 text-sm md:text-base tracking-[0.2em] uppercase">
-            Live Sessions: Sundays 10:30 AM (EST)
+          <p className="text-white/70 text-sm md:text-base tracking-[0.1em]">
+            Experience a transformative journey designed to elevate your purpose, character, and impact in every sphere of life.
           </p>
         </div>
       </div>
 
       <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 z-20">
         <button
-          onClick={() => router.push('/auth')}
+          onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
           className="bg-[#2d4156]/80 backdrop-blur-sm text-white px-5 py-2.5 rounded shadow-lg border border-white/10 hover:bg-[#2d4156] transition-all text-xs font-medium tracking-widest uppercase"
         >
           Get In Touch

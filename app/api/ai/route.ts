@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
             if (action === 'generate-skeleton') {
                 userMessage = `Act as a Head of Curriculum. Create a 7-day Bible study outline based on the theme: "${content}".
                 ${material ? `Source Material: ${material.substring(0, 5000)}` : ''}
+                CRITICAL: DO NOT use em dashes (—). Use commas or colons.
                 Output JSON with:
                 {
                     "theme": string,
@@ -112,6 +113,8 @@ export async function POST(req: NextRequest) {
                 Scripture: ${skeleton.scripture}
                 ${material ? `Source Material: ${material.substring(0, 8000)}` : ''}
                 ${specifications ? `Specs: ${specifications}` : ''}
+                
+                CRITICAL: DO NOT use em dashes (—). Use commas, colons, or parentheses instead.
                 
                 Generate a full lesson reflecting the theme and source material. 
                 Output JSON:
