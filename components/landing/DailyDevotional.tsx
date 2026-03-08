@@ -18,7 +18,7 @@ const DailyDevotional = () => {
                 Daily Devotional
               </h2>
               <p className="text-white/90 text-lg md:text-xl leading-relaxed max-w-lg font-light">
-                Created by the Still Speaking Writer's Group by The Pilgrim Press, the Daily Devotional grounds our daily faith.
+                Nourish your spirit daily. Our devotionals provide the foundational wisdom and practical guidance needed to navigate life with purpose and clarity.
               </p>
             </div>
 
@@ -26,7 +26,7 @@ const DailyDevotional = () => {
               onClick={() => router.push('/auth')}
               className="self-start px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-widest text-sm hover:bg-white hover:text-[#1c7ca6] transition-all duration-300"
             >
-              Subscribe to Daily Devotional
+              Stay Grounded Daily
             </button>
           </div>
 
@@ -38,23 +38,10 @@ const DailyDevotional = () => {
               viewport={{ once: true }}
               className="md:absolute md:-top-8 md:-bottom-8 md:right-0 w-full md:w-[90%] bg-[#1080aa] rounded-[40px] p-8 md:p-12 shadow-2xl flex flex-col justify-between"
             >
-              <div className="space-y-6">
-                <h3 className="text-white text-2xl md:text-3xl font-bold uppercase tracking-wide">
-                  THIRSTY
-                </h3>
-                <p className="text-white text-lg md:text-xl leading-relaxed font-normal">
-                  O God, you are my God, I seek you, my soul thirsts for you; my flesh faints for you,
-                  as in a dry and weary land where there is no water. — Psalm 68:1 (NRSV) &nbsp; O God, I'm so thirsty. I'm thirsty for a...
+              <div className="h-full flex flex-col justify-center">
+                <p className="text-white text-xl md:text-2xl leading-relaxed font-normal">
+                  Start each day with a focused reflection designed to align your mind and heart with your highest purpose and character.
                 </p>
-              </div>
-
-              <div className="mt-8">
-                <button
-                  onClick={() => router.push('/auth')}
-                  className="text-white font-bold uppercase tracking-widest text-sm underline underline-offset-8 hover:text-white/80 transition-all"
-                >
-                  Read More
-                </button>
               </div>
             </motion.div>
           </div>

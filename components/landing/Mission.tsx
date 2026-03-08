@@ -7,7 +7,7 @@ export default function Mission() {
   const router = useRouter();
 
   return (
-    <section id="about" className="w-full bg-white py-24 md:py-32 px-6 md:px-20">
+    <section id="about" className="w-full bg-white pt-24 md:pt-32 pb-16 md:pb-24 px-6 md:px-20">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
 
         {/* Left Column - Heading */}
@@ -42,7 +42,7 @@ export default function Mission() {
       </div>
 
       {/* Community Map Section */}
-      <div className="mt-20 max-w-5xl mx-auto text-center">
+      <div className="mt-12 max-w-5xl mx-auto text-center">
         <div className="mb-6">
           <p className="text-gray-700 max-w-2xl mx-auto text-base md:text-lg">
             When you join our sessions, you connect with individuals from across the country

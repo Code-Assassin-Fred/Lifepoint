@@ -71,11 +71,10 @@ export default function Resources() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-gray-900 leading-tight tracking-tight">
-              More Than A Platform.<br />
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
+              More Than A Platform<br />
               <span className="relative">
-                A Journey.
-                <span className="absolute -right-4 top-1/2 w-3 h-3 bg-[#ff9d2e] rounded-full translate-y-1" />
+                A Journey
               </span>
             </h2>
           </motion.div>

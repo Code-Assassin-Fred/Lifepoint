@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 const Services = () => {
   const router = useRouter();
   return (
-    <section className="relative w-full bg-[#fdfaf5] overflow-hidden py-12 md:py-20">
+    <section className="relative w-full bg-[#fdfaf5] overflow-hidden pt-12 md:pt-16 pb-12 md:pb-20">
       {/* Subtle Map-like Background Pattern */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">

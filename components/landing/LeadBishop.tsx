@@ -75,7 +75,7 @@ const LeadBishop = () => {
               </p>
               
               <p className="text-base md:text-lg leading-relaxed font-light">
-                Dr. Mike Mutua is the National Bishop of LifePoint Ministry Kenya and Lead Strategist at The Ark Consult. 
+                Dr. Mike Mutua is the Bishop of LifePoint Ministry Kenya and Lead Strategist at The Ark Consult. 
                 Dedicated to helping individuals discover their purpose, he champions mentorship and spiritual maturity through excellence in leadership.
               </p>
             </div>
