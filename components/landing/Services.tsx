@@ -31,22 +31,22 @@ const Services = () => {
           >
             <div className="space-y-4">
               <h2 className="text-[#1a2a3a] text-2xl md:text-3xl lg:text-4xl font-medium leading-[1.2] tracking-tight">
-                We're entrepreneurs and educators, <br />
-                parents and programmers, <br />
-                contractors and caregivers. <br />
-                We're united in <span className="italic">potential</span> and <br />
+                From every professional sphere to <br />
+                every personal walk, we gather with <br />
+                a singular focus on excellence. <br />
+                We are united in <span className="italic">potential</span> and <br />
                 <span className="font-bold">purpose</span>.
               </h2>
             </div>
 
             <div className="space-y-6 pt-6 border-t border-gray-200/50">
               <p className="text-[#2d4156] text-lg md:text-xl lg:text-2xl font-medium leading-[1.3] tracking-tight max-w-xl">
-                We're a community of dreamers and doers. We're a launching pad for world-changers and culture-shapers.
+                A collective where your unique journey fuels your breakthrough. We are a launching pad for those ready to lead with wisdom and live with intention.
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <button
-                  onClick={() => router.push('/auth')}
+                  onClick={() => document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' })}
                   className="px-6 py-2.5 bg-[#1a2a3a] text-white rounded-full font-bold uppercase tracking-wider text-[10px] hover:bg-[#2d4156] transition-all"
                 >
                   Our Programs

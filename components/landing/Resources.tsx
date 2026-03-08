@@ -61,7 +61,7 @@ const resources = [
 export default function Resources() {
   const router = useRouter();
   return (
-    <section className="w-full bg-white py-24 px-6 md:px-12 lg:px-24">
+    <section id="programs" className="w-full bg-white py-24 px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
 
         {/* Header Section - Inspiration from Image 2 */}
