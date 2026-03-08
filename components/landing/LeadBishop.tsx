@@ -71,7 +71,7 @@ const LeadBishop = () => {
 
             <div className="space-y-6 text-white/80">
               <p className="text-lg md:text-xl leading-relaxed font-light italic pl-0">
-                "My calling is about empowering leaders and transforming lives through practical wisdom and authentic faith."
+                "My mission is dedicated to empowering leaders and transforming lives through practical wisdom and authentic faith."
               </p>
               
               <p className="text-base md:text-lg leading-relaxed font-light">

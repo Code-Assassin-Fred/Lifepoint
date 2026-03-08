@@ -40,7 +40,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="relative w-full bg-[#2d4156] py-16 px-6 md:px-12 lg:px-24 overflow-hidden">
+    <section id="contact" className="relative w-full bg-[#2d4156] py-12 md:py-16 px-6 md:px-12 lg:px-24 overflow-hidden">
       {/* Fading White Bottom Accent */}
       <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white/10 to-transparent pointer-events-none z-0" />
 
@@ -54,11 +54,11 @@ const Contact = () => {
             viewport={{ once: true }}
             className="space-y-12"
           >
-            <div className="space-y-6">
-              <h2 className="text-white text-5xl md:text-7xl font-bold tracking-tight">
+            <div className="space-y-4">
+              <h2 className="text-white text-4xl md:text-5xl font-bold tracking-tight">
                 Let's talk!
               </h2>
-              <p className="text-white/80 text-xl font-light max-w-md">
+              <p className="text-white/80 text-lg font-light max-w-md">
                 Have a question or comment? Let us know. We're here to support your journey.
               </p>
             </div>
@@ -66,16 +66,16 @@ const Contact = () => {
             <div className="space-y-6 pt-4">
               {/* Contact Button Style from Inspiration */}
               <div className="inline-flex flex-col space-y-8">
-                <button className="flex items-center space-x-4 px-8 py-5 border border-white/40 rounded-xl text-white font-bold uppercase tracking-[0.2em] text-sm hover:bg-white/5 transition-all w-fit">
-                  <Mail size={20} />
+                <button className="flex items-center space-x-4 px-6 py-3 border border-white/40 rounded-xl text-white font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-white/5 transition-all w-fit">
+                  <Mail size={18} />
                   <span>Contact Us</span>
                 </button>
 
                 <button
                   onClick={() => router.push('/auth')}
-                  className="flex items-center space-x-3 text-[#ff9d2e] font-black uppercase tracking-widest text-lg hover:translate-x-2 transition-transform duration-300 w-fit"
+                  className="flex items-center space-x-3 text-[#ff9d2e] font-black uppercase tracking-widest text-base hover:translate-x-2 transition-transform duration-300 w-fit"
                 >
-                  <Play size={24} fill="currentColor" />
+                  <Play size={20} fill="currentColor" />
                   <span>Join Us Now</span>
                 </button>
               </div>
@@ -89,41 +89,41 @@ const Contact = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="bg-gray-50/95 rounded-md p-8 md:p-12 shadow-2xl relative overflow-hidden"
+            className="bg-gray-50/95 rounded-md p-6 md:p-8 shadow-2xl relative overflow-hidden"
           >
             {/* Form Background Accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff9d2e]/10 rounded-full -mr-16 -mt-16 blur-3xl" />
 
             <form onSubmit={handleSubmit} className="relative z-10 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[#2d4156] text-xs font-black uppercase tracking-widest">Full Name</label>
+                <div className="space-y-1">
+                  <label className="text-[#2d4156] text-[10px] font-black uppercase tracking-widest">Full Name</label>
                   <input
                     name="name"
                     required
                     type="text"
                     placeholder="Name"
-                    className="w-full px-6 py-4 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all placeholder:text-gray-400"
+                    className="w-full px-5 py-2.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all placeholder:text-gray-400 text-sm"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[#2d4156] text-xs font-black uppercase tracking-widest">Email Address</label>
+                <div className="space-y-1">
+                  <label className="text-[#2d4156] text-[10px] font-black uppercase tracking-widest">Email Address</label>
                   <input
                     name="email"
                     required
                     type="email"
                     placeholder="Email Address"
-                    className="w-full px-6 py-4 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all placeholder:text-gray-400"
+                    className="w-full px-5 py-2.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all placeholder:text-gray-400 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[#2d4156] text-xs font-black uppercase tracking-widest">Subject</label>
+              <div className="space-y-1">
+                <label className="text-[#2d4156] text-[10px] font-black uppercase tracking-widest">Subject</label>
                 <div className="relative">
                   <select
                     name="subject"
-                    className="w-full px-6 py-4 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all appearance-none cursor-pointer pr-12"
+                    className="w-full px-5 py-2.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all appearance-none cursor-pointer pr-12 text-sm"
                   >
                     <option>General Inquiry</option>
                     <option>Mentorship Program</option>
@@ -136,23 +136,23 @@ const Contact = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[#2d4156] text-xs font-black uppercase tracking-widest">Your Message</label>
+              <div className="space-y-1">
+                <label className="text-[#2d4156] text-[10px] font-black uppercase tracking-widest">Your Message</label>
                 <textarea
                   name="message"
                   required
-                  rows={4}
+                  rows={3}
                   placeholder="How can we help you rise..."
-                  className="w-full px-6 py-4 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all resize-none placeholder:text-gray-400"
+                  className="w-full px-5 py-2.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff9d2e] transition-all resize-none placeholder:text-gray-400 text-sm"
                 />
               </div>
 
               <button
                 disabled={isSubmitting}
-                className="w-full py-5 bg-[#2d4156] text-white rounded-md font-bold uppercase tracking-[0.2em] text-sm flex items-center justify-center space-x-3 hover:bg-[#1a2a3a] transition-all shadow-xl shadow-[#2d4156]/20 disabled:opacity-50"
+                className="w-full py-3.5 bg-[#2d4156] text-white rounded-md font-bold uppercase tracking-[0.2em] text-[11px] flex items-center justify-center space-x-3 hover:bg-[#1a2a3a] transition-all shadow-xl shadow-[#2d4156]/20 disabled:opacity-50"
               >
                 <span>{isSubmitting ? "Sending..." : "Send Message"}</span>
-                <Send size={18} />
+                <Send size={16} />
               </button>
 
               {result && (
