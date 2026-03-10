@@ -90,9 +90,9 @@ const Hero = () => {
   const router = useRouter();
 
   const mediaItems: MediaItem[] = [
-    { type: 'video', src: '/video1.mp4', layout: 'grid' },
-    { type: 'image', src: '/Mandatory4.jpg' },
     { type: 'video', src: '/video2.mp4', layout: 'cover' },
+    { type: 'image', src: '/Mandatory4.jpg' },
+    { type: 'video', src: '/video1.mp4', layout: 'grid' },
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -118,7 +118,7 @@ const Hero = () => {
 
     // Set auto-advance timers for all slide types
     let duration = current.type === 'image' ? 10000 : 15000;
-    if (currentIndex === 2) duration = 25000;
+    if (current.type === 'video' && current.layout === 'cover') duration = 25000;
     timerRef.current = setTimeout(goToNext, duration);
 
     return () => {
@@ -131,7 +131,7 @@ const Hero = () => {
     const video = coverVideoRef.current;
     if (video) {
       video.play().catch(() => { });
-      if (currentIndex === 2) {
+      if (currentIndex === 0) {
         video.currentTime = 0;
       }
     }
@@ -140,9 +140,9 @@ const Hero = () => {
   // Preload links
   useEffect(() => {
     const preloadLinks = [
-      { href: '/video1.mp4', as: 'video', type: 'video/mp4' },
       { href: '/video2.mp4', as: 'video', type: 'video/mp4' },
       { href: '/Mandatory4.jpg', as: 'image' },
+      { href: '/video1.mp4', as: 'video', type: 'video/mp4' },
     ];
     preloadLinks.forEach(({ href, as: asAttr, type }) => {
       const link = document.createElement('link');
