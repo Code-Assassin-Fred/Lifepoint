@@ -96,8 +96,17 @@ const Hero = () => {
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const coverVideoRef = useRef<HTMLVideoElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle mobile detection (SSR safe)
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile(); // Check on mount
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % mediaItems.length);
@@ -144,7 +153,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section id="hero" className="w-full h-[105vh] md:h-[120vh] relative overflow-hidden z-0 flex items-center justify-center bg-black">
+    <section id="hero" className="w-full h-[105vh] md:h-[120vh] relative overflow-hidden z-0 bg-black">
       <div className="absolute inset-0 z-0 overflow-hidden">
         {mediaItems.map((media, i) => {
           const isActive = i === currentIndex;
@@ -161,7 +170,7 @@ const Hero = () => {
                 opacity: { duration: TRANSITION_DURATION, ease: 'easeInOut' },
                 scale: { duration: isActive ? 15 : TRANSITION_DURATION, ease: 'linear' },
               }}
-              className="absolute inset-0 will-change-transform"
+              className="absolute inset-x-0 top-0 bottom-0 will-change-transform"
               style={{
                 zIndex: isActive ? 2 : 1,
                 pointerEvents: isActive ? 'auto' : 'none',
@@ -171,13 +180,23 @@ const Hero = () => {
               {media.type === 'video' && media.layout === 'grid' ? (
                 <VideoGrid src={media.src} />
               ) : media.type === 'video' ? (
-                <video
+                <motion.video
                   ref={coverVideoRef}
                   src={media.src}
                   muted
                   playsInline
                   onEnded={goToNext}
-                  className="absolute inset-0 w-full h-full object-cover object-top"
+                  animate={isMobile && isActive ? {
+                    x: ['0%', '-37.5%', '0%'],
+                  } : { x: '0%' }}
+                  transition={{
+                    x: {
+                      duration: 25,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
+                  className="absolute top-0 left-0 h-full w-[160%] md:w-full min-w-full object-cover object-left max-w-none"
                 />
               ) : (
                 <div
@@ -203,28 +222,30 @@ const Hero = () => {
         })}
       </div>
 
-      {/* Hero Content */}
-      <div className="relative z-10 px-6 max-w-3xl text-center">
-        <h1 className="text-white text-xl md:text-3xl lg:text-4xl tracking-wide leading-snug uppercase">
-          Where <span className="font-bold">Spiritual Growth</span> Meets <span className="text-[#ff9d2e] font-bold">Leadership Development</span>
-        </h1>
+      {/* Hero Content Wrapper - Fixes Gap by isolating content from bg logic */}
+      <div className="relative z-10 w-full min-h-full flex flex-col items-center justify-center pt-20 md:pt-24">
+        <div className="px-6 max-w-3xl text-center">
+          <h1 className="text-white text-xl md:text-3xl lg:text-4xl tracking-wide leading-snug uppercase">
+            Where <span className="font-bold">Spiritual Growth</span> Meets <span className="text-[#ff9d2e] font-bold">Leadership Development</span>
+          </h1>
 
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => router.push('/auth')}
-            className="group flex items-center space-x-3 bg-[#2d4156]/80 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-3.5 rounded-md shadow-lg hover:bg-[#2d4156] transition-all border border-white/10"
-          >
-            <div className="w-7 h-7 md:w-8 md:h-8 bg-white/10 rounded flex items-center justify-center">
-              <Play size={12} fill="white" className="ml-0.5 md:size-[14px]" />
-            </div>
-            <span className="text-[10px] md:text-base font-bold uppercase tracking-[0.2em] md:tracking-[0.25em]">Start Your Journey</span>
-          </button>
-        </div>
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => router.push('/auth')}
+              className="group flex items-center space-x-3 bg-[#2d4156]/80 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-3.5 rounded-md shadow-lg hover:bg-[#2d4156] transition-all border border-white/10"
+            >
+              <div className="w-7 h-7 md:w-8 md:h-8 bg-white/10 rounded flex items-center justify-center">
+                <Play size={12} fill="white" className="ml-0.5 md:size-[14px]" />
+              </div>
+              <span className="text-[10px] md:text-base font-bold uppercase tracking-[0.2em] md:tracking-[0.25em]">Start Your Journey</span>
+            </button>
+          </div>
 
-        <div className="mt-6 space-y-0.5">
-          <p className="text-white/70 text-sm md:text-base tracking-[0.1em]">
-            Experience a transformative journey designed to elevate your purpose, character, and impact in every sphere of life.
-          </p>
+          <div className="mt-6 space-y-0.5">
+            <p className="text-white/70 text-xs md:text-base tracking-[0.1em]">
+              Experience a transformative journey designed to elevate your purpose, character, and impact in every sphere of life.
+            </p>
+          </div>
         </div>
       </div>
 

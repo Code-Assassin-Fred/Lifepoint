@@ -33,7 +33,7 @@ export default function InsideLifepoint() {
   };
 
   return (
-    <section className="w-full bg-white py-16 px-4">
+    <section className="w-full bg-white py-10 md:py-16 px-4">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
@@ -44,10 +44,10 @@ export default function InsideLifepoint() {
           viewport={{ once: true }}
           variants={fadeInUp}
         >
-          <h2 className="text-5xl md:text-6xl font-black text-gray-700 uppercase mb-6 tracking-tight">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-gray-700 uppercase mb-6 tracking-tight">
             Inside Lifepoint
           </h2>
-          <p className="text-lg md:text-xl text-gray-700 max-w-4xl mx-auto">
+          <p className="text-base md:text-xl text-gray-700 max-w-4xl mx-auto">
             From iconic stage moments to behind-the-scenes breakthroughs—witness the legacy of Lifepoint in motion.
           </p>
         </motion.div>
