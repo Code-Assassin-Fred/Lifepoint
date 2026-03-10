@@ -97,13 +97,14 @@ const Hero = () => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const coverVideoRef = useRef<HTMLVideoElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle mobile detection (SSR safe)
   useEffect(() => {
+    setMounted(true);
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile(); // Check on mount
+    checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
@@ -116,7 +117,8 @@ const Hero = () => {
     const current = mediaItems[currentIndex];
 
     // Set auto-advance timers for all slide types
-    const duration = current.type === 'image' ? 10000 : 15000;
+    let duration = current.type === 'image' ? 10000 : 15000;
+    if (currentIndex === 2) duration = 25000;
     timerRef.current = setTimeout(goToNext, duration);
 
     return () => {
@@ -170,7 +172,7 @@ const Hero = () => {
                 opacity: { duration: TRANSITION_DURATION, ease: 'easeInOut' },
                 scale: { duration: isActive ? 15 : TRANSITION_DURATION, ease: 'linear' },
               }}
-              className="absolute inset-x-0 top-0 bottom-0 will-change-transform"
+              className="absolute inset-x-0 -top-[1px] -bottom-[1px] will-change-transform"
               style={{
                 zIndex: isActive ? 2 : 1,
                 pointerEvents: isActive ? 'auto' : 'none',
@@ -178,7 +180,9 @@ const Hero = () => {
             >
               {/* SLIDE CONTENT */}
               {media.type === 'video' && media.layout === 'grid' ? (
-                <VideoGrid src={media.src} />
+                <div className="absolute inset-x-0 -top-[1px] -bottom-[1px]">
+                  <VideoGrid src={media.src} />
+                </div>
               ) : media.type === 'video' ? (
                 <motion.video
                   ref={coverVideoRef}
@@ -186,8 +190,9 @@ const Hero = () => {
                   muted
                   playsInline
                   onEnded={goToNext}
-                  animate={isMobile && isActive ? {
-                    x: ['0%', '-37.5%', '0%'],
+                  initial={{ x: '0%' }}
+                  animate={(mounted && isMobile && isActive) ? {
+                    x: ['0%', '-75%', '0%'],
                   } : { x: '0%' }}
                   transition={{
                     x: {
@@ -196,7 +201,7 @@ const Hero = () => {
                       ease: "easeInOut"
                     }
                   }}
-                  className="absolute top-0 left-0 h-full w-[160%] md:w-full min-w-full object-cover object-left max-w-none"
+                  className="absolute top-0 left-0 h-full w-auto md:w-full min-w-full object-cover object-left max-w-none"
                 />
               ) : (
                 <div
