@@ -27,9 +27,9 @@ const LeadBishop = () => {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          
+
           {/* Left Column - Image (High Contrast, seamless blend) */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -38,9 +38,9 @@ const LeadBishop = () => {
           >
             <div className="relative aspect-[4/5] w-full max-w-md mx-auto">
               {/* Grayscale Bishop Image with extreme contrast and vignetting */}
-              <img 
-                src="/mike1.jpg" 
-                alt="Dr. Mike Mutua - Lead Bishop" 
+              <img
+                src="/mike1.jpg"
+                alt="Dr. Mike Mutua - Lead Bishop"
                 className="w-full h-full object-cover grayscale brightness-75 contrast-[1.4] blur-[0.5px]"
               />
               {/* Seamless Blending Overlays */}
@@ -52,7 +52,7 @@ const LeadBishop = () => {
           </motion.div>
 
           {/* Right Column - Content */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -60,10 +60,10 @@ const LeadBishop = () => {
             className="text-white space-y-8"
           >
             <div className="space-y-3">
-              <h2 className="text-[#ff9d2e] text-xs font-bold uppercase tracking-[0.3em]">
+              <h2 className="text-[#ff9d2e] text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] md:tracking-[0.3em]">
                 Founding Visionary
               </h2>
-              <h3 className="text-3xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight leading-tight">
+              <h3 className="text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight leading-tight">
                 OUR LEAD <br />
                 BISHOP
               </h3>
@@ -73,9 +73,9 @@ const LeadBishop = () => {
               <p className="text-lg md:text-xl leading-relaxed font-light italic pl-0">
                 "My mission is dedicated to empowering leaders and transforming lives through practical wisdom and authentic faith."
               </p>
-              
+
               <p className="text-base md:text-lg leading-relaxed font-light">
-                Dr. Mike Mutua is the Bishop of LifePoint Ministry Kenya and Lead Strategist at The Ark Consult. 
+                Dr. Mike Mutua is the Bishop of LifePoint Ministry Kenya and Lead Strategist at The Ark Consult.
                 Dedicated to helping individuals discover their purpose, he champions mentorship and spiritual maturity through excellence in leadership.
               </p>
             </div>

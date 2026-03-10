@@ -65,13 +65,13 @@ export default function Resources() {
       <div className="max-w-7xl mx-auto">
 
         {/* Header Section - Inspiration from Image 2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start mb-12 md:mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
               More Than A Platform<br />
               <span className="relative">
                 A Journey
@@ -84,13 +84,13 @@ export default function Resources() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6"
           >
-            <p className="text-xl text-gray-600 leading-relaxed font-light">
+            <p className="text-lg md:text-xl text-gray-600 leading-relaxed font-light">
               Lifepoint Virtual exists to help people live purposefully, grounded in wisdom,
               shaped by leadership, and strengthened through a thriving community.
             </p>
-            <p className="text-xl text-gray-600 leading-relaxed font-light">
+            <p className="text-lg md:text-xl text-gray-600 leading-relaxed font-light">
               We believe growth is meant to be lived out in real life. Here, you'll find
               the resources and people to walk together through every season of maturity.
             </p>
@@ -98,10 +98,10 @@ export default function Resources() {
         </div>
 
         {/* Divider */}
-        <div className="w-full h-px bg-gray-100 mb-20" />
+        <div className="w-full h-px bg-gray-100 mb-12 md:mb-20" />
 
         {/* Resources Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-12 gap-y-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 md:gap-x-12 gap-y-12 md:gap-y-16">
           {resources.map((item, index) => (
             <motion.div
               key={index}

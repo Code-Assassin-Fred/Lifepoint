@@ -31,12 +31,12 @@ const DailyDevotional = () => {
           </div>
 
           {/* Right Column - Secondary Card */}
-          <div className="flex-1 relative py-8 md:py-0 px-6 md:px-0 flex items-center">
+          <div className="flex-1 relative py-12 md:py-0 px-4 md:px-0 flex items-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="md:absolute md:-top-8 md:-bottom-8 md:right-0 w-full md:w-[90%] bg-[#1080aa] rounded-[40px] p-8 md:p-12 shadow-2xl flex flex-col justify-between"
+              className="relative md:absolute md:-top-8 md:-bottom-8 md:right-0 w-full md:w-[90%] bg-[#1080aa] rounded-[30px] md:rounded-[40px] p-8 md:p-12 shadow-2xl flex flex-col justify-between"
             >
               <div className="h-full flex flex-col justify-center">
                 <p className="text-white text-xl md:text-2xl leading-relaxed font-normal">

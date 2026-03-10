@@ -63,32 +63,23 @@ const VideoTile = ({
 const VideoGrid = ({ src }: { src: string }) => {
   const tiles = [];
 
-  for (let row = 0; row < GRID_ROWS; row++) {
-    for (let col = 0; col < GRID_COLS; col++) {
-      const tileIndex = row * GRID_COLS + col;
-      tiles.push(
-        <div
-          key={`${row}-${col}`}
-          className="relative overflow-hidden"
-          style={{
-            gridRow: row + 1,
-            gridColumn: col + 1,
-          }}
-        >
-          <VideoTile src={src} index={tileIndex} />
-        </div>
-      );
-    }
+  // Use 6 tiles for mobile (2x3 or similar) and 12 for desktop (4x3)
+  const totalTiles = 12;
+
+  for (let i = 0; i < totalTiles; i++) {
+    tiles.push(
+      <div
+        key={i}
+        className="relative overflow-hidden"
+      >
+        <VideoTile src={src} index={i} />
+      </div>
+    );
   }
 
   return (
     <div
-      className="absolute inset-0 grid bg-black"
-      style={{
-        gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
-        gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`,
-        gap: '2px',
-      }}
+      className="absolute inset-0 grid bg-black grid-cols-2 md:grid-cols-4 grid-rows-6 md:grid-rows-3 gap-[1px] md:gap-[2px]"
     >
       {tiles}
     </div>
@@ -153,7 +144,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section id="hero" className="w-full h-[120vh] relative overflow-hidden z-0 flex items-center justify-center bg-black">
+    <section id="hero" className="w-full h-[105vh] md:h-[120vh] relative overflow-hidden z-0 flex items-center justify-center bg-black">
       <div className="absolute inset-0 z-0 overflow-hidden">
         {mediaItems.map((media, i) => {
           const isActive = i === currentIndex;
@@ -214,19 +205,19 @@ const Hero = () => {
 
       {/* Hero Content */}
       <div className="relative z-10 px-6 max-w-3xl text-center">
-        <h1 className="text-white text-2xl md:text-3xl lg:text-4xl tracking-wide leading-snug uppercase">
+        <h1 className="text-white text-xl md:text-3xl lg:text-4xl tracking-wide leading-snug uppercase">
           Where <span className="font-bold">Spiritual Growth</span> Meets <span className="text-[#ff9d2e] font-bold">Leadership Development</span>
         </h1>
 
         <div className="mt-8 flex justify-center">
           <button
             onClick={() => router.push('/auth')}
-            className="group flex items-center space-x-3 bg-[#2d4156]/80 backdrop-blur-sm text-white px-8 py-3.5 rounded-md shadow-lg hover:bg-[#2d4156] transition-all border border-white/10"
+            className="group flex items-center space-x-3 bg-[#2d4156]/80 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-3.5 rounded-md shadow-lg hover:bg-[#2d4156] transition-all border border-white/10"
           >
-            <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center">
-              <Play size={14} fill="white" className="ml-0.5" />
+            <div className="w-7 h-7 md:w-8 md:h-8 bg-white/10 rounded flex items-center justify-center">
+              <Play size={12} fill="white" className="ml-0.5 md:size-[14px]" />
             </div>
-            <span className="text-sm md:text-base font-bold uppercase tracking-[0.25em]">Start Your Journey</span>
+            <span className="text-[10px] md:text-base font-bold uppercase tracking-[0.2em] md:tracking-[0.25em]">Start Your Journey</span>
           </button>
         </div>
 

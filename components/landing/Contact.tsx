@@ -52,13 +52,13 @@ const Contact = () => {
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="space-y-12"
+            className="space-y-8 md:space-y-12"
           >
             <div className="space-y-4">
-              <h2 className="text-white text-4xl md:text-5xl font-bold tracking-tight">
+              <h2 className="text-white text-3xl md:text-5xl font-bold tracking-tight">
                 Let's talk!
               </h2>
-              <p className="text-white/80 text-lg font-light max-w-md">
+              <p className="text-white/80 text-base md:text-lg font-light max-w-sm md:max-w-md">
                 Have a question or comment? Let us know. We're here to support your journey.
               </p>
             </div>

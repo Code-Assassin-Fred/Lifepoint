@@ -90,14 +90,14 @@ const Navbar = () => {
           : 'bg-[#2d4156] border-b border-white/10'
           } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
       >
-        <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between relative">
+        <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between relative">
 
           {/* Text Logo */}
           <div
             className="shrink-0 cursor-pointer relative z-[60]"
             onClick={() => router.push('/')}
           >
-            <span className="text-2xl font-bold text-white tracking-tight">
+            <span className="text-xl md:text-2xl font-bold text-white tracking-tight">
               Lifepoint Virtual
             </span>
           </div>
@@ -146,7 +146,7 @@ const Navbar = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed top-24 right-5 w-full max-w-sm h-auto max-h-[calc(100vh-120px)] bg-[#1a2a3a]/95 backdrop-blur-lg text-white z-[101] shadow-2xl flex flex-col overflow-y-auto rounded-2xl border border-white/10"
+            className="fixed top-20 md:top-24 right-0 md:right-5 w-full md:max-w-sm h-auto max-h-[calc(100vh-100px)] bg-[#1a2a3a]/98 md:bg-[#1a2a3a]/95 backdrop-blur-lg text-white z-[101] shadow-2xl flex flex-col overflow-y-auto rounded-none md:rounded-2xl border-b md:border border-white/10"
           >
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <span className="text-lg font-bold tracking-tight">Navigation</span>

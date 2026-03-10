@@ -67,14 +67,10 @@ const Services = () => {
             whileInView={{ opacity: 1, scale: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="relative h-[400px] lg:h-[550px] w-full"
+            className="relative h-[300px] md:h-[400px] lg:h-[550px] w-full"
           >
             <div
-              className="absolute inset-0 bg-[#2d4156] overflow-hidden"
-              style={{
-                borderRadius: '400px 0 0 400px',
-                transform: 'translateX(10%)'
-              }}
+              className="absolute inset-0 bg-[#2d4156] overflow-hidden rounded-tl-[100px] rounded-tr-[100px] lg:rounded-tl-[400px] lg:rounded-bl-[400px] lg:rounded-tr-0 lg:rounded-br-0 translate-y-[10%] lg:translate-y-0 lg:translate-x-[10%]"
             >
               <img
                 src="/Mandatory1.jpg"

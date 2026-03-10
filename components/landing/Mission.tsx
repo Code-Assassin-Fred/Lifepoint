@@ -12,11 +12,11 @@ export default function Mission() {
 
         {/* Left Column - Heading */}
         <div>
-          <h2 className="text-[#1a2a3a] text-3xl md:text-4xl lg:text-5xl font-bold uppercase leading-tight tracking-tight">
+          <h2 className="text-[#1a2a3a] text-2xl md:text-4xl lg:text-5xl font-bold uppercase leading-tight tracking-tight">
             Experience Fellowship<br />
             <span className="text-[#2d4156]">In Your Space</span>
           </h2>
-          <div className="w-24 h-1 bg-[#ff9d2e] mt-6"></div>
+          <div className="w-16 md:w-24 h-1 bg-[#ff9d2e] mt-4 md:mt-6"></div>
         </div>
 
         {/* Right Column - Description + CTA */}
