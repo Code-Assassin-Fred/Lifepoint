@@ -192,7 +192,7 @@ export default function AuthPage() {
   const isSignup = mode === 'signup';
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[3fr_2fr] bg-white">
       {/* Left Column: Form */}
       <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-12">
         <div className="max-w-md w-full mx-auto space-y-8">
@@ -235,7 +235,7 @@ export default function AuthPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Full Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. John Doe"
+                    placeholder="Enter your full name"
                     value={signupDisplayName}
                     onChange={(e) => setSignupDisplayName(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-black/5 focus:border-gray-200 transition-all placeholder-gray-400 text-sm"

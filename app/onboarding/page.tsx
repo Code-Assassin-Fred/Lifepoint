@@ -86,7 +86,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[3fr_2fr] bg-white">
       {/* Left Column: Onboarding Content */}
       <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-12">
         <div className="max-w-xl w-full mx-auto">
