@@ -68,13 +68,41 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 80; // Navbar height
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      setSidebarOpen(false);
+    } else {
+      router.push(`/#${id}`);
+      setSidebarOpen(false);
+    }
+  };
+
   const renderSidebarItems = (key: MenuKey) =>
     menuItems[key].map((subitem) => (
       <button
         key={subitem.label}
         onClick={() => {
-          router.push('/auth');
-          setSidebarOpen(false);
+          if (subitem.label === 'Events') {
+            scrollToSection('upcoming-events');
+          } else if (subitem.label === 'Community Groups' || subitem.label === 'Forums') {
+            // Keep auth for now or handle accordingly
+            router.push('/auth');
+            setSidebarOpen(false);
+          } else {
+            router.push('/auth');
+            setSidebarOpen(false);
+          }
         }}
         className="w-full text-left px-6 py-1.5 text-xs text-white/70 hover:text-white hover:bg-white/5 transition-all"
       >
@@ -107,19 +135,19 @@ const Navbar = () => {
             {/* Desktop Links */}
             <div className="hidden md:flex items-center space-x-8">
               <button
-                onClick={() => router.push('/auth')}
+                onClick={() => scrollToSection('about')}
                 className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
               >
                 About
               </button>
               <button
-                onClick={() => router.push('/auth')}
+                onClick={() => scrollToSection('upcoming-events')}
                 className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
               >
                 Upcoming Events
               </button>
               <button
-                onClick={() => router.push('/auth')}
+                onClick={() => scrollToSection('contact')}
                 className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
               >
                 Contact Us
