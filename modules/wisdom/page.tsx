@@ -35,6 +35,7 @@ import {
     ChevronUp,
     ChevronLeft,
     ChevronRight,
+    Sparkles,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import InsightModal from '@/components/wisdom/InsightModal';
