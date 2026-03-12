@@ -172,7 +172,7 @@ export default function AdminEventsPage() {
                 </div>
             </div>
 
-            {/* Event Lists - Now Side by Side */}
+            {/* Event Lists - Table Layout */}
             <div className="">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2.5rem] border border-zinc-100 text-zinc-400">
@@ -180,41 +180,65 @@ export default function AdminEventsPage() {
                         <p className="font-medium">Loading events...</p>
                     </div>
                 ) : (
-                    <div className="grid md:grid-cols-2 gap-10">
-                        {/* Upcoming Events */}
+                    <div className="grid lg:grid-cols-2 gap-16">
+                        {/* Upcoming Events Table */}
                         <section>
-                            <div className="flex items-center gap-3 mb-6 ml-2">
-                                <h3 className="text-xl font-black text-blue-600">Upcoming Events</h3>
-                                <div className="h-px flex-1 bg-blue-50 ml-4"></div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <h3 className="text-xl font-bold text-blue-600 tracking-wide">Upcoming Events</h3>
+                                <div className="h-px flex-1 bg-blue-100/50"></div>
                             </div>
                             {upcomingEvents.length === 0 ? (
-                                <div className="bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-[2.5rem] p-12 text-center text-zinc-400 font-medium">
-                                    No upcoming events scheduled.
+                                <div className="py-12 text-center text-zinc-400 font-medium border-2 border-dashed border-zinc-100 rounded-3xl">
+                                    No upcoming events.
                                 </div>
                             ) : (
-                                <div className="grid gap-6">
-                                    {upcomingEvents.map(event => (
-                                        <EventItem key={event.id} event={event} onDelete={handleDelete} isPast={false} />
-                                    ))}
+                                <div className="min-w-0 overflow-hidden">
+                                    <table className="w-full text-sm text-left border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-zinc-100">
+                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Date</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Title</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Location</th>
+                                                <th className="py-3 text-right"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-zinc-50">
+                                            {upcomingEvents.map(event => (
+                                                <EventRow key={event.id} event={event} onDelete={handleDelete} isPast={false} />
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             )}
                         </section>
 
-                        {/* Past Events */}
+                        {/* Past Events Table */}
                         <section>
-                            <div className="flex items-center gap-3 mb-6 ml-2 opacity-60">
-                                <h3 className="text-xl font-black text-red-600">Past Events</h3>
-                                <div className="h-px flex-1 bg-red-100 ml-4"></div>
+                            <div className="flex items-center gap-3 mb-6 opacity-60">
+                                <h3 className="text-xl font-bold text-red-600 tracking-wide">Past Events</h3>
+                                <div className="h-px flex-1 bg-red-100/50"></div>
                             </div>
                             {pastEvents.length === 0 ? (
-                                <div className="bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-[2.5rem] p-12 text-center text-zinc-400 font-medium opacity-50">
+                                <div className="py-12 text-center text-zinc-400 font-medium border-2 border-dashed border-zinc-100 rounded-3xl opacity-50">
                                     No past events.
                                 </div>
                             ) : (
-                                <div className="grid gap-6 opacity-80">
-                                    {pastEvents.map(event => (
-                                        <EventItem key={event.id} event={event} onDelete={handleDelete} isPast={true} />
-                                    ))}
+                                <div className="min-w-0 overflow-hidden opacity-80">
+                                    <table className="w-full text-sm text-left border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-zinc-100">
+                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Date</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Title</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Location</th>
+                                                <th className="py-3 text-right"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-zinc-50">
+                                            {pastEvents.map(event => (
+                                                <EventRow key={event.id} event={event} onDelete={handleDelete} isPast={true} />
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             )}
                         </section>
@@ -225,33 +249,35 @@ export default function AdminEventsPage() {
     );
 }
 
-function EventItem({ event, onDelete, isPast }: { event: Event, onDelete: (id: string) => void, isPast: boolean }) {
-
+function EventRow({ event, onDelete, isPast }: { event: Event, onDelete: (id: string) => void, isPast: boolean }) {
     return (
-        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-zinc-100 hover:shadow-xl hover:border-zinc-200 transition-all group relative overflow-hidden">
-
-            <div className="flex gap-6 items-center">
-                <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center flex-shrink-0 ${isPast ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
-                    <span className="text-xl font-black leading-none">{format(new Date(event.date), 'dd')}</span>
-                    <span className="text-xs font-bold uppercase tracking-wider">{format(new Date(event.date), 'MMM')}</span>
+        <tr className="group hover:bg-zinc-50/50 transition-colors">
+            <td className="py-4 pr-4">
+                <div className="flex items-baseline gap-1.5 min-w-[60px]">
+                    <span className={`text-base font-black ${isPast ? 'text-zinc-400' : 'text-zinc-900'}`}>{format(new Date(event.date), 'dd')}</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-400">{format(new Date(event.date), 'MMM')}</span>
                 </div>
-
-                <div className="flex-1 min-w-0">
-                    <h4 className="font-black text-zinc-900 text-lg mb-1 truncate group-hover:text-zinc-800 transition-colors">{event.title}</h4>
-                    <div className="flex flex-col gap-1 text-sm font-bold text-zinc-400">
-                        <span>{event.time}</span>
-                        <span>{event.location}</span>
-                    </div>
+            </td>
+            <td className="py-4 pr-4 min-w-[120px]">
+                <div className={`font-bold ${isPast ? 'text-zinc-500' : 'text-zinc-900'} truncate group-hover:text-zinc-800 transition-colors`} title={event.title}>
+                    {event.title}
                 </div>
-
+                <div className="text-[10px] text-zinc-400 font-medium">{event.time}</div>
+            </td>
+            <td className="py-4 pr-4 min-w-[100px]">
+                <div className="text-xs font-medium text-zinc-500 truncate" title={event.location}>
+                    {event.location}
+                </div>
+            </td>
+            <td className="py-4 text-right whitespace-nowrap">
                 <button
                     onClick={() => onDelete(event.id)}
-                    className="p-3 text-zinc-200 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"
+                    className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                     title="Delete event"
                 >
-                    <Trash2 size={20} />
+                    <Trash2 size={16} />
                 </button>
-            </div>
-        </div>
+            </td>
+        </tr>
     );
 }
