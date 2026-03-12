@@ -272,7 +272,7 @@ function EventRow({ event, onDelete, isPast }: { event: Event, onDelete: (id: st
             <td className="py-4 text-right whitespace-nowrap">
                 <button
                     onClick={() => onDelete(event.id)}
-                    className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                    className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                     title="Delete event"
                 >
                     <Trash2 size={16} />
