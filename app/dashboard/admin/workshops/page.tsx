@@ -196,9 +196,9 @@ export default function AdminEventsPage() {
                                     <table className="w-full text-sm text-left border-collapse">
                                         <thead>
                                             <tr className="border-b border-zinc-100">
-                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Date</th>
-                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Title</th>
-                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Location</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Date</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Title</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Location</th>
                                                 <th className="py-3 text-right"></th>
                                             </tr>
                                         </thead>
@@ -227,9 +227,9 @@ export default function AdminEventsPage() {
                                     <table className="w-full text-sm text-left border-collapse">
                                         <thead>
                                             <tr className="border-b border-zinc-100">
-                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Date</th>
-                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Title</th>
-                                                <th className="py-3 pr-4 font-bold text-zinc-400 uppercase text-[10px] tracking-widest">Location</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Date</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Title</th>
+                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Location</th>
                                                 <th className="py-3 text-right"></th>
                                             </tr>
                                         </thead>
@@ -254,18 +254,18 @@ function EventRow({ event, onDelete, isPast }: { event: Event, onDelete: (id: st
         <tr className="group hover:bg-zinc-50/50 transition-colors">
             <td className="py-4 pr-4">
                 <div className="flex items-baseline gap-1.5 min-w-[60px]">
-                    <span className={`text-base font-black ${isPast ? 'text-zinc-400' : 'text-zinc-900'}`}>{format(new Date(event.date), 'dd')}</span>
-                    <span className="text-[10px] font-bold uppercase text-zinc-400">{format(new Date(event.date), 'MMM')}</span>
+                    <span className="text-base font-black text-black">{format(new Date(event.date), 'dd')}</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-600">{format(new Date(event.date), 'MMM')}</span>
                 </div>
             </td>
             <td className="py-4 pr-4 min-w-[120px]">
-                <div className={`font-bold ${isPast ? 'text-zinc-500' : 'text-zinc-900'} truncate group-hover:text-zinc-800 transition-colors`} title={event.title}>
+                <div className="font-bold text-black truncate group-hover:text-zinc-800 transition-colors" title={event.title}>
                     {event.title}
                 </div>
-                <div className="text-[10px] text-zinc-400 font-medium">{event.time}</div>
+                <div className="text-[10px] text-zinc-600 font-bold">{event.time}</div>
             </td>
             <td className="py-4 pr-4 min-w-[100px]">
-                <div className="text-xs font-medium text-zinc-500 truncate" title={event.location}>
+                <div className="text-xs font-bold text-black truncate" title={event.location}>
                     {event.location}
                 </div>
             </td>
