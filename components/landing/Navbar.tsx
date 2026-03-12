@@ -167,12 +167,34 @@ const Navbar = () => {
               >
                 About
               </button>
-              <button
-                onClick={() => scrollToSection('upcoming-events')}
-                className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
-              >
-                Upcoming Events
-              </button>
+              <div className="relative flex items-center">
+                <button
+                  onClick={() => scrollToSection('upcoming-events')}
+                  onBlur={() => setTimeout(() => setShowNoEventsModal(false), 200)}
+                  className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
+                >
+                  Upcoming Events
+                </button>
+
+                <AnimatePresence>
+                  {showNoEventsModal && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute top-[calc(100%+24px)] left-1/2 -translate-x-1/2 w-64 bg-white rounded-2xl p-5 shadow-2xl border border-zinc-100 z-[200] text-center"
+                    >
+                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-l border-t border-zinc-100" />
+                      <div className="relative z-10">
+                        <h4 className="text-sm font-black text-zinc-900 uppercase tracking-tight mb-2 whitespace-nowrap">No Events</h4>
+                        <p className="text-xs text-zinc-500 font-medium leading-relaxed">
+                          We don't have any upcoming events scheduled right now.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               <button
                 onClick={() => scrollToSection('contact')}
                 className="text-white/80 hover:text-white transition-all font-bold uppercase tracking-widest text-xs"
@@ -266,40 +288,6 @@ const Navbar = () => {
               </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* No Events Modal */}
-      <AnimatePresence>
-        {showNoEventsModal && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white rounded-[2rem] p-10 max-w-md w-full text-center shadow-2xl relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-20 bg-blue-50 rounded-full -mr-10 -mt-10 z-0" />
-
-              <div className="relative z-10">
-                <div className="w-20 h-20 bg-blue-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-200">
-                  <Info size={40} className="text-white" />
-                </div>
-
-                <h3 className="text-2xl font-black text-zinc-900 mb-4 uppercase tracking-tight">No Events Available</h3>
-                <p className="text-zinc-500 font-medium mb-8 leading-relaxed">
-                  We don't have any upcoming events scheduled right now. Please check back later or follow our social media for updates!
-                </p>
-
-                <button
-                  onClick={() => setShowNoEventsModal(false)}
-                  className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold hover:bg-zinc-800 transition-all shadow-lg"
-                >
-                  Understood
-                </button>
-              </div>
-            </motion.div>
-          </div>
         )}
       </AnimatePresence>
     </>
