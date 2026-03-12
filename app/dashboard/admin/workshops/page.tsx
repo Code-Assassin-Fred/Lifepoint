@@ -75,177 +75,183 @@ export default function AdminEventsPage() {
     const pastEvents = events.filter(e => new Date(e.date) < new Date()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
-        <div className="max-w-6xl mx-auto p-6 space-y-10">
-            <div className="flex justify-between items-end">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Events Management</h1>
-                    <p className="text-zinc-500 font-medium">Upload and manage church events</p>
+        <div className="max-w-5xl mx-auto p-6 space-y-12">
+            <div className="space-y-2">
+                <h1 className="text-3xl font-light text-rose-500 tracking-[0.1em] uppercase">Events Management</h1>
+                <p className="text-zinc-400 font-medium tracking-wide">Upload and manage church events</p>
+            </div>
+
+            {/* Upload Form - Now at the Top and Centered */}
+            <div className="max-w-2xl mx-auto w-full">
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-zinc-100 shadow-blue-500/5">
+                    <h2 className="text-2xl font-black mb-8 flex items-center justify-center gap-3 text-blue-600">
+                        Create New Event
+                    </h2>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Title</label>
+                            <input
+                                required
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleInputChange}
+                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                                placeholder="Event Title"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Description</label>
+                            <textarea
+                                required
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                rows={3}
+                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none font-medium"
+                                placeholder="Short description..."
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-5">
+                            <div>
+                                <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Date</label>
+                                <input
+                                    required
+                                    type="date"
+                                    name="date"
+                                    value={formData.date}
+                                    onChange={handleInputChange}
+                                    className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-semibold text-zinc-700"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Time</label>
+                                <input
+                                    required
+                                    type="text"
+                                    name="time"
+                                    value={formData.time}
+                                    onChange={handleInputChange}
+                                    className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                                    placeholder="e.g. 7:00 PM"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Location</label>
+                            <input
+                                required
+                                type="text"
+                                name="location"
+                                value={formData.location}
+                                onChange={handleInputChange}
+                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                                placeholder="Event Location"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Image URL (Optional)</label>
+                            <input
+                                type="url"
+                                name="imageUrl"
+                                value={formData.imageUrl}
+                                onChange={handleInputChange}
+                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-sm font-medium"
+                                placeholder="https://example.com/image.jpg"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={submitting}
+                            className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-black shadow-xl shadow-blue-500/25 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center justify-center gap-3 mt-4"
+                        >
+                            {submitting ? <Loader2 className="animate-spin" size={24} /> : <Plus size={24} />}
+                            Create Event
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-10">
-                {/* Upload Form */}
-                <div className="lg:col-span-1">
-                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-zinc-100/50 sticky top-6">
-                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                            <Plus size={20} className="text-blue-600" />
-                            Create New Event
-                        </h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1 ml-1">Title</label>
-                                <input
-                                    required
-                                    type="text"
-                                    name="title"
-                                    value={formData.title}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                    placeholder="Event Title"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1 ml-1">Description</label>
-                                <textarea
-                                    required
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleInputChange}
-                                    rows={3}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
-                                    placeholder="Short description..."
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-zinc-500 uppercase mb-1 ml-1">Date</label>
-                                    <input
-                                        required
-                                        type="date"
-                                        name="date"
-                                        value={formData.date}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-zinc-500 uppercase mb-1 ml-1">Time</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        name="time"
-                                        value={formData.time}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                        placeholder="e.g. 7:00 PM"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1 ml-1">Location</label>
-                                <input
-                                    required
-                                    type="text"
-                                    name="location"
-                                    value={formData.location}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                    placeholder="Event Location"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1 ml-1">Image URL (Optional)</label>
-                                <input
-                                    type="url"
-                                    name="imageUrl"
-                                    value={formData.imageUrl}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-xs"
-                                    placeholder="https://example.com/image.jpg"
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold shadow-lg hover:bg-zinc-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
-                            >
-                                {submitting ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
-                                Create Event
-                            </button>
-                        </form>
+            {/* Event Lists - Now Side by Side */}
+            <div className="">
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2.5rem] border border-zinc-100 text-zinc-400">
+                        <Loader2 className="animate-spin mb-4" size={32} />
+                        <p className="font-medium">Loading events...</p>
                     </div>
-                </div>
+                ) : (
+                    <div className="grid md:grid-cols-2 gap-10">
+                        {/* Upcoming Events */}
+                        <section>
+                            <div className="flex items-center gap-3 mb-6 ml-2">
+                                <h3 className="text-xl font-black text-blue-600">Upcoming Events</h3>
+                                <div className="h-px flex-1 bg-blue-50 ml-4"></div>
+                            </div>
+                            {upcomingEvents.length === 0 ? (
+                                <div className="bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-[2.5rem] p-12 text-center text-zinc-400 font-medium">
+                                    No upcoming events scheduled.
+                                </div>
+                            ) : (
+                                <div className="grid gap-6">
+                                    {upcomingEvents.map(event => (
+                                        <EventItem key={event.id} event={event} onDelete={handleDelete} isPast={false} />
+                                    ))}
+                                </div>
+                            )}
+                        </section>
 
-                {/* Event Lists */}
-                <div className="lg:col-span-2 space-y-8">
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2rem] border border-zinc-100 text-zinc-400">
-                            <Loader2 className="animate-spin mb-4" size={32} />
-                            <p className="font-medium">Loading events...</p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Upcoming Events */}
-                            <section>
-                                <h3 className="text-xl font-extrabold text-zinc-900 mb-4 ml-2">Upcoming Events</h3>
-                                {upcomingEvents.length === 0 ? (
-                                    <div className="bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-[2rem] p-10 text-center text-zinc-400">
-                                        No upcoming events scheduled.
-                                    </div>
-                                ) : (
-                                    <div className="grid gap-4">
-                                        {upcomingEvents.map(event => (
-                                            <EventItem key={event.id} event={event} onDelete={handleDelete} isPast={false} />
-                                        ))}
-                                    </div>
-                                )}
-                            </section>
-
-                            {/* Past Events */}
-                            <section>
-                                <h3 className="text-xl font-extrabold text-zinc-900 mb-4 ml-2 opacity-50">Past Events</h3>
-                                {pastEvents.length === 0 ? (
-                                    <div className="bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-[2rem] p-10 text-center text-zinc-400 opacity-50">
-                                        No past events.
-                                    </div>
-                                ) : (
-                                    <div className="grid gap-4 opacity-75">
-                                        {pastEvents.map(event => (
-                                            <EventItem key={event.id} event={event} onDelete={handleDelete} isPast={true} />
-                                        ))}
-                                    </div>
-                                )}
-                            </section>
-                        </>
-                    )}
-                </div>
+                        {/* Past Events */}
+                        <section>
+                            <div className="flex items-center gap-3 mb-6 ml-2 opacity-60">
+                                <h3 className="text-xl font-black text-red-600">Past Events</h3>
+                                <div className="h-px flex-1 bg-red-100 ml-4"></div>
+                            </div>
+                            {pastEvents.length === 0 ? (
+                                <div className="bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-[2.5rem] p-12 text-center text-zinc-400 font-medium opacity-50">
+                                    No past events.
+                                </div>
+                            ) : (
+                                <div className="grid gap-6 opacity-80">
+                                    {pastEvents.map(event => (
+                                        <EventItem key={event.id} event={event} onDelete={handleDelete} isPast={true} />
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
 
 function EventItem({ event, onDelete, isPast }: { event: Event, onDelete: (id: string) => void, isPast: boolean }) {
+
     return (
-        <div className="bg-white p-5 rounded-[1.5rem] shadow-sm border border-zinc-100/50 flex flex-col md:flex-row gap-5 items-start md:items-center hover:shadow-md transition-shadow group">
-            <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center flex-shrink-0 ${isPast ? 'bg-zinc-100 text-zinc-400' : 'bg-blue-50 text-blue-600'}`}>
-                <span className="text-lg font-black leading-none">{format(new Date(event.date), 'dd')}</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider">{format(new Date(event.date), 'MMM')}</span>
-            </div>
+        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-zinc-100 hover:shadow-xl hover:border-zinc-200 transition-all group relative overflow-hidden">
 
-            <div className="flex-1 min-w-0">
-                <h4 className="font-extrabold text-zinc-900 mb-1 truncate">{event.title}</h4>
-                <div className="flex flex-wrap gap-4 text-xs font-medium text-zinc-500">
-                    <span className="flex items-center gap-1.5"><Clock size={14} className="text-zinc-400" /> {event.time}</span>
-                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-zinc-400" /> {event.location}</span>
+            <div className="flex gap-6 items-center">
+                <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center flex-shrink-0 ${isPast ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                    <span className="text-xl font-black leading-none">{format(new Date(event.date), 'dd')}</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">{format(new Date(event.date), 'MMM')}</span>
                 </div>
-            </div>
 
-            <button
-                onClick={() => onDelete(event.id)}
-                className="p-3 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all md:opacity-0 group-hover:opacity-100"
-            >
-                <Trash2 size={18} />
-            </button>
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-black text-zinc-900 text-lg mb-1 truncate group-hover:text-zinc-800 transition-colors">{event.title}</h4>
+                    <div className="flex flex-col gap-1 text-sm font-bold text-zinc-400">
+                        <span>{event.time}</span>
+                        <span>{event.location}</span>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => onDelete(event.id)}
+                    className="p-3 text-zinc-200 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"
+                    title="Delete event"
+                >
+                    <Trash2 size={20} />
+                </button>
+            </div>
         </div>
     );
 }
