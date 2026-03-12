@@ -95,5 +95,5 @@ export function getModulesForUser(selectedIds: string[]): Module[] {
 
 // Get all modules (for admin view)
 export function getAllModules(): Module[] {
-    return ALL_MODULES;
+    return ALL_MODULES.filter(m => m.id !== 'support');
 }
