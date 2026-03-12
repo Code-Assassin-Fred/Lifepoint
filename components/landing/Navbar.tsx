@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Menu, X, User, Search } from 'lucide-react';
+import { ChevronDown, Menu, X, User, Search, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { eventService } from '@/lib/services/eventService';
 
 const Navbar = () => {
   const router = useRouter();
@@ -47,6 +48,8 @@ const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  const [hasEvents, setHasEvents] = useState<boolean | null>(null);
+  const [showNoEventsModal, setShowNoEventsModal] = useState(false);
   const lastScrollY = useRef(0);
 
   // Scroll behavior
@@ -68,7 +71,27 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check for events existence
+  useEffect(() => {
+    const checkEvents = async () => {
+      try {
+        const events = await eventService.getUpcomingEvents();
+        setHasEvents(events.length > 0);
+      } catch (error) {
+        console.error('Error checking events in Navbar:', error);
+        setHasEvents(false);
+      }
+    };
+    checkEvents();
+  }, []);
+
   const scrollToSection = (id: string) => {
+    if (id === 'upcoming-events' && hasEvents === false) {
+      setShowNoEventsModal(true);
+      setSidebarOpen(false);
+      return;
+    }
+
     const element = document.getElementById(id);
     if (element) {
       const offset = 80; // Navbar height
@@ -83,7 +106,11 @@ const Navbar = () => {
       });
       setSidebarOpen(false);
     } else {
-      router.push(`/#${id}`);
+      if (id === 'upcoming-events' && hasEvents === false) {
+        setShowNoEventsModal(true);
+      } else {
+        router.push(`/#${id}`);
+      }
       setSidebarOpen(false);
     }
   };
@@ -239,6 +266,40 @@ const Navbar = () => {
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* No Events Modal */}
+      <AnimatePresence>
+        {showNoEventsModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-[2rem] p-10 max-w-md w-full text-center shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-20 bg-blue-50 rounded-full -mr-10 -mt-10 z-0" />
+
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-blue-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-200">
+                  <Info size={40} className="text-white" />
+                </div>
+
+                <h3 className="text-2xl font-black text-zinc-900 mb-4 uppercase tracking-tight">No Events Available</h3>
+                <p className="text-zinc-500 font-medium mb-8 leading-relaxed">
+                  We don't have any upcoming events scheduled right now. Please check back later or follow our social media for updates!
+                </p>
+
+                <button
+                  onClick={() => setShowNoEventsModal(false)}
+                  className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold hover:bg-zinc-800 transition-all shadow-lg"
+                >
+                  Understood
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

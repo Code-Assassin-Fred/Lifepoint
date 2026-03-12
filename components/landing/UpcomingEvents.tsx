@@ -1,47 +1,31 @@
 'use client';
 
-import React from 'react';
-
-const EVENTS = [
-    {
-        id: 1,
-        day: '08',
-        month: 'JUNE',
-        title: 'Paris Start-up Innovation Summit',
-        time: '7:30PM — 10PM',
-        location: '@ Algolia Paris - Bridge (200)',
-        active: true,
-    },
-    {
-        id: 2,
-        day: '20',
-        month: 'JUNE',
-        title: 'Masterclass J. Lemkin',
-        time: '7:30PM — 10PM',
-        location: '@ Algolia Paris - Bridge (200)',
-        active: false,
-    },
-    {
-        id: 3,
-        day: '26',
-        month: 'JUNE',
-        title: '"Libérons nos RH", with Pauline Bergeret',
-        time: '8AM — 5PM',
-        location: '@ 16 Rue de Charonne, 75012 Paris',
-        active: false,
-    },
-    {
-        id: 4,
-        day: '27',
-        month: 'JUNE',
-        title: 'TechLunch - Design Horror Stories',
-        time: '12AM — 2PM',
-        location: '@ Algolia Paris - Bridge (200)',
-        active: false,
-    },
-];
+import React, { useState, useEffect } from 'react';
+import { eventService, Event } from '@/lib/services/eventService';
+import { format } from 'date-fns';
 
 const UpcomingEvents = () => {
+    const [events, setEvents] = useState<Event[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const data = await eventService.getUpcomingEvents();
+                setEvents(data);
+            } catch (error) {
+                console.error('Error fetching landing page events:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchEvents();
+    }, []);
+
+    if (loading || events.length === 0) {
+        return null; // Hide the section if loading or no events
+    }
+
     return (
         <section id="upcoming-events" className="py-20 bg-white">
             <div className="max-w-7xl mx-auto px-6">
@@ -53,18 +37,20 @@ const UpcomingEvents = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {EVENTS.map((event) => (
+                    {events.map((event, index) => (
                         <div
                             key={event.id}
-                            className={`p-10 rounded-lg flex flex-col transition-all duration-300 ${event.active
+                            className={`p-10 rounded-lg flex flex-col transition-all duration-300 ${index === 0
                                 ? 'bg-[#4b6fff] text-white shadow-xl shadow-blue-200 translate-y-[-4px]'
                                 : 'bg-[#f4f5f9] text-[#1e2a5a] hover:bg-[#ebedf5]'
                                 }`}
                         >
                             <div className="mb-8">
-                                <span className="block text-5xl font-light mb-1">{event.day}</span>
+                                <span className="block text-5xl font-light mb-1">
+                                    {format(new Date(event.date), 'dd')}
+                                </span>
                                 <span className="text-xs font-bold tracking-widest uppercase opacity-70">
-                                    {event.month}
+                                    {format(new Date(event.date), 'MMMM')}
                                 </span>
                             </div>
 
@@ -72,7 +58,7 @@ const UpcomingEvents = () => {
                                 <h3 className="font-bold text-lg leading-tight mb-4">
                                     {event.title}
                                 </h3>
-                                <div className={`text-xs font-semibold space-y-1 ${event.active ? 'text-white/80' : 'text-gray-500'}`}>
+                                <div className={`text-xs font-semibold space-y-1 ${index === 0 ? 'text-white/80' : 'text-gray-500'}`}>
                                     <p>{event.time}</p>
                                     <p className="line-clamp-1">{event.location}</p>
                                 </div>
