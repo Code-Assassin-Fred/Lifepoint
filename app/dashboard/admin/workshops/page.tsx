@@ -75,21 +75,24 @@ export default function AdminEventsPage() {
     const pastEvents = events.filter(e => new Date(e.date) < new Date()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
-        <div className="max-w-5xl mx-auto p-6 space-y-12">
+        <div className="w-full p-6 space-y-12">
             <div className="space-y-2">
                 <h1 className="text-3xl font-light text-rose-500 tracking-[0.1em] uppercase">Events Management</h1>
                 <p className="text-zinc-400 font-medium tracking-wide">Upload and manage church events</p>
             </div>
 
-            {/* Upload Form - Now at the Top and Centered */}
-            <div className="max-w-2xl mx-auto w-full">
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-zinc-100 shadow-blue-500/5">
-                    <h2 className="text-2xl font-black mb-8 flex items-center justify-center gap-3 text-blue-600">
-                        Create New Event
-                    </h2>
+            {/* Upload Form - Integrated into Page */}
+            <div className="w-full">
+                <div className="space-y-8">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-xl font-light text-blue-600 tracking-[0.1em] uppercase">
+                            Create New Event
+                        </h2>
+                        <div className="h-px flex-1 bg-blue-100/50"></div>
+                    </div>
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Title</label>
+                            <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Title</label>
                             <input
                                 required
                                 type="text"
@@ -101,7 +104,7 @@ export default function AdminEventsPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Description</label>
+                            <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Description</label>
                             <textarea
                                 required
                                 name="description"
@@ -114,7 +117,7 @@ export default function AdminEventsPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-5">
                             <div>
-                                <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Date</label>
+                                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Date</label>
                                 <input
                                     required
                                     type="date"
@@ -125,7 +128,7 @@ export default function AdminEventsPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Time</label>
+                                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Time</label>
                                 <input
                                     required
                                     type="text"
@@ -138,7 +141,7 @@ export default function AdminEventsPage() {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Location</label>
+                            <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Location</label>
                             <input
                                 required
                                 type="text"
@@ -150,7 +153,7 @@ export default function AdminEventsPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5 ml-1 tracking-wider">Image URL (Optional)</label>
+                            <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Image URL (Optional)</label>
                             <input
                                 type="url"
                                 name="imageUrl"
@@ -160,14 +163,16 @@ export default function AdminEventsPage() {
                                 placeholder="https://example.com/image.jpg"
                             />
                         </div>
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-black shadow-xl shadow-blue-500/25 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center justify-center gap-3 mt-4"
-                        >
-                            {submitting ? <Loader2 className="animate-spin" size={24} /> : <Plus size={24} />}
-                            Create Event
-                        </button>
+                        <div className="flex justify-end mt-6">
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="px-10 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-xl shadow-blue-500/25 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                            >
+                                {submitting ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
+                                Create Event
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
