@@ -20,12 +20,10 @@ const Navbar = () => {
       { label: 'Daily Reflection' },
       { label: 'AI Insight Guide' }
     ],
-    Growth: [
+    'Growth & Mentorship': [
       { label: 'Personal Growth' },
       { label: 'Leadership Development' },
-      { label: 'Assessments' }
-    ],
-    Mentorship: [
+      { label: 'Assessments' },
       { label: 'Find a Mentor' },
       { label: 'Book Coaching' },
       { label: 'Youth Mentorship' }

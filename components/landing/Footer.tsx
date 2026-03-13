@@ -10,8 +10,7 @@ const Footer = () => {
   const quickLinks = [
     { label: 'Home', href: '/auth' },
     { label: 'Wisdom Hub', href: '/auth' },
-    { label: 'Growth', href: '/auth' },
-    { label: 'Mentorship', href: '/auth' },
+    { label: 'Growth & Mentorship', href: '/auth' },
     { label: 'Community', href: '/auth' },
     { label: 'Media', href: '/auth' },
   ];

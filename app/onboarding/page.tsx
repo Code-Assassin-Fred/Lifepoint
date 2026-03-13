@@ -11,8 +11,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 const MODULES = [
   { id: 'home', name: 'Home', submodules: ['Live Sessions', 'Prayer Rooms', 'Recent Insights'] },
   { id: 'wisdom', name: 'The Well', submodules: ['Daily Insights', 'Growth Plans', 'AI Companion'] },
-  { id: 'development', name: 'Personal & Leadership Growth', submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development'] },
-  { id: 'guidance', name: 'Mentorship & Coaching', submodules: ['Find a Mentor', 'Book Coaching', 'Youth Mentorship'] },
+  { id: 'development', name: 'Growth & Mentorship', submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development', 'Find a Mentor', 'Book Coaching', 'Youth Mentorship'] },
   { id: 'community', name: 'Community', submodules: ['Global Groups', 'Forums', 'Events'] },
   { id: 'media', name: 'Media & Content', submodules: ['Videos', 'Podcasts', 'Guest Speakers'] },
   { id: 'assessments', name: 'Assessments', submodules: ['Personal Progress', 'Leadership Skills', 'Global Standards'] },
@@ -167,8 +166,8 @@ export default function OnboardingPage() {
                     <div
                       key={module.id}
                       className={`group border rounded-2xl transition-all duration-200 cursor-pointer overflow-hidden ${selectedModules.includes(module.id)
-                          ? 'border-black bg-white ring-1 ring-black shadow-sm'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-black bg-white ring-1 ring-black shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                       onClick={() => setOpenDropdown(openDropdown === module.id ? null : module.id)}
                     >
@@ -176,8 +175,8 @@ export default function OnboardingPage() {
                         <div className="flex items-center gap-4">
                           <div
                             className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${selectedModules.includes(module.id)
-                                ? 'bg-black border-black text-white'
-                                : 'border-gray-300 group-hover:border-gray-400'
+                              ? 'bg-black border-black text-white'
+                              : 'border-gray-300 group-hover:border-gray-400'
                               }`}
                             onClick={(e) => {
                               e.stopPropagation();

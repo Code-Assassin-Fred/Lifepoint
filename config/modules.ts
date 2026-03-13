@@ -60,15 +60,9 @@ export const ALL_MODULES: Module[] = [
     },
     {
         id: 'development',
-        label: 'Growth',
-        description: 'Personal development and assessments',
+        label: 'Growth & Mentorship',
+        description: 'Personal development, assessments, and mentorship guidance',
         icon: GraduationCap,
-    },
-    {
-        id: 'guidance',
-        label: 'Mentorship',
-        description: 'Find mentors and book coaching sessions',
-        icon: UserCheck,
     },
 ];
 
@@ -85,11 +79,11 @@ export function getModulesForUser(selectedIds: string[]): Module[] {
         bible: 'wisdom',
         giving: 'support',
         growth: 'development',
-        mentorship: 'guidance',
+        mentorship: 'development',
         events: 'workshops',
     };
 
-    const normalizedIds = selectedIds.map((id) => idMap[id] || id);
+    const normalizedIds = Array.from(new Set(selectedIds.map((id) => idMap[id] || id)));
     return ALL_MODULES.filter((m) => normalizedIds.includes(m.id));
 }
 
