@@ -77,7 +77,7 @@ export default function CommunityModule() {
     }
 
     return (
-        <div className="flex flex-col md:flex-row h-[calc(100vh-100px)] bg-white -mx-6 -mb-6 lg:-mx-8 lg:-mb-8 overflow-hidden relative border-t border-slate-200">
+        <div className="flex flex-col md:flex-row h-[calc(100vh-100px)] bg-white -mx-6 -mb-6 lg:-mx-8 lg:-mb-8 overflow-hidden relative">
             {/* Left Sidebar */}
             <div className={`${activeTab !== 'announcements' ? 'flex' : 'hidden'} md:flex shrink-0`}>
                  <CommunitySidebar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -107,12 +107,12 @@ export default function CommunityModule() {
                         {isAdmin && <AnnouncementComposer onPost={handlePost} />}
                     </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/50">
-                        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-md">
-                             <h3 className="text-2xl font-black text-slate-800 mb-4 uppercase tracking-tight">
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50">
+                        <div className="max-w-md">
+                             <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">
                                 {activeTab.replace('-', ' ')}
                              </h3>
-                             <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                             <p className="text-slate-600 text-base font-medium leading-relaxed">
                                 This section is currently under development as we enhance our community experience.
                              </p>
                         </div>

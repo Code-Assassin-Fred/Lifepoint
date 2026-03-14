@@ -31,10 +31,10 @@ export default function AnnouncementComposer({ onPost }: AnnouncementComposerPro
     };
 
     return (
-        <form onSubmit={handleSubmit} className="p-4 md:p-6 bg-white border-t border-slate-200 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)]">
+        <form onSubmit={handleSubmit} className="p-4 md:p-6 bg-white border-t border-slate-200 mt-auto">
             <div className="max-w-4xl mx-auto space-y-3">
                 {/* Inputs area */}
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 focus-within:border-teal-500/50 focus-within:ring-4 focus-within:ring-teal-500/5 transition-all">
+                <div className="bg-slate-50 p-4 border border-slate-100 focus-within:border-teal-500 transition-all">
                     <input 
                         type="text"
                         placeholder="ANNOUNCEMENT TITLE..."

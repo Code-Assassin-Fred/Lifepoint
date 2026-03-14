@@ -22,7 +22,7 @@ interface MessageViewProps {
 export default function MessageView({ announcements, isAdmin, onDelete }: MessageViewProps) {
     if (announcements.length === 0) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/50">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50">
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 text-slate-300">
                     <Share2 size={32} />
                 </div>
@@ -35,21 +35,21 @@ export default function MessageView({ announcements, isAdmin, onDelete }: Messag
     }
 
     return (
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 bg-[#efeae2]/40 scroll-smooth">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 bg-[#efeae2] scroll-smooth">
             {announcements.map((msg) => (
                 <div key={msg.id} className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {/* Date Divider (optional, but WhatsApp style) */}
+                    {/* Date Divider (Solid Background) */}
                     <div className="flex justify-center mb-6">
-                        <span className="bg-white/80 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] font-bold text-slate-500 uppercase tracking-widest shadow-sm border border-slate-100">
+                        <span className="bg-white px-4 py-1.5 rounded-full text-[10px] font-bold text-slate-500 uppercase tracking-widest shadow-sm border border-slate-100">
                             {format(new Date(msg.createdAt), 'MMMM d, yyyy')}
                         </span>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative group">
+                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden relative group">
                         {/* Admin Badge */}
                         <div className="absolute top-4 right-4 flex items-center gap-2">
-                            {isAdmin && (
-                                <button
+                             {isAdmin && (
+                                <button 
                                     onClick={() => onDelete?.(msg.id)}
                                     className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                 >
@@ -80,15 +80,15 @@ export default function MessageView({ announcements, isAdmin, onDelete }: Messag
                         <div className="p-6 space-y-4">
                             {msg.imageUrl && (
                                 <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                                    <img
-                                        src={msg.imageUrl}
-                                        alt={msg.title}
+                                    <img 
+                                        src={msg.imageUrl} 
+                                        alt={msg.title} 
                                         className="w-full object-cover max-h-[300px]"
                                     />
                                 </div>
                             )}
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight leading-tight uppercase">
+                                <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight leading-tight uppercase">
                                     {msg.title}
                                 </h3>
                                 <div className="text-slate-600 leading-relaxed whitespace-pre-wrap text-sm font-medium">
@@ -98,7 +98,7 @@ export default function MessageView({ announcements, isAdmin, onDelete }: Messag
                         </div>
 
                         {/* Message Footer */}
-                        <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                             <div className="flex items-center gap-2 text-slate-400">
                                 <Calendar size={12} />
                                 <span className="text-[10px] font-bold uppercase tracking-widest">
