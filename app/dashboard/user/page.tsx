@@ -32,10 +32,10 @@ export default function UserDashboardPage() {
     });
 
     const [stats, setStats] = useState<Stat[]>([
-        { label: 'Energy Used', value: '4.3k', unit: 'kcal' },
-        { label: 'Wellness Index', value: '78', unit: '%' },
-        { label: 'Activity', value: '5.8', unit: 'km' },
-        { label: 'Focus Score', value: '89', unit: 'pts' },
+        { label: 'Bible engagement', value: '45', unit: 'mins' },
+        { label: 'Prayer Streak', value: '12', unit: 'days' },
+        { label: 'Community Hub', value: '8', unit: 'shares' },
+        { label: 'Growth XP', value: '840', unit: 'pts' },
     ]);
 
     return (
@@ -44,10 +44,10 @@ export default function UserDashboardPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-slate-800 mb-2">
-                        Heal Overview
+                        Spiritual Overview
                     </h1>
                     <p className="text-slate-500 font-medium text-sm">
-                        Take control of your spiritual health today.
+                        Your journey with Christ, visualized.
                     </p>
                 </div>
                 <div className="flex gap-3">
@@ -87,7 +87,7 @@ export default function UserDashboardPage() {
                     <h2 className="text-lg font-bold text-slate-700">Continue Journey</h2>
                     <div className="flex gap-2">
                         <span className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-600 text-white text-xs font-bold">{activePrograms.length}</span>
-                        <span className="text-sm text-teal-600 font-medium">Active Programs</span>
+                        <span className="text-sm text-teal-600 font-medium">Active Paths</span>
                     </div>
 
                     <Link href="/dashboard" className="ml-auto text-sm font-semibold text-sky-600 hover:text-sky-700 transition-colors">
@@ -125,7 +125,7 @@ export default function UserDashboardPage() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Progress</span>
                                         <span className={`text-xs font-bold ${program.tabColor.replace('bg-', 'text-')} opacity-80 group-hover:opacity-100 transition-opacity`}>
-                                            Resume Course
+                                            Resume Path
                                         </span>
                                     </div>
                                 </div>
@@ -141,16 +141,16 @@ export default function UserDashboardPage() {
                 <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-lg font-bold text-slate-800">Daily Insight</h3>
+                            <h3 className="text-lg font-bold text-slate-800">Growth Insight</h3>
                             <div className="w-2 h-2 rounded-full bg-teal-500 ml-2" />
                         </div>
                         <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                            Your focus score is trending upwards today. To maintain this momentum, we recommend completing the next module in your Growth track.
+                            Your Bible engagement is up 20% this week. Great job staying consistent with the "Foundation" series! Check out the new media library for more resources.
                         </p>
                     </div>
 
                     <button className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors self-start">
-                        View Detailed Report
+                        View Growth Map
                     </button>
                 </div>
 
@@ -163,7 +163,7 @@ export default function UserDashboardPage() {
                     <div className="relative z-10 w-2/3">
                         <h3 className="text-sm font-semibold text-slate-300 mb-4">Current Milestone</h3>
                         <p className="text-2xl font-bold tracking-tight mb-2 text-teal-50">Foundation Phase</p>
-                        <p className="text-xs text-slate-400">Week 2 of your spiritual journey.</p>
+                        <p className="text-xs text-slate-400">Step 3 of your spiritual journey.</p>
                     </div>
                 </div>
             </div>

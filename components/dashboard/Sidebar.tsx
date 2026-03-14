@@ -85,7 +85,7 @@ export default function Sidebar({
                         key={module.id}
                         href={getModuleRoute(module.id, role)}
                         icon={module.icon}
-                        label={module.label}
+                        label={module.id === 'give' ? (role === 'admin' ? 'Giving' : 'Give') : module.label}
                         active={isActive(getModuleRoute(module.id, role))}
                     />
                 ))}
@@ -94,11 +94,10 @@ export default function Sidebar({
                 {role === 'admin' && (
                     <Link
                         href="/dashboard/admin"
-                        className={`flex items-center gap-3 px-10 py-2.5 mb-1 transition-all duration-300 font-bold text-sm ${
-                            pathname.startsWith('/dashboard/admin') && pathname !== dashboardRoute
+                        className={`flex items-center gap-3 px-10 py-2.5 mb-1 transition-all duration-300 font-bold text-sm ${pathname.startsWith('/dashboard/admin') && pathname !== dashboardRoute
                                 ? 'text-red-500'
                                 : 'text-zinc-400 hover:text-red-500'
-                        }`}
+                            }`}
                     >
                         <Shield size={20} strokeWidth={2} />
                         <span>Admin Console</span>
@@ -106,27 +105,15 @@ export default function Sidebar({
                 )}
             </nav>
 
-            {/* Upgrade Badge (Bottom Left) - Hidden for Admin */}
-            {role !== 'admin' && (
-                <div className="px-6 py-4">
-                    <div className="bg-[#ccf381] rounded-2xl p-4 text-black relative group cursor-pointer hover:bg-[#bbe075] transition-colors">
-                        <div className="relative z-10">
-                            <h4 className="font-bold text-sm mb-1">Upgrade Plan</h4>
-                            <p className="text-[10px] font-medium opacity-70 leading-relaxed max-w-[150px]">
-                                Unlock premium content and growth plans.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {/* User Footer - Show first name and logout only */}
             <div className="px-10 pb-6 pt-4 flex items-center justify-between group border-t border-zinc-800 mx-4">
                 <p className="text-sm font-bold text-white truncate max-w-[120px]">
                     {userName.split(' ')[0]}
                 </p>
-                <button 
-                    onClick={onLogout} 
+                <button
+                    onClick={onLogout}
                     className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-all font-medium text-sm group/logout"
                     title="Logout"
                 >

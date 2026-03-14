@@ -35,12 +35,7 @@ export const ALL_MODULES: Module[] = [
         description: 'Daily insights, bible study, and spiritual nourishment',
         icon: Library,
     },
-    {
-        id: 'support',
-        label: 'Support',
-        description: 'Contributions, giving, and donation history',
-        icon: Heart,
-    },
+
     {
         id: 'workshops',
         label: 'Events',
@@ -99,10 +94,15 @@ export function getModulesForUser(selectedIds: string[], role: string | null): M
     };
 
     const normalizedIds = Array.from(new Set(selectedIds.map((id) => idMap[id] || id)));
-    const modules = ALL_MODULES.filter((m) => normalizedIds.includes(m.id));
+    let modules = ALL_MODULES.filter((m) => normalizedIds.includes(m.id));
+
+    // Ensure 'give' is always present for all users
+    if (!modules.some(m => m.id === 'give')) {
+        const giveModule = ALL_MODULES.find(m => m.id === 'give');
+        if (giveModule) modules.push(giveModule);
+    }
 
     if (role === 'admin') {
-        // Admins see all applicable modules plus admin specifics
         const adminSpecific = ALL_MODULES.filter(m => m.adminOnly);
         return Array.from(new Set([...modules, ...adminSpecific]));
     }
