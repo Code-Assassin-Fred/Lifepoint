@@ -40,11 +40,6 @@ export default function CommunitySidebar({ onTabChange, activeTab }: CommunitySi
                             onClick={() => onTabChange(item.id)}
                             className={`w-full flex items-center gap-4 px-4 py-3 transition-colors relative group`}
                         >
-                            {/* Visual Indicator (instead of background bubble) */}
-                            {isActive && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-600 rounded-r-full" />
-                            )}
-                            
                             <div className={`p-2 rounded-lg transition-colors ${
                                 isActive ? 'text-teal-600' : 'text-slate-400 group-hover:text-slate-600'
                             }`}>
