@@ -18,12 +18,13 @@ export default function UserDashboardPage() {
 
     // We filter modules to show as "Active Programs"
     // Using default background colors mapped from the admin tab style
-    const activePrograms = allModules.slice(0, 4).map((module, idx) => {
+    const activePrograms = allModules.slice(0, 5).map((module, idx) => {
         const colors = [
             { tabColor: 'bg-teal-600', bgColor: 'bg-teal-50', tabLabel: 'Health' },
             { tabColor: 'bg-sky-600', bgColor: 'bg-sky-50', tabLabel: 'Growth' },
             { tabColor: 'bg-slate-700', bgColor: 'bg-slate-100', tabLabel: 'Focus' },
-            { tabColor: 'bg-emerald-600', bgColor: 'bg-emerald-50', tabLabel: 'Journey' }
+            { tabColor: 'bg-emerald-600', bgColor: 'bg-emerald-50', tabLabel: 'Journey' },
+            { tabColor: 'bg-teal-700', bgColor: 'bg-teal-50', tabLabel: 'Sync' }
         ];
         return {
             ...module,

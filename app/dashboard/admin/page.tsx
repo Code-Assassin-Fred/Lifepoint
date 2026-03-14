@@ -72,6 +72,14 @@ export default function AdminDashboardPage() {
             bgColor: 'bg-emerald-50',
             tabLabel: 'Settings'
         },
+        {
+            label: 'Community Channel',
+            description: 'Post announcements and manage official community updates.',
+            route: '/dashboard/admin/community',
+            tabColor: 'bg-teal-700',
+            bgColor: 'bg-teal-50',
+            tabLabel: 'Engagement'
+        },
     ];
 
     return (
