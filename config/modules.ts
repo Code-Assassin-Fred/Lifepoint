@@ -9,6 +9,7 @@ import {
     Tv,
     GraduationCap,
     UserCheck,
+    ClipboardList,
     type LucideIcon,
 } from 'lucide-react';
 
@@ -64,30 +65,52 @@ export const ALL_MODULES: Module[] = [
         description: 'Personal development, assessments, and mentorship guidance',
         icon: GraduationCap,
     },
+    {
+        id: 'research',
+        label: 'Research and Prep',
+        description: 'Manage research materials and preparation guides',
+        icon: ClipboardList,
+        adminOnly: true,
+    },
+    {
+        id: 'give',
+        label: 'Give',
+        description: 'Support the mission and see your impact',
+        icon: Heart,
+    },
 ];
 
 // Get route for a module based on role
 export function getModuleRoute(moduleId: string, role: string | null): string {
+    if (moduleId === 'give') return '/dashboard/user/support';
     const baseRoute = role === 'admin' ? '/dashboard/admin' : '/dashboard/user';
     return `${baseRoute}/${moduleId}`;
 }
 
 // Helper to get modules for a user based on their selection
-export function getModulesForUser(selectedIds: string[]): Module[] {
+export function getModulesForUser(selectedIds: string[], role: string | null): Module[] {
     const idMap: Record<string, string> = {
         church: 'home',
         bible: 'wisdom',
-        giving: 'support',
+        giving: 'give',
         growth: 'development',
         mentorship: 'development',
         events: 'workshops',
     };
 
     const normalizedIds = Array.from(new Set(selectedIds.map((id) => idMap[id] || id)));
-    return ALL_MODULES.filter((m) => normalizedIds.includes(m.id));
+    const modules = ALL_MODULES.filter((m) => normalizedIds.includes(m.id));
+
+    if (role === 'admin') {
+        // Admins see all applicable modules plus admin specifics
+        const adminSpecific = ALL_MODULES.filter(m => m.adminOnly);
+        return Array.from(new Set([...modules, ...adminSpecific]));
+    }
+
+    return modules;
 }
 
 // Get all modules (for admin view)
 export function getAllModules(): Module[] {
-    return ALL_MODULES.filter(m => m.id !== 'support');
+    return ALL_MODULES;
 }
