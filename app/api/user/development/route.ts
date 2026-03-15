@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
@@ -13,31 +16,22 @@ export async function GET(req: Request) {
         const userDoc = await adminDb.collection('users').doc(userId).get();
         const userData = userDoc.data() || {};
 
-        // Journey Steps definition
-        const journeySteps = [
-            { id: 'foundation', title: 'Believers Foundation', dur: '4 Weeks', icon: 'CheckCircle2' },
-            { id: 'community', title: 'Life in Community', dur: '3 Weeks', icon: 'CheckCircle2' },
-            { id: 'discovery', title: 'Spiritual Gifts Discovery', dur: '2 Weeks', icon: 'Clock' },
-            { id: 'leadership', title: 'Leadership Level 1', dur: '6 Weeks', icon: 'Settings' },
-            { id: 'mentorship', title: 'Mentorship Initiation', dur: 'Ongoing', icon: 'Users' }
-        ];
+        // Fetch Global Pathway definition
+        const pathwayDoc = await adminDb.collection('settings').doc('growthPathway').get();
+        const globalSteps = pathwayDoc.exists 
+            ? pathwayDoc.data()?.steps || [] 
+            : [];
 
-        // Map status based on user progress (if we had a 'completedSteps' array)
-        const completedSteps = userData.completedJourneySteps || ['foundation'];
-        const activeStepId = userData.activeJourneyStep || 'community';
+        // Map status based on user progress
+        const completedSteps = userData.completedJourneySteps || [];
+        const activeStepId = userData.activeJourneyStep || (globalSteps.length > 0 ? globalSteps[0].id : null);
 
-        const steps = journeySteps.map(step => ({
+        const steps = globalSteps.map((step: any) => ({
             ...step,
-            status: completedSteps.includes(step.id) ? 'completed' : (step.id === activeStepId ? 'active' : 'locked')
+            status: completedSteps.includes(step.id) 
+                ? 'completed' 
+                : (step.id === activeStepId ? 'active' : 'locked')
         }));
-
-        // Daily Habits
-        const habits = [
-            { label: 'Scripture Reading', icon: 'BookMarked', done: userData.habits?.scripture || false },
-            { label: 'Morning Prayer', icon: 'Flame', done: userData.habits?.prayer || false },
-            { label: 'Devotional Entry', icon: 'CheckCircle2', done: userData.habits?.devotional || false },
-            { label: 'Evening Reflection', icon: 'Clock', done: userData.habits?.reflection || false }
-        ];
 
         // Mentorship (if user has a mentor)
         let mentor = null;
@@ -56,13 +50,12 @@ export async function GET(req: Request) {
         return NextResponse.json({
             level: userData.level || '1',
             levelName: userData.levelName || 'Seeker',
-            xp: userData.xp || 120,
+            xp: userData.xp || 0,
             nextMilestone: userData.nextMilestone || 'Next Level',
-            xpNeeded: userData.xpNeeded || 380,
+            xpNeeded: userData.xpNeeded || 100,
             streak: userData.streak || 0,
             badges: userData.badges?.length || 0,
             steps,
-            habits,
             mentor
         });
     } catch (error) {

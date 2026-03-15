@@ -10,6 +10,7 @@ import {
     GraduationCap,
     UserCheck,
     ClipboardList,
+    MessageSquare,
     type LucideIcon,
 } from 'lucide-react';
 
@@ -61,6 +62,12 @@ export const ALL_MODULES: Module[] = [
         icon: GraduationCap,
     },
     {
+        id: 'messages',
+        label: 'Messages',
+        description: 'Direct communication with mentors and community leadership',
+        icon: MessageSquare,
+    },
+    {
         id: 'research',
         label: 'Research and Prep',
         description: 'Manage research materials and preparation guides',
@@ -100,6 +107,18 @@ export function getModulesForUser(selectedIds: string[], role: string | null): M
     if (!modules.some(m => m.id === 'give')) {
         const giveModule = ALL_MODULES.find(m => m.id === 'give');
         if (giveModule) modules.push(giveModule);
+    }
+
+    // Ensure 'development' (Growth & Mentorship) is always present
+    if (!modules.some(m => m.id === 'development')) {
+        const devModule = ALL_MODULES.find(m => m.id === 'development');
+        if (devModule) modules.push(devModule);
+    }
+
+    // Ensure 'messages' is always present for all users
+    if (!modules.some(m => m.id === 'messages')) {
+        const msgModule = ALL_MODULES.find(m => m.id === 'messages');
+        if (msgModule) modules.push(msgModule);
     }
 
     if (role === 'admin') {

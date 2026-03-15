@@ -41,6 +41,8 @@ export default function GrowthModule() {
     const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [mentors, setMentors] = useState<any[]>([]);
+    const [pathwaySteps, setPathwaySteps] = useState<any[]>([]);
+    const [isSavingPathway, setIsSavingPathway] = useState(false);
 
     const refreshData = () => setRefreshTrigger(prev => prev + 1);
 
@@ -49,6 +51,7 @@ export default function GrowthModule() {
         { id: 'requests', label: 'Mentorship Requests', icon: MessageCircle },
         { id: 'sessions', label: 'Schedule Sessions', icon: CalendarDays },
         { id: 'plans', label: 'Manage Plans', icon: BookMarked },
+        { id: 'pathway', label: 'Pathway Editor', icon: Map },
     ] : [
         { id: 'journey', label: 'My Journey', icon: Trophy },
         { id: 'plans', label: 'Growth Plans', icon: BookMarked },
@@ -100,6 +103,15 @@ export default function GrowthModule() {
                 if (mentorsRes.ok) {
                     const data = await mentorsRes.json();
                     setMentors(data);
+                }
+
+                // Fetch Pathway (for admin editing)
+                if (isAdmin && activeTab === 'pathway') {
+                    const pathwayRes = await fetch('/api/development/pathway');
+                    if (pathwayRes.ok) {
+                        const data = await pathwayRes.json();
+                        setPathwaySteps(data.steps || []);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch development data:', error);
@@ -230,118 +242,87 @@ export default function GrowthModule() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4 animate-in fade-in duration-500">
                     {/* Left: Journey Map */}
                     <div className="lg:col-span-2 space-y-8">
-                        {/* Current Status Card */}
-                        <div className="bg-zinc-900 rounded-[3rem] p-10 text-white relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-[#ccf381]/10 rounded-full blur-[100px] -mr-32 -mt-32" />
-
-                            <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
-                                <div className="w-32 h-32 rounded-full border-4 border-[#ccf381] flex items-center justify-center relative">
-                                    <span className="text-4xl font-black">{Math.round((journeyData.xp / (journeyData.xp + journeyData.xpNeeded)) * 100)}%</span>
-                                    <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#ccf381] text-black rounded-full flex items-center justify-center">
-                                        <Star size={20} fill="currentColor" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <h2 className="text-3xl font-black mb-2 tracking-tight">Level {journeyData.level}: {journeyData.levelName}</h2>
-                                    <p className="text-zinc-400 font-bold mb-6">Next Milestone: {journeyData.nextMilestone} ({journeyData.xpNeeded} XP needed)</p>
-                                    <div className="flex gap-4">
-                                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
-                                            <Flame size={16} className="text-[#ccf381]" />
-                                            <span className="text-xs font-black">{journeyData.streak} DAY STREAK</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
-                                            <Trophy size={16} className="text-[#ccf381]" />
-                                            <span className="text-xs font-black">{journeyData.badges} BADGES</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Journey Map Visualization */}
                         <div className="py-6">
                             <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-10">Pathway Overview</h3>
 
-                            <div className="relative">
-                                {/* Connection Line */}
-                                <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-zinc-100" />
+                            {journeyData?.steps?.length > 0 ? (
+                                <div className="relative">
+                                    {/* Connection Line */}
+                                    <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-zinc-100" />
 
-                                <div className="space-y-12">
-                                    {journeyData.steps.map((step: any, i: number) => {
-                                        const Icon = step.icon === 'CheckCircle2' ? CheckCircle2 : step.icon === 'Clock' ? Clock : step.icon === 'Settings' ? Settings : Users;
-                                        return (
-                                            <div key={i} className="relative flex items-center gap-8 pl-20 group">
-                                                <div className={`absolute left-0 w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all z-10 ${step.status === 'completed' ? 'bg-[#ccf381] border-[#ccf381] text-black' :
-                                                        step.status === 'active' ? 'bg-white border-[#0d9488] text-[#0d9488]' :
-                                                            'bg-zinc-50 border-zinc-100 text-zinc-300'
-                                                    }`}>
-                                                    <Icon size={28} />
-                                                </div>
-
-                                                <div className="flex-1 p-6 bg-zinc-50 rounded-3xl border border-zinc-100 group-hover:bg-[#ccf381]/5 transition-all">
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <h4 className={`font-black text-lg ${step.status === 'locked' ? 'text-zinc-400' : 'text-zinc-900'}`}>{step.title}</h4>
-                                                        {step.status === 'active' && <span className="px-3 py-1 bg-[#0d9488] text-white text-[10px] font-black rounded-lg">IN PROGRESS</span>}
+                                    <div className="space-y-12">
+                                        {journeyData.steps.map((step: any, i: number) => {
+                                            const Icon = step.icon === 'CheckCircle2' ? CheckCircle2 : step.icon === 'Clock' ? Clock : step.icon === 'Settings' ? Settings : Users;
+                                            return (
+                                                <div key={i} className="relative flex items-center gap-8 pl-20 group">
+                                                    <div className={`absolute left-0 w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all z-10 ${step.status === 'completed' ? 'bg-[#ccf381] border-[#ccf381] text-black' :
+                                                            step.status === 'active' ? 'bg-white border-[#0d9488] text-[#0d9488]' :
+                                                                'bg-zinc-50 border-zinc-100 text-zinc-300'
+                                                        }`}>
+                                                        <Icon size={28} />
                                                     </div>
-                                                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{step.dur}</p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Right: Daily Habits & Quick Actions */}
-                    <div className="space-y-8">
-                        <div className="py-6">
-                            <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-6 border-b border-zinc-50 pb-4">Daily Habits</h3>
-                            <div className="space-y-4">
-                                {journeyData.habits.map((habit: any, i: number) => {
-                                    const Icon = habit.icon === 'BookMarked' ? BookMarked : habit.icon === 'Flame' ? Flame : habit.icon === 'CheckCircle2' ? CheckCircle2 : Clock;
-                                    return (
-                                        <div key={i} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${habit.done ? 'bg-zinc-50 border-zinc-100 text-zinc-400' : 'bg-white border-zinc-100 text-zinc-900 hover:border-[#ccf381]'
-                                            }`}>
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${habit.done ? 'bg-zinc-200' : 'bg-[#ccf381]/20 text-[#0d9488]'}`}>
-                                                    <Icon size={16} />
+                                                    <div className="flex-1 p-6 bg-zinc-50 rounded-3xl border border-zinc-100 group-hover:bg-[#ccf381]/5 transition-all">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <h4 className={`font-black text-lg ${step.status === 'locked' ? 'text-zinc-400' : 'text-zinc-900'}`}>{step.title}</h4>
+                                                            {step.status === 'active' && <span className="px-3 py-1 bg-[#0d9488] text-white text-[10px] font-black rounded-lg">IN PROGRESS</span>}
+                                                        </div>
+                                                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{step.dur}</p>
+                                                    </div>
                                                 </div>
-                                                <span className="text-sm font-bold">{habit.label}</span>
-                                            </div>
-                                            <button className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${habit.done ? 'bg-[#ccf381] border-[#ccf381] text-black' : 'border-zinc-200 hover:border-[#ccf381]'
-                                                }`}>
-                                                {habit.done && <CheckCircle2 size={12} fill="currentColor" />}
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="bg-[#0d9488] rounded-[3rem] p-8 text-white relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
-                            <h4 className="text-sm font-black uppercase tracking-widest mb-6">Mentorship Activity</h4>
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="flex -space-x-3">
-                                    <div className="w-12 h-12 rounded-2xl bg-zinc-200 border-4 border-[#0d9488] overflow-hidden">
-                                        <img src="https://i.pravatar.cc/150?u=1" alt="Mentor" />
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-black">Pastor David Miller</p>
-                                    <p className="text-[10px] font-bold text-teal-200 uppercase tracking-widest">Spiritual Mentor</p>
+                            ) : (
+                                <div className="bg-white rounded-[3rem] p-16 text-center border-dashed border-2 border-zinc-200">
+                                    <div className="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300">
+                                        <Map size={32} />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-zinc-900 mb-2 tracking-tight">No Pathways Yet</h3>
+                                    <p className="text-zinc-500 text-sm font-medium">There are no pathways uploaded by the mentors yet. Check back soon.</p>
                                 </div>
-                            </div>
-                            <div className="p-4 bg-black/10 rounded-2xl border border-white/5 mb-6">
-                                <p className="text-[10px] font-black text-teal-200 uppercase tracking-widest mb-1">Next Session</p>
-                                <p className="text-sm font-bold">Tomorrow, 4:00 PM</p>
-                            </div>
-                            <button className="w-full py-4 bg-[#ccf381] text-black rounded-[2rem] font-bold text-sm tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2">
-                                <MessageCircle size={18} />
-                                SEND MESSAGE
-                            </button>
+                            )}
                         </div>
+
+                    </div>
+
+                    {/* Right: Quick Actions */}
+                    <div className="space-y-8 py-6">
+                        {journeyData?.mentor ? (
+                            <div className="bg-[#0d9488] rounded-[3rem] p-8 text-white relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
+                                <h4 className="text-sm font-black uppercase tracking-widest mb-6">Mentorship Activity</h4>
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="flex -space-x-3">
+                                        <div className="w-12 h-12 rounded-2xl bg-zinc-200 border-4 border-[#0d9488] overflow-hidden">
+                                            <img src={journeyData.mentor.img} alt="Mentor" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black">{journeyData.mentor.name}</p>
+                                        <p className="text-[10px] font-bold text-teal-200 uppercase tracking-widest">{journeyData.mentor.role}</p>
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-black/10 rounded-2xl border border-white/5 mb-6">
+                                    <p className="text-[10px] font-black text-teal-200 uppercase tracking-widest mb-1">Status</p>
+                                    <p className="text-sm font-bold">Active Mentorship</p>
+                                </div>
+                                <button className="w-full py-4 bg-[#ccf381] text-black rounded-[2rem] font-bold text-sm tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2">
+                                    <MessageCircle size={18} />
+                                    SEND MESSAGE
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-[3rem] p-8 text-center border-dashed border-2 border-zinc-200">
+                                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-4">Mentorship</h4>
+                                <p className="text-zinc-500 text-sm font-medium mb-6">You don't have an active mentor assigned yet.</p>
+                                <button onClick={() => setIsRequesting(true)} className="w-full py-3 bg-zinc-900 text-white rounded-2xl font-bold text-xs tracking-widest hover:bg-black transition-all">
+                                    REQUEST MENTOR
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -544,6 +525,108 @@ export default function GrowthModule() {
                             </p>
                         </div>
                     )}
+                </div>
+            )}
+            {activeTab === 'pathway' && isAdmin && (
+                <div className="px-4 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight">Global Growth Pathway</h3>
+                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">Define the spiritual journey for all members</p>
+                        </div>
+                        <button 
+                            onClick={async () => {
+                                setIsSavingPathway(true);
+                                try {
+                                    await fetch('/api/development/pathway', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ steps: pathwaySteps }),
+                                    });
+                                    refreshData();
+                                } catch (e) { console.error(e); }
+                                finally { setIsSavingPathway(false); }
+                            }}
+                            disabled={isSavingPathway}
+                            className="px-8 py-4 bg-zinc-900 text-white rounded-[2rem] font-black text-xs tracking-widest hover:bg-black transition-all flex items-center gap-3 disabled:opacity-50"
+                        >
+                            <CheckCircle2 size={18} />
+                            {isSavingPathway ? 'SAVING...' : 'SAVE PATHWAY'}
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        {pathwaySteps.map((step, idx) => (
+                            <div key={idx} className="p-8 bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm flex flex-col md:flex-row gap-6 items-start md:items-center">
+                                <div className="w-12 h-12 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 font-black">
+                                    {idx + 1}
+                                </div>
+                                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Step Title</label>
+                                        <input 
+                                            type="text" 
+                                            value={step.title}
+                                            onChange={(e) => {
+                                                const newSteps = [...pathwaySteps];
+                                                newSteps[idx].title = e.target.value;
+                                                setPathwaySteps(newSteps);
+                                            }}
+                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Duration</label>
+                                        <input 
+                                            type="text" 
+                                            value={step.dur}
+                                            onChange={(e) => {
+                                                const newSteps = [...pathwaySteps];
+                                                newSteps[idx].dur = e.target.value;
+                                                setPathwaySteps(newSteps);
+                                            }}
+                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Icon (Lucide)</label>
+                                        <select 
+                                            value={step.icon}
+                                            onChange={(e) => {
+                                                const newSteps = [...pathwaySteps];
+                                                newSteps[idx].icon = e.target.value;
+                                                setPathwaySteps(newSteps);
+                                            }}
+                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold"
+                                        >
+                                            <option value="CheckCircle2">CheckCircle</option>
+                                            <option value="Clock">Clock</option>
+                                            <option value="Settings">Settings</option>
+                                            <option value="Users">Users</option>
+                                            <option value="BookMarked">BookMarked</option>
+                                            <option value="Flame">Flame</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => {
+                                        const newSteps = pathwaySteps.filter((_, i) => i !== idx);
+                                        setPathwaySteps(newSteps);
+                                    }}
+                                    className="p-3 text-red-400 hover:bg-red-50 rounded-xl transition-all"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                        ))}
+                        <button 
+                            onClick={() => setPathwaySteps([...pathwaySteps, { id: `step-${Date.now()}`, title: 'New Step', dur: 'TBD', icon: 'Clock' }])}
+                            className="w-full py-6 border-2 border-dashed border-zinc-100 rounded-[2.5rem] flex items-center justify-center gap-3 text-zinc-400 font-black hover:border-zinc-200 hover:text-zinc-600 transition-all"
+                        >
+                            <Plus size={20} />
+                            ADD JOURNEY STEP
+                        </button>
+                    </div>
                 </div>
             )}
             <GrowthPlanModal isOpen={isPlanModalOpen} onClose={() => setIsPlanModalOpen(false)} />
