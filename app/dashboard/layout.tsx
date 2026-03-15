@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -17,21 +17,15 @@ export default function DashboardLayout({
     const router = useRouter();
     const pathname = usePathname();
     const { user, loading, role, selectedModules } = useAuth();
+    const [notificationCount, setNotificationCount] = useState(0);
 
-    // Get modules based on role and selection
-    // Admin sees all modules (minus give), user sees only their selected modules
-    const modules =
-        role === 'admin'
-            ? getModulesForUser(selectedModules, role)
-            : getModulesForUser(selectedModules, role);
+    const modules = getModulesForUser(selectedModules, role);
 
     const handleLogout = async () => {
         await signOut(auth);
         router.push('/auth');
     };
 
-    // Protect route - redirect to auth if not logged in
-    // Also protect admin routes - redirect if not admin
     useEffect(() => {
         if (!loading) {
             if (!user) {
@@ -39,14 +33,31 @@ export default function DashboardLayout({
             } else if (pathname.startsWith('/dashboard/admin') && role !== 'admin') {
                 router.replace('/dashboard/user');
             } else if (pathname.startsWith('/dashboard/user') && role === 'admin') {
-                // If an admin is on a user route, redirect to admin landing
                 router.replace('/dashboard/admin');
             } else if (pathname === '/dashboard') {
-                // Root dashboard route - redirect to appropriate landing
                 router.replace(role === 'admin' ? '/dashboard/admin' : '/dashboard/user');
             }
         }
     }, [user, loading, role, router, pathname]);
+
+    useEffect(() => {
+        if (role === 'admin') {
+            const fetchNotifications = async () => {
+                try {
+                    const res = await fetch('/api/admin/notifications/unread-count');
+                    if (res.ok) {
+                        const data = await res.json();
+                        setNotificationCount(data.count);
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch notifications');
+                }
+            };
+            fetchNotifications();
+            const interval = setInterval(fetchNotifications, 60000);
+            return () => clearInterval(interval);
+        }
+    }, [role]);
 
     if (loading) {
         return (
@@ -59,9 +70,7 @@ export default function DashboardLayout({
         );
     }
 
-    if (!user) {
-        return null;
-    }
+    if (!user) return null;
 
     const userName = user.displayName || 'User';
     const userEmail = user.email || '';
@@ -76,15 +85,12 @@ export default function DashboardLayout({
                 userPhoto={userPhoto}
                 role={role}
                 onLogout={handleLogout}
+                notificationCount={notificationCount}
             />
 
-            {/* Main Content */}
             <div className="lg:pl-[240px]">
-                {/* Spacer for mobile header */}
                 <div className="h-16 lg:hidden" />
-
                 <Header userName={userName} userPhoto={userPhoto} role={role} />
-
                 <main className="px-6 pb-6 lg:px-8 lg:pb-8 pt-0">{children}</main>
             </div>
         </div>

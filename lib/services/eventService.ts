@@ -7,6 +7,16 @@ export interface Event {
     location: string;
     imageUrl?: string;
     createdAt: string;
+    registrationCount?: number;
+}
+
+export interface EventRegistration {
+    id: string;
+    eventId: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    registeredAt: string;
 }
 
 export const eventService = {
@@ -43,5 +53,23 @@ export const eventService = {
             method: 'DELETE',
         });
         if (!response.ok) throw new Error('Failed to delete event');
+    },
+
+    async registerForEvent(eventId: string, userData: { name: string, email: string }): Promise<void> {
+        const response = await fetch('/api/events/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId, ...userData }),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to register for event');
+        }
+    },
+
+    async getEventRegistrations(eventId: string): Promise<EventRegistration[]> {
+        const response = await fetch(`/api/events/${eventId}/registrations`);
+        if (!response.ok) throw new Error('Failed to fetch registrations');
+        return response.json();
     }
 };

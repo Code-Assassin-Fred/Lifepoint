@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { eventService, Event } from '@/lib/services/eventService';
-import { Calendar, MapPin, Clock, Plus, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
+import { eventService, Event, EventRegistration } from '@/lib/services/eventService';
+import { Calendar, MapPin, Clock, Plus, Trash2, Loader2, Image as ImageIcon, Users, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AdminEventsPage() {
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [selectedEventRegs, setSelectedEventRegs] = useState<{title: string, regs: EventRegistration[]} | null>(null);
+    const [loadingRegs, setLoadingRegs] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -30,6 +32,19 @@ export default function AdminEventsPage() {
             console.error('Error fetching events:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleViewRegistrations = async (event: Event) => {
+        setLoadingRegs(true);
+        try {
+            const regs = await eventService.getEventRegistrations(event.id);
+            setSelectedEventRegs({ title: event.title, regs });
+        } catch (error) {
+            console.error('Error fetching registrations:', error);
+            alert('Failed to load registrations');
+        } finally {
+            setLoadingRegs(false);
         }
     };
 
@@ -75,20 +90,20 @@ export default function AdminEventsPage() {
     const pastEvents = events.filter(e => new Date(e.date) < new Date()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
-        <div className="w-full p-6 space-y-12">
-            <div className="space-y-2">
-                <h1 className="text-3xl font-light text-rose-500 tracking-[0.1em] uppercase">Events Management</h1>
-                <p className="text-zinc-400 font-medium tracking-wide">Upload and manage church events</p>
+        <div className="max-w-5xl mx-auto p-8 space-y-12 relative">
+            <div className="space-y-1">
+                <h1 className="text-3xl font-black text-zinc-900 tracking-tight">Events Management</h1>
+                <p className="text-zinc-500 font-bold text-sm">Upload and manage church events</p>
             </div>
 
             {/* Upload Form - Integrated into Page */}
             <div className="w-full">
                 <div className="space-y-8">
                     <div className="flex items-center gap-3">
-                        <h2 className="text-xl font-light text-blue-600 tracking-[0.1em] uppercase">
+                        <h2 className="text-sm font-black text-zinc-900 uppercase tracking-[0.2em]">
                             Create New Event
                         </h2>
-                        <div className="h-px flex-1 bg-blue-100/50"></div>
+                        <div className="h-px flex-1 bg-zinc-100"></div>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
@@ -99,7 +114,7 @@ export default function AdminEventsPage() {
                                 name="title"
                                 value={formData.title}
                                 onChange={handleInputChange}
-                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
                                 placeholder="Event Title"
                             />
                         </div>
@@ -111,7 +126,7 @@ export default function AdminEventsPage() {
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 rows={3}
-                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none font-medium"
+                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all resize-none font-bold text-sm"
                                 placeholder="Short description..."
                             />
                         </div>
@@ -124,7 +139,7 @@ export default function AdminEventsPage() {
                                     name="date"
                                     value={formData.date}
                                     onChange={handleInputChange}
-                                    className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-semibold text-zinc-700"
+                                    className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-black text-sm text-zinc-700"
                                 />
                             </div>
                             <div>
@@ -135,7 +150,7 @@ export default function AdminEventsPage() {
                                     name="time"
                                     value={formData.time}
                                     onChange={handleInputChange}
-                                    className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                                    className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
                                     placeholder="e.g. 7:00 PM"
                                 />
                             </div>
@@ -148,7 +163,7 @@ export default function AdminEventsPage() {
                                 name="location"
                                 value={formData.location}
                                 onChange={handleInputChange}
-                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
                                 placeholder="Event Location"
                             />
                         </div>
@@ -159,7 +174,7 @@ export default function AdminEventsPage() {
                                 name="imageUrl"
                                 value={formData.imageUrl}
                                 onChange={handleInputChange}
-                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-sm font-medium"
+                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all text-sm font-bold"
                                 placeholder="https://example.com/image.jpg"
                             />
                         </div>
@@ -167,10 +182,9 @@ export default function AdminEventsPage() {
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="px-10 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-xl shadow-blue-500/25 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                                className="px-10 py-3.5 bg-[#0d9488] text-white rounded-md font-black text-xs uppercase tracking-widest shadow-xl shadow-[#0d9488]/20 hover:bg-[#0d9488]/90 transition-all disabled:opacity-50 flex items-center justify-center"
                             >
-                                {submitting ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
-                                Create Event
+                                {submitting ? <Loader2 className="animate-spin" size={18} /> : 'CREATE EVENT'}
                             </button>
                         </div>
                     </form>
@@ -180,7 +194,7 @@ export default function AdminEventsPage() {
             {/* Event Lists - Table Layout */}
             <div className="">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2.5rem] border border-zinc-100 text-zinc-400">
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-md border border-zinc-100 text-zinc-400">
                         <Loader2 className="animate-spin mb-4" size={32} />
                         <p className="font-medium">Loading events...</p>
                     </div>
@@ -189,11 +203,11 @@ export default function AdminEventsPage() {
                         {/* Upcoming Events Table */}
                         <section>
                             <div className="flex items-center gap-3 mb-6">
-                                <h3 className="text-xl font-bold text-blue-600 tracking-wide">Upcoming Events</h3>
-                                <div className="h-px flex-1 bg-blue-100/50"></div>
+                                <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Upcoming Events</h3>
+                                <div className="h-px flex-1 bg-zinc-100"></div>
                             </div>
                             {upcomingEvents.length === 0 ? (
-                                <div className="py-12 text-center text-zinc-400 font-medium border-2 border-dashed border-zinc-100 rounded-3xl">
+                                <div className="py-12 text-center text-zinc-400 font-medium border-2 border-dashed border-zinc-100 rounded-md">
                                     No upcoming events.
                                 </div>
                             ) : (
@@ -203,13 +217,18 @@ export default function AdminEventsPage() {
                                             <tr className="border-b border-zinc-100">
                                                 <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Date</th>
                                                 <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Title</th>
-                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Location</th>
                                                 <th className="py-3 text-right"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-50">
                                             {upcomingEvents.map(event => (
-                                                <EventRow key={event.id} event={event} onDelete={handleDelete} isPast={false} />
+                                                <EventRow 
+                                                    key={event.id} 
+                                                    event={event} 
+                                                    onDelete={handleDelete} 
+                                                    onViewRegs={() => handleViewRegistrations(event)}
+                                                    isPast={false} 
+                                                />
                                             ))}
                                         </tbody>
                                     </table>
@@ -219,12 +238,12 @@ export default function AdminEventsPage() {
 
                         {/* Past Events Table */}
                         <section>
-                            <div className="flex items-center gap-3 mb-6 opacity-60">
-                                <h3 className="text-xl font-bold text-red-600 tracking-wide">Past Events</h3>
-                                <div className="h-px flex-1 bg-red-100/50"></div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <h3 className="text-sm font-black text-zinc-900/40 uppercase tracking-widest">Past Events</h3>
+                                <div className="h-px flex-1 bg-zinc-100/50"></div>
                             </div>
                             {pastEvents.length === 0 ? (
-                                <div className="py-12 text-center text-zinc-400 font-medium border-2 border-dashed border-zinc-100 rounded-3xl opacity-50">
+                                <div className="py-12 text-center text-zinc-400 font-medium border-2 border-dashed border-zinc-100 rounded-md opacity-50">
                                     No past events.
                                 </div>
                             ) : (
@@ -234,13 +253,18 @@ export default function AdminEventsPage() {
                                             <tr className="border-b border-zinc-100">
                                                 <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Date</th>
                                                 <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Title</th>
-                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Location</th>
                                                 <th className="py-3 text-right"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-50">
                                             {pastEvents.map(event => (
-                                                <EventRow key={event.id} event={event} onDelete={handleDelete} isPast={true} />
+                                                <EventRow 
+                                                    key={event.id} 
+                                                    event={event} 
+                                                    onDelete={handleDelete} 
+                                                    onViewRegs={() => handleViewRegistrations(event)}
+                                                    isPast={true} 
+                                                />
                                             ))}
                                         </tbody>
                                     </table>
@@ -250,11 +274,62 @@ export default function AdminEventsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Registrations Modal */}
+            {selectedEventRegs && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-md shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+                            <div>
+                                <h3 className="font-black text-zinc-900 uppercase tracking-wider text-sm">{selectedEventRegs.title}</h3>
+                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{selectedEventRegs.regs.length} Registrations</p>
+                            </div>
+                            <button onClick={() => setSelectedEventRegs(null)} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
+                                <X size={20} className="text-zinc-500" />
+                            </button>
+                        </div>
+                        <div className="max-h-[60vh] overflow-y-auto p-2">
+                            {selectedEventRegs.regs.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 font-bold text-xs uppercase tracking-widest italic">No registrations yet</div>
+                            ) : (
+                                <div className="space-y-1">
+                                    {selectedEventRegs.regs.map((reg, idx) => (
+                                        <div key={reg.id} className="p-4 rounded-md hover:bg-zinc-50 flex items-center justify-between group border border-transparent hover:border-zinc-100 transition-all">
+                                            <div>
+                                                <p className="font-black text-zinc-900 text-sm tracking-tight">{reg.userName}</p>
+                                                <p className="text-[11px] font-bold text-zinc-500">{reg.userEmail}</p>
+                                            </div>
+                                            <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">
+                                                {format(new Date(reg.registeredAt), 'MMM dd')}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end">
+                            <button onClick={() => setSelectedEventRegs(null)} className="px-6 py-2 bg-zinc-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-colors">
+                                CLOSE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
-function EventRow({ event, onDelete, isPast }: { event: Event, onDelete: (id: string) => void, isPast: boolean }) {
+function EventRow({ 
+    event, 
+    onDelete, 
+    onViewRegs,
+    isPast 
+}: { 
+    event: Event, 
+    onDelete: (id: string) => void, 
+    onViewRegs: () => void,
+    isPast: boolean 
+}) {
     return (
         <tr className="group hover:bg-zinc-50/50 transition-colors">
             <td className="py-4 pr-4">
@@ -269,19 +344,24 @@ function EventRow({ event, onDelete, isPast }: { event: Event, onDelete: (id: st
                 </div>
                 <div className="text-[10px] text-zinc-600 font-bold">{event.time}</div>
             </td>
-            <td className="py-4 pr-4 min-w-[100px]">
-                <div className="text-xs font-bold text-black truncate" title={event.location}>
-                    {event.location}
-                </div>
-            </td>
             <td className="py-4 text-right whitespace-nowrap">
-                <button
-                    onClick={() => onDelete(event.id)}
-                    className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                    title="Delete event"
-                >
-                    <Trash2 size={16} />
-                </button>
+                <div className="flex items-center justify-end gap-2">
+                    <button
+                        onClick={onViewRegs}
+                        className="px-3 py-1.5 bg-zinc-50 text-zinc-900 font-black text-[9px] uppercase tracking-[0.1em] rounded-md hover:bg-[#0d9488] hover:text-white transition-all flex items-center gap-1.5"
+                    >
+                        {event.registrationCount || 0} REGS
+                    </button>
+                    {!isPast && (
+                        <button
+                            onClick={() => onDelete(event.id)}
+                            className="px-3 py-1.5 text-zinc-300 font-bold text-[10px] uppercase tracking-widest hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                            title="Delete event"
+                        >
+                            Delete
+                        </button>
+                    )}
+                </div>
             </td>
         </tr>
     );

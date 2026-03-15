@@ -49,15 +49,15 @@ export default function GrowthModule() {
     const refreshData = () => setRefreshTrigger(prev => prev + 1);
 
     const tabs = isAdmin ? [
-        { id: 'dashboard', label: 'Admin Feed', icon: Trophy },
-        { id: 'requests', label: 'Mentorship Requests', icon: MessageCircle },
-        { id: 'sessions', label: 'Schedule Sessions', icon: CalendarDays },
-        { id: 'plans', label: 'Manage Plans', icon: BookMarked },
-        { id: 'pathway', label: 'Pathway Editor', icon: Map },
+        { id: 'dashboard', label: 'Admin Feed' },
+        { id: 'requests', label: 'Mentorship Requests' },
+        { id: 'sessions', label: 'Schedule Sessions' },
+        { id: 'plans', label: 'Manage Plans' },
+        { id: 'pathway', label: 'Pathway Editor' },
     ] : [
-        { id: 'journey', label: 'My Journey', icon: Trophy },
-        { id: 'plans', label: 'Growth Plans', icon: BookMarked },
-        { id: 'mentorship', label: 'Mentorship', icon: Users },
+        { id: 'journey', label: 'My Journey' },
+        { id: 'plans', label: 'Growth Plans' },
+        { id: 'mentorship', label: 'Mentorship' },
     ];
 
     useEffect(() => {
@@ -158,17 +158,16 @@ export default function GrowthModule() {
                         Chart your spiritual course and find guidance for the journey.
                     </p>
                 </div>
-                <div className="flex gap-2 p-1.5 bg-zinc-100 rounded-3xl">
+                <div className="flex gap-2 p-1 bg-zinc-100 border border-zinc-200 rounded-md">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id
-                                    ? 'bg-white text-black shadow-lg shadow-black/5'
-                                    : 'text-zinc-400 hover:text-zinc-600'
+                            className={`px-5 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id
+                                    ? 'bg-[#0d9488] text-white shadow-lg shadow-[#0d9488]/20'
+                                    : 'text-zinc-500 hover:text-[#0d9488]'
                                 }`}
                         >
-                            <tab.icon size={16} />
                             {tab.label}
                         </button>
                     ))}

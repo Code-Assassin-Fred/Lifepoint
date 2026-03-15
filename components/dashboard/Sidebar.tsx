@@ -21,6 +21,7 @@ interface SidebarProps {
     userPhoto?: string | null;
     role: string | null;
     onLogout: () => void;
+    notificationCount?: number;
 }
 
 export default function Sidebar({
@@ -30,6 +31,7 @@ export default function Sidebar({
     userPhoto,
     role,
     onLogout,
+    notificationCount = 0,
 }: SidebarProps) {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -94,13 +96,20 @@ export default function Sidebar({
                 {role === 'admin' && (
                     <Link
                         href="/dashboard/admin"
-                        className={`flex items-center gap-3 px-10 py-2.5 mb-1 transition-all duration-300 font-bold text-sm ${pathname.startsWith('/dashboard/admin') && pathname !== dashboardRoute
-                            ? 'text-red-500'
-                            : 'text-zinc-400 hover:text-red-500'
+                        className={`flex items-center justify-between px-10 py-2.5 mb-1 transition-all duration-300 font-bold text-sm ${pathname.startsWith('/dashboard/admin') && pathname !== dashboardRoute
+                            ? 'text-[#0d9488]'
+                            : 'text-zinc-400 hover:text-white'
                             }`}
                     >
-                        <Shield size={20} strokeWidth={2} />
-                        <span>Admin Console</span>
+                        <div className="flex items-center gap-3">
+                            <Shield size={20} strokeWidth={2} />
+                            <span>Admin Console</span>
+                        </div>
+                        {notificationCount > 0 && (
+                            <span className="bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-red-500/20">
+                                {notificationCount}
+                            </span>
+                        )}
                     </Link>
                 )}
             </nav>

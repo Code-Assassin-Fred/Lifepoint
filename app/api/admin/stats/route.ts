@@ -31,11 +31,15 @@ export async function GET() {
             ? Math.round((activeToday / totalUsers) * 100)
             : 0;
 
+        // Fetch total registrations
+        const totalRegsSnapshot = await adminDb.collection('registrations').count().get();
+        const totalRegs = totalRegsSnapshot.data().count;
+
         return NextResponse.json({
             stats: [
                 { label: 'Total Users', value: totalUsers.toLocaleString(), change: '+0%', trend: 'up' },
                 { label: 'Active Today', value: activeToday.toLocaleString(), change: '+2%', trend: 'up' },
-                { label: 'New Signups', value: newSignups.toLocaleString(), change: '+0%', trend: 'up' },
+                { label: 'Gathering Regs', value: totalRegs.toLocaleString(), change: '+0%', trend: 'up' },
                 { label: 'Engagement', value: `${engagementRate}%`, change: '+1%', trend: 'up' },
             ]
         });
