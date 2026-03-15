@@ -517,21 +517,33 @@ export default function GrowthModule() {
                             </button>
                         </div>
                     )}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {plans.map((plan, i) => (
-                            <div key={i} className="group py-8 relative overflow-hidden border-b border-zinc-100 last:border-0">
-                                <span className="px-4 py-1.5 bg-zinc-100 text-zinc-600 text-[10px] font-black uppercase tracking-widest rounded-full mb-6 inline-block">{plan.category}</span>
-                                <h3 className="text-2xl font-black text-zinc-900 mb-4 leading-tight">{plan.title}</h3>
-                                <p className="text-sm font-bold text-zinc-500 mb-8 line-clamp-2">{plan.description}</p>
-                                <div className="flex items-center justify-between pt-6 border-t border-zinc-50">
-                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{plan.duration}</span>
-                                    <button className="w-12 h-12 bg-zinc-900 text-white rounded-2xl flex items-center justify-center hover:bg-[#0d9488] transition-all">
-                                        <ArrowUpRight size={20} />
-                                    </button>
+                    {plans.length > 0 ? (
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {plans.map((plan, i) => (
+                                <div key={i} className="group py-8 relative overflow-hidden border-b border-zinc-100 last:border-0">
+                                    <span className="px-4 py-1.5 bg-zinc-100 text-zinc-600 text-[10px] font-black uppercase tracking-widest rounded-full mb-6 inline-block">{plan.category}</span>
+                                    <h3 className="text-2xl font-black text-zinc-900 mb-4 leading-tight">{plan.title}</h3>
+                                    <p className="text-sm font-bold text-zinc-500 mb-8 line-clamp-2">{plan.description}</p>
+                                    <div className="flex items-center justify-between pt-6 border-t border-zinc-50">
+                                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{plan.duration}</span>
+                                        <button className="w-12 h-12 bg-zinc-900 text-white rounded-2xl flex items-center justify-center hover:bg-[#0d9488] transition-all">
+                                            <ArrowUpRight size={20} />
+                                        </button>
+                                    </div>
                                 </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-[3rem] p-20 text-center border-dashed border-2 border-zinc-200 flex flex-col items-center justify-center min-h-[400px]">
+                            <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
+                                <BookMarked size={40} className="text-zinc-200" />
                             </div>
-                        ))}
-                    </div>
+                            <h3 className="text-xl font-bold text-zinc-900 mb-3 uppercase tracking-tight">No Growth Plans Yet</h3>
+                            <p className="text-zinc-500 mb-8 max-w-sm font-medium text-sm">
+                                The Bishop hasn't uploaded any growth plans for this community yet. Check back soon for guided spiritual paths.
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
             <GrowthPlanModal isOpen={isPlanModalOpen} onClose={() => setIsPlanModalOpen(false)} />
