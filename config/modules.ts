@@ -80,6 +80,13 @@ export const ALL_MODULES: Module[] = [
         description: 'Support the mission and see your impact',
         icon: Heart,
     },
+    {
+        id: 'users',
+        label: 'Users',
+        description: 'Manage platform users and roles',
+        icon: UserCheck,
+        adminOnly: true,
+    },
 ];
 
 // Get route for a module based on role

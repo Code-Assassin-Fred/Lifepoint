@@ -13,7 +13,9 @@ export async function POST(req: Request) {
         // Agent 1: Research → Agent 2: Outline → Agent 3: Content
         // ==========================================
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const host = req.headers.get('host');
+        const protocol = host?.includes('localhost') ? 'http' : 'https';
+        const baseUrl = `${protocol}://${host}`;
 
         // -------------------------------------------
         // AGENT 1: RESEARCH AGENT

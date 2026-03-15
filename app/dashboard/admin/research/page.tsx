@@ -107,7 +107,7 @@ CRITICAL: DO NOT use em dashes. Use commas, colons, or parentheses instead.`;
             if (res.ok) {
                 const data = await res.json();
                 setResearchResult(data.response);
-                setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
             } else {
                 setResearchResult('Failed to get research results. Please try again.');
             }
@@ -354,11 +354,14 @@ CRITICAL: DO NOT use em dashes. Use commas, colons, or parentheses instead.`;
             </div>
 
             {/* MAIN WORKSPACE SECTION */}
-            <div className="bg-zinc-900 rounded-md p-8 relative shadow-2xl overflow-hidden">
-                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#0d9488]/10 rounded-full blur-[100px] -mr-32 -mt-32" />
-                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#ccf381]/5 rounded-full blur-[80px] -ml-24 -mb-24" />
-
-                <div className="relative z-10 animate-in fade-in duration-500">
+            <div className="bg-zinc-900 rounded-md relative shadow-2xl">
+                {/* Visual Blobs */}
+                <div className="absolute inset-0 overflow-hidden rounded-md pointer-events-none">
+                    <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#0d9488]/10 rounded-full blur-[100px] -mr-32 -mt-32" />
+                    <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#ccf381]/5 rounded-full blur-[80px] -ml-24 -mb-24" />
+                </div>
+                
+                <div className="relative z-10 p-8 animate-in fade-in duration-500">
                     {/* RESEARCH VIEW */}
                     {viewMode === 'research' && (
                         <div className="space-y-8">
