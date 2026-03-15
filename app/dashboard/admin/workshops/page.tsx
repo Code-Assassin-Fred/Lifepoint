@@ -219,12 +219,9 @@ export default function AdminEventsPage() {
                                 selectedEventRegs.regs.map((reg) => (
                                     <div key={reg.id} className="p-8 flex items-center justify-between group hover:bg-zinc-50/50 transition-all">
                                         <div className="flex items-center gap-6">
-                                            <div className="w-12 h-12 rounded-full bg-zinc-900 text-white flex items-center justify-center font-black text-sm">
-                                                {reg.userName.charAt(0).toUpperCase()}
-                                            </div>
                                             <div>
-                                                <p className="font-black text-zinc-900 text-lg leading-tight">{reg.userName}</p>
-                                                <p className="text-sm font-bold text-zinc-500 mt-0.5">{reg.userEmail}</p>
+                                                <p className="font-extrabold text-zinc-900 text-lg leading-tight">{reg.userName}</p>
+                                                <p className="text-sm font-medium text-zinc-400 mt-0.5">{reg.userEmail}</p>
                                             </div>
                                         </div>
                                         
@@ -234,15 +231,13 @@ export default function AdminEventsPage() {
                                                 <p className="text-xs font-bold text-zinc-900">{format(new Date(reg.registeredAt), 'MMM dd, yyyy')}</p>
                                             </div>
                                             
-                                            {reg.userId && (
-                                                <Link 
-                                                    href={`/dashboard/admin/messages?open=${reg.userId}`}
-                                                    className="px-6 py-2.5 bg-zinc-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all flex items-center gap-2 shadow-lg shadow-zinc-900/10"
-                                                >
-                                                    <MessageSquare size={14} />
-                                                    Message
-                                                </Link>
-                                            )}
+                                            <Link 
+                                                href={`/dashboard/admin/messages${reg.userId ? `?open=${reg.userId}` : ''}`}
+                                                className="px-6 py-2.5 bg-zinc-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all flex items-center gap-2 shadow-lg shadow-zinc-900/10"
+                                            >
+                                                <MessageSquare size={14} />
+                                                Message
+                                            </Link>
                                         </div>
                                     </div>
                                 ))

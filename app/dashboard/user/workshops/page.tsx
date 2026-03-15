@@ -39,7 +39,8 @@ export default function UserEventsPage() {
         try {
             await eventService.registerForEvent(eventId, {
                 name: user.displayName || 'Anonymous User',
-                email: user.email || ''
+                email: user.email || '',
+                userId: user.uid
             });
             setStatusMessage({ text: 'Registration successful! See you there.', type: 'success' });
             fetchEvents(); // Refresh counts

@@ -55,7 +55,7 @@ export const eventService = {
         if (!response.ok) throw new Error('Failed to delete event');
     },
 
-    async registerForEvent(eventId: string, userData: { name: string, email: string }): Promise<void> {
+    async registerForEvent(eventId: string, userData: { name: string, email: string, userId?: string }): Promise<void> {
         const response = await fetch('/api/events/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
