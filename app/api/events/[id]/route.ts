@@ -3,10 +3,10 @@ import { adminDb } from '@/lib/firebase-admin';
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { id } = params;
+        const { id } = await params;
         await adminDb.collection('events').doc(id).delete();
         return NextResponse.json({ success: true });
     } catch (error) {

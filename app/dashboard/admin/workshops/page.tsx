@@ -2,22 +2,22 @@
 
 import React, { useState, useEffect } from 'react';
 import { eventService, Event, EventRegistration } from '@/lib/services/eventService';
-import { Calendar, MapPin, Clock, Plus, Trash2, Loader2, Image as ImageIcon, Users, X } from 'lucide-react';
+import { Calendar, MapPin, Clock, Plus, Trash2, Loader2, Image as ImageIcon, Users, X, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 export default function AdminEventsPage() {
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [selectedEventRegs, setSelectedEventRegs] = useState<{title: string, regs: EventRegistration[]} | null>(null);
+    const [selectedEventRegs, setSelectedEventRegs] = useState<{id: string, title: string, regs: EventRegistration[]} | null>(null);
     const [loadingRegs, setLoadingRegs] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         date: '',
         time: '',
-        location: '',
-        imageUrl: ''
+        location: ''
     });
 
     useEffect(() => {
@@ -39,7 +39,9 @@ export default function AdminEventsPage() {
         setLoadingRegs(true);
         try {
             const regs = await eventService.getEventRegistrations(event.id);
-            setSelectedEventRegs({ title: event.title, regs });
+            setSelectedEventRegs({ id: event.id, title: event.title, regs });
+            // Scroll to registrations area
+            window.scrollTo({ top: document.getElementById('registrations-view')?.offsetTop || 0, behavior: 'smooth' });
         } catch (error) {
             console.error('Error fetching registrations:', error);
             alert('Failed to load registrations');
@@ -63,8 +65,7 @@ export default function AdminEventsPage() {
                 description: '',
                 date: '',
                 time: '',
-                location: '',
-                imageUrl: ''
+                location: ''
             });
             fetchEvents();
         } catch (error) {
@@ -167,17 +168,6 @@ export default function AdminEventsPage() {
                                 placeholder="Event Location"
                             />
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Image URL (Optional)</label>
-                            <input
-                                type="url"
-                                name="imageUrl"
-                                value={formData.imageUrl}
-                                onChange={handleInputChange}
-                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all text-sm font-bold"
-                                placeholder="https://example.com/image.jpg"
-                            />
-                        </div>
                         <div className="flex justify-end mt-6">
                             <button
                                 type="submit"
@@ -191,14 +181,77 @@ export default function AdminEventsPage() {
                 </div>
             </div>
 
-            {/* Event Lists - Table Layout */}
-            <div className="">
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-md border border-zinc-100 text-zinc-400">
-                        <Loader2 className="animate-spin mb-4" size={32} />
-                        <p className="font-medium">Loading events...</p>
+            {/* Registrations View - Inline */}
+            <div id="registrations-view" className="space-y-8 scroll-mt-10">
+                {selectedEventRegs ? (
+                    <div className="bg-white rounded-md border border-zinc-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
+                        <div className="p-8 border-b border-zinc-50 bg-zinc-50 flex items-center justify-between">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <button 
+                                        onClick={() => setSelectedEventRegs(null)}
+                                        className="text-[10px] font-black uppercase tracking-widest text-[#0d9488] hover:translate-x-[-4px] transition-transform flex items-center gap-1"
+                                    >
+                                        ← Back to events
+                                    </button>
+                                </div>
+                                <h3 className="text-2xl font-black text-zinc-900 tracking-tight flex items-center gap-4">
+                                    {selectedEventRegs.title}
+                                    <span className="px-3 py-1 bg-white border border-zinc-100 rounded-md text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                        {selectedEventRegs.regs.length} REGISTERED
+                                    </span>
+                                </h3>
+                            </div>
+                            <button 
+                                onClick={() => setSelectedEventRegs(null)}
+                                className="p-3 hover:bg-zinc-200 rounded-full transition-colors"
+                            >
+                                <X size={20} className="text-zinc-400" />
+                            </button>
+                        </div>
+                        
+                        <div className="divide-y divide-zinc-50">
+                            {selectedEventRegs.regs.length === 0 ? (
+                                <div className="py-24 text-center">
+                                    <p className="font-black text-xs uppercase tracking-[0.2em] text-zinc-300 italic">No registrations for this event yet.</p>
+                                </div>
+                            ) : (
+                                selectedEventRegs.regs.map((reg) => (
+                                    <div key={reg.id} className="p-8 flex items-center justify-between group hover:bg-zinc-50/50 transition-all">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-12 h-12 rounded-full bg-zinc-900 text-white flex items-center justify-center font-black text-sm">
+                                                {reg.userName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-zinc-900 text-lg leading-tight">{reg.userName}</p>
+                                                <p className="text-sm font-bold text-zinc-500 mt-0.5">{reg.userEmail}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-8">
+                                            <div className="text-right hidden sm:block">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-300 mb-1">Registered On</p>
+                                                <p className="text-xs font-bold text-zinc-900">{format(new Date(reg.registeredAt), 'MMM dd, yyyy')}</p>
+                                            </div>
+                                            
+                                            {reg.userId && (
+                                                <Link 
+                                                    href={`/dashboard/admin/messages?open=${reg.userId}`}
+                                                    className="px-6 py-2.5 bg-zinc-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all flex items-center gap-2 shadow-lg shadow-zinc-900/10"
+                                                >
+                                                    <MessageSquare size={14} />
+                                                    Message
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
-                ) : (
+                ) : null}
+
+                <div className={`${selectedEventRegs ? 'opacity-30 pointer-events-none' : ''} transition-opacity duration-500`}>
                     <div className="grid lg:grid-cols-2 gap-16">
                         {/* Upcoming Events Table */}
                         <section>
@@ -272,49 +325,9 @@ export default function AdminEventsPage() {
                             )}
                         </section>
                     </div>
-                )}
+                </div>
             </div>
 
-            {/* Registrations Modal */}
-            {selectedEventRegs && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-md shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="p-6 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
-                            <div>
-                                <h3 className="font-black text-zinc-900 uppercase tracking-wider text-sm">{selectedEventRegs.title}</h3>
-                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{selectedEventRegs.regs.length} Registrations</p>
-                            </div>
-                            <button onClick={() => setSelectedEventRegs(null)} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
-                                <X size={20} className="text-zinc-500" />
-                            </button>
-                        </div>
-                        <div className="max-h-[60vh] overflow-y-auto p-2">
-                            {selectedEventRegs.regs.length === 0 ? (
-                                <div className="py-12 text-center text-zinc-400 font-bold text-xs uppercase tracking-widest italic">No registrations yet</div>
-                            ) : (
-                                <div className="space-y-1">
-                                    {selectedEventRegs.regs.map((reg, idx) => (
-                                        <div key={reg.id} className="p-4 rounded-md hover:bg-zinc-50 flex items-center justify-between group border border-transparent hover:border-zinc-100 transition-all">
-                                            <div>
-                                                <p className="font-black text-zinc-900 text-sm tracking-tight">{reg.userName}</p>
-                                                <p className="text-[11px] font-bold text-zinc-500">{reg.userEmail}</p>
-                                            </div>
-                                            <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">
-                                                {format(new Date(reg.registeredAt), 'MMM dd')}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                        <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end">
-                            <button onClick={() => setSelectedEventRegs(null)} className="px-6 py-2 bg-zinc-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-colors">
-                                CLOSE
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
@@ -355,7 +368,7 @@ function EventRow({
                     {!isPast && (
                         <button
                             onClick={() => onDelete(event.id)}
-                            className="px-3 py-1.5 text-zinc-500 font-bold text-[10px] uppercase tracking-widest hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                            className="px-3 py-1.5 text-zinc-700 font-bold text-[10px] uppercase tracking-widest hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
                             title="Delete event"
                         >
                             Delete

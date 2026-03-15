@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, User, MessageSquare } from 'lucide-react';
+import { Bell, User, MessageSquare, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/context/AuthContext';
 
@@ -9,9 +9,10 @@ interface HeaderProps {
     userName: string;
     userPhoto?: string | null;
     role: string | null;
+    adminNotificationCount?: number;
 }
 
-export default function Header({ userName, userPhoto, role }: HeaderProps) {
+export default function Header({ userName, userPhoto, role, adminNotificationCount = 0 }: HeaderProps) {
     const { user } = useAuth();
     const [unreadCount, setUnreadCount] = useState(0);
     const [latestSenderId, setLatestSenderId] = useState<string | null>(null);
@@ -55,6 +56,8 @@ export default function Header({ userName, userPhoto, role }: HeaderProps) {
         };
     }, [user]);
 
+    const totalUnread = unreadCount + adminNotificationCount;
+
     return (
         <header className="flex items-center justify-between pt-6 pb-2 px-8">
             <div className="hidden md:block">
@@ -68,9 +71,9 @@ export default function Header({ userName, userPhoto, role }: HeaderProps) {
                         className="relative w-12 h-12 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-sm hover:scale-105 transition-transform"
                     >
                         <Bell size={20} />
-                        {unreadCount > 0 && (
+                        {totalUnread > 0 && (
                             <span className="absolute top-2 right-2 flex min-w-4 h-4 items-center justify-center px-1 bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-white">
-                                {unreadCount}
+                                {totalUnread}
                             </span>
                         )}
                     </button>
@@ -79,16 +82,31 @@ export default function Header({ userName, userPhoto, role }: HeaderProps) {
                         <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-zinc-100 overflow-hidden z-50">
                             <div className="p-4 border-b border-zinc-50 flex items-center justify-between">
                                 <h3 className="font-bold text-zinc-900">Notifications</h3>
-                                {unreadCount > 0 && (
-                                    <span className="bg-[#ccf381]/20 text-green-800 text-xs font-bold px-2 py-1 rounded-md">{unreadCount} new</span>
+                                {totalUnread > 0 && (
+                                    <span className="bg-[#ccf381]/20 text-green-800 text-xs font-bold px-2 py-1 rounded-md">{totalUnread} new</span>
                                 )}
                             </div>
-                            <div className="max-h-[300px] overflow-y-auto">
-                                {unreadCount > 0 ? (
+                            <div className="max-h-[350px] overflow-y-auto divide-y divide-zinc-50">
+                                {adminNotificationCount > 0 && (
+                                    <Link 
+                                        href="/dashboard/admin/workshops"
+                                        onClick={() => setIsDropdownOpen(false)}
+                                        className="flex items-start gap-4 p-4 hover:bg-zinc-50 transition-colors"
+                                    >
+                                        <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-[#0d9488]/10 text-[#0d9488] flex items-center justify-center">
+                                            <Users size={14} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-zinc-900">{adminNotificationCount} New Registration{adminNotificationCount > 1 ? 's' : ''}</p>
+                                            <p className="text-xs text-zinc-500 mt-1 font-medium">New attendees have joined your gatherings.</p>
+                                        </div>
+                                    </Link>
+                                )}
+                                {unreadCount > 0 && (
                                     <Link 
                                         href={`/dashboard/${role === 'admin' ? 'admin' : 'user'}/messages${latestSenderId ? `?open=${latestSenderId}` : ''}`}
                                         onClick={() => setIsDropdownOpen(false)}
-                                        className="flex items-start gap-4 p-4 hover:bg-zinc-50 transition-colors border-l-4 border-transparent hover:border-[#ccf381]"
+                                        className="flex items-start gap-4 p-4 hover:bg-zinc-50 transition-colors"
                                     >
                                         <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-[#ccf381]/20 text-green-800 flex items-center justify-center">
                                             <MessageSquare size={14} />
@@ -98,7 +116,8 @@ export default function Header({ userName, userPhoto, role }: HeaderProps) {
                                             <p className="text-xs text-zinc-500 mt-1 font-medium">Click to open your inbox and reply.</p>
                                         </div>
                                     </Link>
-                                ) : (
+                                )}
+                                {totalUnread === 0 && (
                                     <div className="py-10 px-4 text-center">
                                         <div className="w-12 h-12 rounded-full bg-zinc-50 flex items-center justify-center mx-auto mb-3">
                                             <Bell size={20} className="text-zinc-300" />
