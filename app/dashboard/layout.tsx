@@ -18,6 +18,7 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const { user, loading, role, selectedModules } = useAuth();
     const [notificationCount, setNotificationCount] = useState(0);
+    const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
     const modules = getModulesForUser(selectedModules, role);
 
@@ -41,23 +42,38 @@ export default function DashboardLayout({
     }, [user, loading, role, router, pathname]);
 
     useEffect(() => {
-        if (role === 'admin') {
-            const fetchNotifications = async () => {
+        const fetchCounts = async () => {
+            if (!user) return;
+            
+            // Fetch unread messages for all users
+            try {
+                const msgRes = await fetch(`/api/messages/unread?userId=${user.uid}`);
+                if (msgRes.ok) {
+                    const data = await msgRes.json();
+                    setUnreadMessagesCount(data.count || 0);
+                }
+            } catch (e) {
+                console.error('Failed to fetch message count');
+            }
+
+            // Fetch admin notifications if applicable
+            if (role === 'admin') {
                 try {
-                    const res = await fetch('/api/admin/notifications/unread-count');
-                    if (res.ok) {
-                        const data = await res.json();
+                    const notifyRes = await fetch('/api/admin/notifications/unread-count');
+                    if (notifyRes.ok) {
+                        const data = await notifyRes.json();
                         setNotificationCount(data.count);
                     }
                 } catch (e) {
-                    console.error('Failed to fetch notifications');
+                    console.error('Failed to fetch admin notifications');
                 }
-            };
-            fetchNotifications();
-            const interval = setInterval(fetchNotifications, 60000);
-            return () => clearInterval(interval);
-        }
-    }, [role]);
+            }
+        };
+
+        fetchCounts();
+        const interval = setInterval(fetchCounts, 30000); // 30s interval
+        return () => clearInterval(interval);
+    }, [user, role]);
 
     if (loading) {
         return (
@@ -86,12 +102,19 @@ export default function DashboardLayout({
                 role={role}
                 onLogout={handleLogout}
                 notificationCount={notificationCount}
+                unreadMessagesCount={unreadMessagesCount}
             />
 
             <div className="lg:pl-[240px]">
                 <div className="h-16 lg:hidden" />
-                <Header userName={userName} userPhoto={userPhoto} role={role} adminNotificationCount={notificationCount} />
-                <main className="px-6 pb-6 lg:px-8 lg:pb-8 pt-0">{children}</main>
+                <Header 
+                    userName={userName} 
+                    userPhoto={userPhoto} 
+                    role={role} 
+                    adminNotificationCount={notificationCount}
+                    messageUnreadCount={unreadMessagesCount}
+                />
+                <main className="px-4 pb-6 lg:px-8 lg:pb-8 pt-0">{children}</main>
             </div>
         </div>
     );

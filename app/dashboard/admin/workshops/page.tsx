@@ -91,88 +91,88 @@ export default function AdminEventsPage() {
     const pastEvents = events.filter(e => new Date(e.date) < new Date()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
-        <div className="max-w-5xl mx-auto p-8 space-y-12 relative">
+        <div className="max-w-5xl mx-auto p-4 lg:p-8 space-y-8 lg:space-y-12 relative pb-24">
             <div className="space-y-1">
-                <h1 className="text-3xl font-black text-zinc-900 tracking-tight">Events Management</h1>
-                <p className="text-zinc-500 font-bold text-sm">Upload and manage church events</p>
+                <h1 className="text-2xl lg:text-3xl font-black text-zinc-900 tracking-tight">Events Management</h1>
+                <p className="text-zinc-500 font-bold text-xs lg:text-sm">Upload and manage church events</p>
             </div>
 
             {/* Upload Form - Integrated into Page */}
             <div className="w-full">
-                <div className="space-y-8">
+                <div className="space-y-6 lg:space-y-8">
                     <div className="flex items-center gap-3">
-                        <h2 className="text-sm font-black text-zinc-900 uppercase tracking-[0.2em]">
+                        <h2 className="text-[10px] lg:text-sm font-black text-zinc-900 uppercase tracking-[0.2em]">
                             Create New Event
                         </h2>
                         <div className="h-px flex-1 bg-zinc-100"></div>
                     </div>
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5">
                         <div>
-                            <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Title</label>
+                            <label className="block text-[10px] font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Title</label>
                             <input
                                 required
                                 type="text"
                                 name="title"
                                 value={formData.title}
                                 onChange={handleInputChange}
-                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
+                                className="w-full px-4 lg:px-5 py-3 lg:py-4 bg-zinc-50 border border-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
                                 placeholder="Event Title"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Description</label>
+                            <label className="block text-[10px] font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Description</label>
                             <textarea
                                 required
                                 name="description"
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 rows={3}
-                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all resize-none font-bold text-sm"
+                                className="w-full px-4 lg:px-5 py-3 lg:py-4 bg-zinc-50 border border-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all resize-none font-bold text-sm"
                                 placeholder="Short description..."
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
                             <div>
-                                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Date</label>
+                                <label className="block text-[10px] font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Date</label>
                                 <input
                                     required
                                     type="date"
                                     name="date"
                                     value={formData.date}
                                     onChange={handleInputChange}
-                                    className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-black text-sm text-zinc-700"
+                                    className="w-full px-4 lg:px-5 py-3 lg:py-4 bg-zinc-50 border border-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-black text-sm text-zinc-700"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Time</label>
+                                <label className="block text-[10px] font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Time</label>
                                 <input
                                     required
                                     type="text"
                                     name="time"
                                     value={formData.time}
                                     onChange={handleInputChange}
-                                    className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
+                                    className="w-full px-4 lg:px-5 py-3 lg:py-4 bg-zinc-50 border border-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
                                     placeholder="e.g. 7:00 PM"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Location</label>
+                            <label className="block text-[10px] font-bold text-zinc-700 uppercase mb-1.5 ml-1 tracking-wider">Location</label>
                             <input
                                 required
                                 type="text"
                                 name="location"
                                 value={formData.location}
                                 onChange={handleInputChange}
-                                className="w-full px-5 py-4 bg-zinc-50 border border-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
+                                className="w-full px-4 lg:px-5 py-3 lg:py-4 bg-zinc-50 border border-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488]/10 transition-all font-bold text-sm"
                                 placeholder="Event Location"
                             />
                         </div>
-                        <div className="flex justify-end mt-6">
+                        <div className="flex justify-end mt-4">
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="px-10 py-3.5 bg-[#0d9488] text-white rounded-md font-black text-xs uppercase tracking-widest shadow-xl shadow-[#0d9488]/20 hover:bg-[#0d9488]/90 transition-all disabled:opacity-50 flex items-center justify-center"
+                                className="w-full lg:w-auto px-10 py-3.5 bg-[#0d9488] text-white rounded-lg font-black text-[10px] uppercase tracking-widest shadow-xl shadow-[#0d9488]/20 hover:bg-[#0d9488]/90 transition-all disabled:opacity-50 flex items-center justify-center"
                             >
                                 {submitting ? <Loader2 className="animate-spin" size={18} /> : 'CREATE EVENT'}
                             </button>
@@ -182,29 +182,29 @@ export default function AdminEventsPage() {
             </div>
 
             {/* Registrations View - Inline */}
-            <div id="registrations-view" className="space-y-8 scroll-mt-10">
+            <div id="registrations-view" className="space-y-6 lg:space-y-8 scroll-mt-20">
                 {selectedEventRegs ? (
-                    <div className="bg-white rounded-md border border-zinc-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
-                        <div className="p-8 border-b border-zinc-50 bg-zinc-50 flex items-center justify-between">
+                    <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
+                        <div className="p-6 lg:p-8 border-b border-zinc-50 bg-zinc-50 flex items-start lg:items-center justify-between gap-4">
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
                                     <button 
                                         onClick={() => setSelectedEventRegs(null)}
                                         className="text-[10px] font-black uppercase tracking-widest text-[#0d9488] hover:translate-x-[-4px] transition-transform flex items-center gap-1"
                                     >
-                                        ← Back to events
+                                        ← Back
                                     </button>
                                 </div>
-                                <h3 className="text-2xl font-black text-zinc-900 tracking-tight flex items-center gap-4">
+                                <h3 className="text-xl lg:text-2xl font-black text-zinc-900 tracking-tight flex flex-wrap items-center gap-3 lg:gap-4">
                                     {selectedEventRegs.title}
-                                    <span className="px-3 py-1 bg-white border border-zinc-100 rounded-md text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                    <span className="px-3 py-1 bg-white border border-zinc-100 rounded-md text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-zinc-400">
                                         {selectedEventRegs.regs.length} REGISTERED
                                     </span>
                                 </h3>
                             </div>
                             <button 
                                 onClick={() => setSelectedEventRegs(null)}
-                                className="p-3 hover:bg-zinc-200 rounded-full transition-colors"
+                                className="p-2 lg:p-3 hover:bg-zinc-200 rounded-full transition-colors flex-shrink-0"
                             >
                                 <X size={20} className="text-zinc-400" />
                             </button>
@@ -212,28 +212,31 @@ export default function AdminEventsPage() {
                         
                         <div className="divide-y divide-zinc-50">
                             {selectedEventRegs.regs.length === 0 ? (
-                                <div className="py-24 text-center">
-                                    <p className="font-black text-xs uppercase tracking-[0.2em] text-zinc-300 italic">No registrations for this event yet.</p>
+                                <div className="py-16 lg:py-24 text-center">
+                                    <p className="font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] text-zinc-300 italic">No registrations for this event yet.</p>
                                 </div>
                             ) : (
                                 selectedEventRegs.regs.map((reg) => (
-                                    <div key={reg.id} className="p-8 flex items-center justify-between group hover:bg-zinc-50/50 transition-all">
-                                        <div className="flex items-center gap-6">
+                                    <div key={reg.id} className="p-4 lg:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:bg-zinc-50/50 transition-all">
+                                        <div className="flex items-center gap-4 lg:gap-6">
+                                            <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 font-black text-sm">
+                                                {reg.userName.charAt(0)}
+                                            </div>
                                             <div>
-                                                <p className="font-extrabold text-zinc-900 text-lg leading-tight">{reg.userName}</p>
-                                                <p className="text-sm font-medium text-zinc-400 mt-0.5">{reg.userEmail}</p>
+                                                <p className="font-extrabold text-zinc-900 text-base lg:text-lg leading-tight">{reg.userName}</p>
+                                                <p className="text-xs lg:text-sm font-medium text-zinc-400 mt-0.5">{reg.userEmail}</p>
                                             </div>
                                         </div>
                                         
-                                        <div className="flex items-center gap-8">
-                                            <div className="text-right hidden sm:block">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-300 mb-1">Registered On</p>
-                                                <p className="text-xs font-bold text-zinc-900">{format(new Date(reg.registeredAt), 'MMM dd, yyyy')}</p>
+                                        <div className="flex items-center justify-between sm:justify-end gap-4 lg:gap-8 border-t sm:border-t-0 pt-4 sm:pt-0">
+                                            <div className="text-left sm:text-right">
+                                                <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-zinc-300 mb-0.5 lg:mb-1">Date</p>
+                                                <p className="text-[10px] lg:text-xs font-bold text-zinc-900">{format(new Date(reg.registeredAt), 'MMM dd, yyyy')}</p>
                                             </div>
                                             
                                             <Link 
                                                 href={`/dashboard/admin/messages?open=${reg.userId || ''}`}
-                                                className={`px-6 py-2.5 bg-zinc-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all flex items-center gap-2 shadow-lg shadow-zinc-900/10 ${!reg.userId ? 'opacity-50' : ''}`}
+                                                className={`px-4 lg:px-6 py-2 lg:py-2.5 bg-zinc-900 text-white rounded-lg text-[9px] lg:text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all flex items-center gap-2 shadow-lg shadow-zinc-900/10 ${!reg.userId ? 'opacity-50 pointer-events-none' : ''}`}
                                             >
                                                 <MessageSquare size={14} />
                                                 Message
@@ -247,25 +250,25 @@ export default function AdminEventsPage() {
                 ) : null}
 
                 <div className={`${selectedEventRegs ? 'opacity-30 pointer-events-none' : ''} transition-opacity duration-500`}>
-                    <div className="grid lg:grid-cols-2 gap-16">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
                         {/* Upcoming Events Table */}
                         <section>
-                            <div className="flex items-center gap-3 mb-6">
-                                <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Upcoming Events</h3>
+                            <div className="flex items-center gap-3 mb-4 lg:mb-6">
+                                <h3 className="text-[10px] lg:text-sm font-black text-zinc-900 uppercase tracking-widest">Upcoming</h3>
                                 <div className="h-px flex-1 bg-zinc-100"></div>
                             </div>
                             {upcomingEvents.length === 0 ? (
-                                <div className="py-12 text-center text-zinc-400 font-medium border-2 border-dashed border-zinc-100 rounded-md">
+                                <div className="py-8 lg:py-12 text-center text-zinc-400 text-xs font-medium border-2 border-dashed border-zinc-100 rounded-xl">
                                     No upcoming events.
                                 </div>
                             ) : (
-                                <div className="min-w-0 overflow-hidden">
-                                    <table className="w-full text-sm text-left border-collapse">
+                                <div className="overflow-x-auto no-scrollbar">
+                                    <table className="w-full text-xs lg:text-sm text-left border-collapse">
                                         <thead>
                                             <tr className="border-b border-zinc-100">
-                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Date</th>
-                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Title</th>
-                                                <th className="py-3 text-right"></th>
+                                                <th className="py-2 lg:py-3 pr-4 font-bold text-zinc-800 uppercase text-[9px] lg:text-[10px] tracking-widest whitespace-nowrap">Date</th>
+                                                <th className="py-2 lg:py-3 pr-4 font-bold text-zinc-800 uppercase text-[9px] lg:text-[10px] tracking-widest">Title</th>
+                                                <th className="py-2 lg:py-3 text-right"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-50">
@@ -286,22 +289,22 @@ export default function AdminEventsPage() {
 
                         {/* Past Events Table */}
                         <section>
-                            <div className="flex items-center gap-3 mb-6">
-                                <h3 className="text-sm font-black text-zinc-900/40 uppercase tracking-widest">Past Events</h3>
+                            <div className="flex items-center gap-3 mb-4 lg:mb-6">
+                                <h3 className="text-[10px] lg:text-sm font-black text-zinc-900/40 uppercase tracking-widest">Past</h3>
                                 <div className="h-px flex-1 bg-zinc-100/50"></div>
                             </div>
                             {pastEvents.length === 0 ? (
-                                <div className="py-12 text-center text-zinc-400 font-medium border-2 border-dashed border-zinc-100 rounded-md opacity-50">
+                                <div className="py-8 lg:py-12 text-center text-zinc-400 text-xs font-medium border-2 border-dashed border-zinc-100 rounded-xl opacity-50">
                                     No past events.
                                 </div>
                             ) : (
-                                <div className="min-w-0 overflow-hidden opacity-80">
-                                    <table className="w-full text-sm text-left border-collapse">
+                                <div className="overflow-x-auto no-scrollbar opacity-80">
+                                    <table className="w-full text-xs lg:text-sm text-left border-collapse">
                                         <thead>
                                             <tr className="border-b border-zinc-100">
-                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Date</th>
-                                                <th className="py-3 pr-4 font-bold text-zinc-800 uppercase text-[10px] tracking-widest">Title</th>
-                                                <th className="py-3 text-right"></th>
+                                                <th className="py-2 lg:py-3 pr-4 font-bold text-zinc-800 uppercase text-[9px] lg:text-[10px] tracking-widest whitespace-nowrap">Date</th>
+                                                <th className="py-2 lg:py-3 pr-4 font-bold text-zinc-800 uppercase text-[9px] lg:text-[10px] tracking-widest">Title</th>
+                                                <th className="py-2 lg:py-3 text-right"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-50">
@@ -340,33 +343,34 @@ function EventRow({
 }) {
     return (
         <tr className="group hover:bg-zinc-50/50 transition-colors">
-            <td className="py-4 pr-4">
-                <div className="flex items-baseline gap-1.5 min-w-[60px]">
-                    <span className="text-base font-black text-black">{format(new Date(event.date), 'dd')}</span>
-                    <span className="text-[10px] font-bold uppercase text-zinc-600">{format(new Date(event.date), 'MMM')}</span>
+            <td className="py-3 lg:py-4 pr-4">
+                <div className="flex items-baseline gap-1 lg:gap-1.5 min-w-[50px] lg:min-w-[60px]">
+                    <span className="text-sm lg:text-base font-black text-black">{format(new Date(event.date), 'dd')}</span>
+                    <span className="text-[8px] lg:text-[10px] font-bold uppercase text-zinc-600">{format(new Date(event.date), 'MMM')}</span>
                 </div>
             </td>
-            <td className="py-4 pr-4 min-w-[120px]">
-                <div className="font-bold text-black truncate group-hover:text-zinc-800 transition-colors" title={event.title}>
+            <td className="py-3 lg:py-4 pr-2 lg:pr-4 min-w-[100px] lg:min-w-[150px]">
+                <div className="font-bold text-black truncate max-w-[80px] sm:max-w-[200px] lg:max-w-none group-hover:text-zinc-800 transition-colors" title={event.title}>
                     {event.title}
                 </div>
-                <div className="text-[10px] text-zinc-600 font-bold">{event.time}</div>
+                <div className="text-[9px] lg:text-[10px] text-zinc-600 font-bold">{event.time}</div>
             </td>
-            <td className="py-4 text-right whitespace-nowrap">
-                <div className="flex items-center justify-end gap-2">
+            <td className="py-3 lg:py-4 text-right whitespace-nowrap">
+                <div className="flex items-center justify-end gap-1.5 lg:gap-2">
                     <button
                         onClick={onViewRegs}
-                        className="px-3 py-1.5 bg-zinc-50 text-zinc-900 font-black text-[9px] uppercase tracking-[0.1em] rounded-md hover:bg-[#0d9488] hover:text-white transition-all flex items-center gap-1.5"
+                        className="px-2 lg:px-3 py-1 lg:py-1.5 bg-zinc-50 text-zinc-900 font-black text-[8px] lg:text-[9px] uppercase tracking-[0.05em] lg:tracking-[0.1em] rounded-md hover:bg-[#0d9488] hover:text-white transition-all flex items-center gap-1 lg:gap-1.5"
                     >
-                        {event.registrationCount || 0} REGS
+                        {event.registrationCount || 0} <span className="hidden sm:inline">REGS</span>
                     </button>
                     {!isPast && (
                         <button
                             onClick={() => onDelete(event.id)}
-                            className="px-3 py-1.5 text-zinc-700 font-bold text-[10px] uppercase tracking-widest hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                            className="p-1 lg:px-3 lg:py-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
                             title="Delete event"
                         >
-                            Delete
+                            <Trash2 size={14} className="lg:hidden" />
+                            <span className="hidden lg:inline text-[10px] font-bold uppercase tracking-widest">Delete</span>
                         </button>
                     )}
                 </div>

@@ -192,14 +192,14 @@ export default function MessagesModule({ isAdmin }: MessagesModuleProps) {
         <div className="space-y-6">
             <div className="mb-8">
                 <h2 className="text-3xl font-black text-zinc-900 tracking-tight">Messages</h2>
-                <p className="text-zinc-500 font-bold">Connect and communicate within the community.</p>
+                <p className="text-zinc-500 font-bold text-xs lg:text-sm">Connect and communicate within the community.</p>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-8 h-[70vh]">
+            <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 h-[calc(100vh-14rem)] lg:h-[70vh] min-h-[500px]">
                 {/* Threads List (Only show on mobile if no active user selected) */}
-                <div className={`lg:block bg-zinc-50 rounded-[3rem] p-6 border border-zinc-100 ${activeUser ? 'hidden' : 'block'}`}>
-                    <div className="flex items-center justify-between mb-6 px-4">
-                        <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Conversations</h3>
+                <div className={`lg:block bg-zinc-50 rounded-2xl lg:rounded-[3rem] p-4 lg:p-6 border border-zinc-100 ${activeUser ? 'hidden' : 'block'}`}>
+                    <div className="flex items-center justify-between mb-4 lg:mb-6 px-2 lg:px-4">
+                        <h3 className="text-[10px] lg:text-sm font-black text-zinc-900 uppercase tracking-widest">Conversations</h3>
                         <button onClick={fetchThreads} className="text-zinc-500 hover:text-zinc-900 transition-colors">
                             <ArrowLeft size={16} className="rotate-180" />
                         </button>
@@ -208,32 +208,32 @@ export default function MessagesModule({ isAdmin }: MessagesModuleProps) {
                     {threads.length === 0 ? (
                         <div className="text-center py-12 px-4">
                             <MessageSquare className="mx-auto text-zinc-300 mb-4" size={32} />
-                            <p className="text-zinc-500 text-sm font-medium">No contacts available.</p>
+                            <p className="text-zinc-500 text-xs font-medium">No contacts available.</p>
                         </div>
                     ) : (
-                        <div className="space-y-2 overflow-y-auto h-[calc(100%-4rem)] pr-2 custom-scrollbar">
+                        <div className="space-y-2 overflow-y-auto h-[calc(100%-3rem)] lg:h-[calc(100%-4rem)] pr-1 lg:pr-2 custom-scrollbar">
                             {threads.map(targetUser => (
                                 <button
                                     key={targetUser.id}
                                     onClick={() => setActiveUser(targetUser)}
-                                    className={`w-full flex items-center gap-4 p-4 rounded-3xl transition-all text-left ${
+                                    className={`w-full flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-3xl transition-all text-left ${
                                         activeUser?.id === targetUser.id 
                                             ? 'bg-zinc-900 text-white shadow-xl shadow-black/10' 
                                             : 'hover:bg-white hover:shadow-md'
                                     }`}
                                 >
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center overflow-hidden border-2 ${
+                                    <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center overflow-hidden border-2 flex-shrink-0 ${
                                         activeUser?.id === targetUser.id ? 'border-zinc-700 bg-zinc-800' : 'border-zinc-200 bg-zinc-100 text-zinc-400'
                                     }`}>
                                         {targetUser.photoURL ? (
                                             <img src={targetUser.photoURL} alt={targetUser.displayName} className="w-full h-full object-cover" />
                                         ) : (
-                                            <UserIcon size={20} />
+                                            <UserIcon size={18} />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`font-bold truncate ${activeUser?.id === targetUser.id ? 'text-white' : 'text-zinc-900'}`}>{targetUser.displayName}</p>
-                                        <p className={`text-xs truncate ${activeUser?.id === targetUser.id ? 'text-zinc-400' : 'text-zinc-500'}`}>{targetUser.role || (isAdmin ? 'User' : 'Admin')}</p>
+                                        <p className={`font-bold truncate text-sm lg:text-base ${activeUser?.id === targetUser.id ? 'text-white' : 'text-zinc-900'}`}>{targetUser.displayName}</p>
+                                        <p className={`text-[10px] lg:text-xs truncate ${activeUser?.id === targetUser.id ? 'text-zinc-400' : 'text-zinc-500'}`}>{targetUser.role || (isAdmin ? 'User' : 'Admin')}</p>
                                     </div>
                                 </button>
                             ))}
@@ -242,7 +242,7 @@ export default function MessagesModule({ isAdmin }: MessagesModuleProps) {
                 </div>
 
                 {/* Chat Area */}
-                <div className={`lg:col-span-2 bg-white rounded-[3rem] border border-zinc-200 flex flex-col overflow-hidden relative ${!activeUser ? 'hidden lg:flex' : 'flex'}`}>
+                <div className={`lg:col-span-2 bg-white rounded-2xl lg:rounded-[3rem] border border-zinc-200 flex flex-col overflow-hidden relative ${!activeUser ? 'hidden lg:flex' : 'flex'}`}>
                     {activeUser ? (
                         <>
                             {/* Chat Header */}

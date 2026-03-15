@@ -22,6 +22,7 @@ interface SidebarProps {
     role: string | null;
     onLogout: () => void;
     notificationCount?: number;
+    unreadMessagesCount?: number;
 }
 
 export default function Sidebar({
@@ -32,9 +33,12 @@ export default function Sidebar({
     role,
     onLogout,
     notificationCount = 0,
+    unreadMessagesCount = 0,
 }: SidebarProps) {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    const totalNotifications = notificationCount + unreadMessagesCount;
 
     const isActive = (route: string) => {
         return pathname === route || pathname.startsWith(route + '/');
@@ -127,24 +131,54 @@ export default function Sidebar({
 
     return (
         <>
-            {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#18181b] text-white p-4 h-16 flex items-center justify-between">
-                <span className="font-bold text-lg flex items-center gap-2">
+            {/* Mobile Header - Fixed at top */}
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#18181b] text-white px-5 h-16 flex items-center justify-between shadow-lg">
+                <Link href={dashboardRoute} className="font-bold text-lg tracking-tight">
                     Lifepoint
-                </span>
-                <button onClick={() => setMobileOpen(!mobileOpen)}>
-                    {mobileOpen ? <X /> : <Menu />}
-                </button>
+                </Link>
+                <div className="flex items-center gap-4">
+                    {/* Compact Notifications Trigger for Mobile */}
+                    <div className="relative p-2">
+                        <Link href={`/dashboard/${role === 'admin' ? 'admin' : 'user'}/messages`}>
+                            <MessageSquare size={20} className="text-zinc-400 hover:text-white transition-colors" />
+                            {totalNotifications > 0 && (
+                                <span className="absolute top-1 right-1 flex w-4 h-4 items-center justify-center bg-red-500 text-white text-[9px] font-black rounded-full">
+                                    {totalNotifications}
+                                </span>
+                            )}
+                        </Link>
+                    </div>
+
+                    <Link href="/profile" className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 overflow-hidden">
+                        {userPhoto ? (
+                            <img src={userPhoto} alt={userName} className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-[10px] font-bold">{userName.charAt(0).toUpperCase()}</span>
+                        )}
+                    </Link>
+
+                    <button 
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        className="p-2 ml-1 bg-zinc-800 rounded-lg text-white"
+                    >
+                        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+                    </button>
+                </div>
             </div>
 
-            {/* Mobile Sidebar */}
+            {/* Mobile Sidebar Overlay */}
             {mobileOpen && (
-                <div className="fixed inset-0 z-50 bg-[#18181b] lg:hidden">
-                    <div className="absolute top-4 right-4 text-white" onClick={() => setMobileOpen(false)}>
-                        <X />
-                    </div>
-                    <div className="h-full pt-16">
-                        {navContent}
+                <div className="fixed inset-0 z-[60] bg-[#18181b] lg:hidden animate-in fade-in slide-in-from-right duration-300">
+                    <div className="flex flex-col h-full">
+                        <div className="flex items-center justify-between p-5 border-b border-zinc-800">
+                            <span className="font-bold text-lg">Menu</span>
+                            <button onClick={() => setMobileOpen(false)} className="p-2 bg-zinc-800 rounded-lg">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto py-6" onClick={() => setMobileOpen(false)}>
+                            {navContent}
+                        </div>
                     </div>
                 </div>
             )}

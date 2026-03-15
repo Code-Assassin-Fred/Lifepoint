@@ -12,10 +12,13 @@ interface HeaderProps {
     adminNotificationCount?: number;
 }
 
-export default function Header({ userName, userPhoto, role, adminNotificationCount = 0 }: HeaderProps) {
-    const { user } = useAuth();
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [latestSenderId, setLatestSenderId] = useState<string | null>(null);
+export default function Header({ 
+    userName, 
+    userPhoto, 
+    role, 
+    adminNotificationCount = 0,
+    messageUnreadCount = 0 
+}: HeaderProps & { messageUnreadCount?: number }) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -29,37 +32,10 @@ export default function Header({ userName, userPhoto, role, adminNotificationCou
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout;
-
-        const fetchUnread = async () => {
-            if (!user) return;
-            try {
-                const res = await fetch(`/api/messages/unread?userId=${user.uid}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setUnreadCount(data.count || 0);
-                    setLatestSenderId(data.latestSenderId || null);
-                }
-            } catch (error) {
-                console.error("Failed to fetch unread count", error);
-            }
-        };
-
-        if (user) {
-            fetchUnread();
-            intervalId = setInterval(fetchUnread, 15000); // Check every 15s
-        }
-
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [user]);
-
-    const totalUnread = unreadCount + adminNotificationCount;
+    const totalUnread = messageUnreadCount + adminNotificationCount;
 
     return (
-        <header className="flex items-center justify-between pt-6 pb-2 px-8">
+        <header className="hidden lg:flex items-center justify-between pt-6 pb-2 px-8">
             <div className="hidden md:block">
             </div>
 
@@ -94,7 +70,7 @@ export default function Header({ userName, userPhoto, role, adminNotificationCou
                                         className="flex items-start gap-4 p-4 hover:bg-zinc-50 transition-colors"
                                     >
                                         <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-[#0d9488]/10 text-[#0d9488] flex items-center justify-center">
-                                            <Users size={14} />
+                                            <Bell size={14} />
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold text-zinc-900">{adminNotificationCount} New Registration{adminNotificationCount > 1 ? 's' : ''}</p>
@@ -102,17 +78,17 @@ export default function Header({ userName, userPhoto, role, adminNotificationCou
                                         </div>
                                     </Link>
                                 )}
-                                {unreadCount > 0 && (
+                                {messageUnreadCount > 0 && (
                                     <Link 
-                                        href={`/dashboard/${role === 'admin' ? 'admin' : 'user'}/messages${latestSenderId ? `?open=${latestSenderId}` : ''}`}
+                                        href={`/dashboard/${role === 'admin' ? 'admin' : 'user'}/messages`}
                                         onClick={() => setIsDropdownOpen(false)}
                                         className="flex items-start gap-4 p-4 hover:bg-zinc-50 transition-colors"
                                     >
-                                        <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-[#ccf381]/20 text-green-800 flex items-center justify-center">
+                                        <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center">
                                             <MessageSquare size={14} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-zinc-900">You have {unreadCount} unread message{unreadCount > 1 ? 's' : ''}</p>
+                                            <p className="text-sm font-bold text-zinc-900">You have {messageUnreadCount} unread message{messageUnreadCount > 1 ? 's' : ''}</p>
                                             <p className="text-xs text-zinc-500 mt-1 font-medium">Click to open your inbox and reply.</p>
                                         </div>
                                     </Link>
