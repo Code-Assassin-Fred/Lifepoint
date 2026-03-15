@@ -6,13 +6,13 @@ export const revalidate = 0;
 
 export async function GET(req: Request) {
     try {
-        const doc = await adminDb.collection('settings').doc('growthPathway').get();
+        const doc = await adminDb.collection('settings').doc('growthPathways').get();
         if (!doc.exists) {
-            return NextResponse.json({ steps: [] });
+            return NextResponse.json({ pathways: [] });
         }
         return NextResponse.json(doc.data());
     } catch (error) {
-        console.error('Error fetching growth pathway:', error);
+        console.error('Error fetching growth pathways:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
@@ -20,16 +20,16 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { steps } = body;
+        const { pathways } = body;
 
-        await adminDb.collection('settings').doc('growthPathway').set({
-            steps,
+        await adminDb.collection('settings').doc('growthPathways').set({
+            pathways,
             updatedAt: new Date()
         });
 
-        return NextResponse.json({ message: 'Pathway updated successfully' });
+        return NextResponse.json({ message: 'Pathways updated successfully' });
     } catch (error) {
-        console.error('Error updating growth pathway:', error);
+        console.error('Error updating growth pathways:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

@@ -85,7 +85,7 @@ export default function Sidebar({
                         key={module.id}
                         href={getModuleRoute(module.id, role)}
                         icon={module.icon}
-                        label={module.id === 'give' ? (role === 'admin' ? 'Giving' : 'Give') : module.label}
+                        label={module.label}
                         active={isActive(getModuleRoute(module.id, role))}
                     />
                 ))}
@@ -95,8 +95,8 @@ export default function Sidebar({
                     <Link
                         href="/dashboard/admin"
                         className={`flex items-center gap-3 px-10 py-2.5 mb-1 transition-all duration-300 font-bold text-sm ${pathname.startsWith('/dashboard/admin') && pathname !== dashboardRoute
-                                ? 'text-red-500'
-                                : 'text-zinc-400 hover:text-red-500'
+                            ? 'text-red-500'
+                            : 'text-zinc-400 hover:text-red-500'
                             }`}
                     >
                         <Shield size={20} strokeWidth={2} />

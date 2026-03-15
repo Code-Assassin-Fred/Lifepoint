@@ -16,22 +16,28 @@ export async function GET(req: Request) {
         const userDoc = await adminDb.collection('users').doc(userId).get();
         const userData = userDoc.data() || {};
 
-        // Fetch Global Pathway definition
-        const pathwayDoc = await adminDb.collection('settings').doc('growthPathway').get();
-        const globalSteps = pathwayDoc.exists 
-            ? pathwayDoc.data()?.steps || [] 
+        // Fetch Global Pathways definition
+        const pathwayDoc = await adminDb.collection('settings').doc('growthPathways').get();
+        const allPathways = pathwayDoc.exists 
+            ? pathwayDoc.data()?.pathways || [] 
             : [];
 
         // Map status based on user progress
         const completedSteps = userData.completedJourneySteps || [];
-        const activeStepId = userData.activeJourneyStep || (globalSteps.length > 0 ? globalSteps[0].id : null);
+        const activeStepId = userData.activeJourneyStep || null;
 
-        const steps = globalSteps.map((step: any) => ({
-            ...step,
-            status: completedSteps.includes(step.id) 
-                ? 'completed' 
-                : (step.id === activeStepId ? 'active' : 'locked')
+        const pathways = allPathways.map((pathway: any) => ({
+            ...pathway,
+            steps: (pathway.steps || []).map((step: any, idx: number) => ({
+                ...step,
+                status: completedSteps.includes(step.id)
+                    ? 'completed'
+                    : (step.id === activeStepId || (!activeStepId && idx === 0) ? 'active' : 'locked')
+            }))
         }));
+
+        // Legacy: flatten first pathway steps for backward compat
+        const steps = pathways.length > 0 ? pathways[0].steps : [];
 
         // Mentorship (if user has a mentor)
         let mentor = null;
@@ -56,6 +62,7 @@ export async function GET(req: Request) {
             streak: userData.streak || 0,
             badges: userData.badges?.length || 0,
             steps,
+            pathways,
             mentor
         });
     } catch (error) {

@@ -42,8 +42,9 @@ export default function GrowthModule() {
     const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [mentors, setMentors] = useState<any[]>([]);
-    const [pathwaySteps, setPathwaySteps] = useState<any[]>([]);
+    const [pathways, setPathways] = useState<any[]>([]);
     const [isSavingPathway, setIsSavingPathway] = useState(false);
+    const [editingPathwayIdx, setEditingPathwayIdx] = useState<number | null>(null);
 
     const refreshData = () => setRefreshTrigger(prev => prev + 1);
 
@@ -106,13 +107,11 @@ export default function GrowthModule() {
                     setMentors(data);
                 }
 
-                // Fetch Pathway (for admin editing)
-                if (isAdmin && activeTab === 'pathway') {
-                    const pathwayRes = await fetch('/api/development/pathway');
-                    if (pathwayRes.ok) {
-                        const data = await pathwayRes.json();
-                        setPathwaySteps(data.steps || []);
-                    }
+                // Fetch Pathways (for admin editing & user viewing)
+                const pathwayRes = await fetch('/api/development/pathway');
+                if (pathwayRes.ok) {
+                    const data = await pathwayRes.json();
+                    setPathways(data.pathways || []);
                 }
             } catch (error) {
                 console.error('Failed to fetch development data:', error);
@@ -241,40 +240,55 @@ export default function GrowthModule() {
 
             {activeTab === 'journey' && !isAdmin && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4 animate-in fade-in duration-500">
-                    {/* Left: Journey Map */}
+                    {/* Left: Pathways */}
                     <div className="lg:col-span-2 space-y-8">
-                        {/* Journey Map Visualization */}
                         <div className="py-6">
                             <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-10">Pathway Overview</h3>
 
-                            {journeyData?.steps?.length > 0 ? (
-                                <div className="relative">
-                                    {/* Connection Line */}
-                                    <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-zinc-100" />
-
-                                    <div className="space-y-12">
-                                        {journeyData.steps.map((step: any, i: number) => {
-                                            const Icon = step.icon === 'CheckCircle2' ? CheckCircle2 : step.icon === 'Clock' ? Clock : step.icon === 'Settings' ? Settings : Users;
-                                            return (
-                                                <div key={i} className="relative flex items-center gap-8 pl-20 group">
-                                                    <div className={`absolute left-0 w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all z-10 ${step.status === 'completed' ? 'bg-[#ccf381] border-[#ccf381] text-black' :
-                                                            step.status === 'active' ? 'bg-white border-[#0d9488] text-[#0d9488]' :
-                                                                'bg-zinc-50 border-zinc-100 text-zinc-300'
-                                                        }`}>
-                                                        <Icon size={28} />
-                                                    </div>
-
-                                                    <div className="flex-1 p-6 bg-zinc-50 rounded-3xl border border-zinc-100 group-hover:bg-[#ccf381]/5 transition-all">
-                                                        <div className="flex justify-between items-center mb-1">
-                                                            <h4 className={`font-black text-lg ${step.status === 'locked' ? 'text-zinc-400' : 'text-zinc-900'}`}>{step.title}</h4>
-                                                            {step.status === 'active' && <span className="px-3 py-1 bg-[#0d9488] text-white text-[10px] font-black rounded-lg">IN PROGRESS</span>}
-                                                        </div>
-                                                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{step.dur}</p>
-                                                    </div>
+                            {(journeyData?.pathways?.length > 0 || pathways.length > 0) ? (
+                                <div className="space-y-12">
+                                    {(journeyData?.pathways || pathways).map((pathway: any, pIdx: number) => {
+                                        const iconMap: Record<string, any> = { CheckCircle2, Clock, Settings, Users, BookMarked, Flame, Star, GraduationCap, Map, Trophy };
+                                        return (
+                                            <div key={pIdx} className="bg-zinc-50 rounded-[2.5rem] border border-zinc-100 p-8">
+                                                <div className="mb-8">
+                                                    <h4 className="text-2xl font-black text-zinc-900 tracking-tight mb-1">{pathway.title}</h4>
+                                                    {pathway.description && <p className="text-sm font-bold text-zinc-400">{pathway.description}</p>}
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
+                                                {pathway.steps?.length > 0 ? (
+                                                    <div className="relative">
+                                                        <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-zinc-200" />
+                                                        <div className="space-y-10">
+                                                            {pathway.steps.map((step: any, i: number) => {
+                                                                const Icon = iconMap[step.icon] || Clock;
+                                                                return (
+                                                                    <div key={i} className="relative flex items-center gap-8 pl-20 group">
+                                                                        <div className={`absolute left-0 w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all z-10 ${
+                                                                            step.status === 'completed' ? 'bg-[#ccf381] border-[#ccf381] text-black' :
+                                                                            step.status === 'active' ? 'bg-white border-[#0d9488] text-[#0d9488]' :
+                                                                            'bg-zinc-100 border-zinc-200 text-zinc-300'
+                                                                        }`}>
+                                                                            <Icon size={28} />
+                                                                        </div>
+                                                                        <div className="flex-1 p-6 bg-white rounded-3xl border border-zinc-100 group-hover:bg-[#ccf381]/5 transition-all">
+                                                                            <div className="flex justify-between items-center mb-1">
+                                                                                <h4 className={`font-black text-lg ${step.status === 'locked' ? 'text-zinc-400' : 'text-zinc-900'}`}>{step.title}</h4>
+                                                                                {step.status === 'active' && <span className="px-3 py-1 bg-[#0d9488] text-white text-[10px] font-black rounded-lg">IN PROGRESS</span>}
+                                                                                {step.status === 'completed' && <span className="px-3 py-1 bg-[#ccf381] text-black text-[10px] font-black rounded-lg">COMPLETED</span>}
+                                                                            </div>
+                                                                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{step.dur}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-zinc-400 font-bold">No steps defined yet.</p>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <div className="bg-white rounded-[3rem] p-16 text-center border-dashed border-2 border-zinc-200">
@@ -286,7 +300,6 @@ export default function GrowthModule() {
                                 </div>
                             )}
                         </div>
-
                     </div>
 
                     {/* Right: Quick Actions */}
@@ -532,102 +545,230 @@ export default function GrowthModule() {
                 <div className="px-4 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
                     <div className="flex justify-between items-center mb-6">
                         <div>
-                            <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight">Global Growth Pathway</h3>
-                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">Define the spiritual journey for all members</p>
+                            <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight">Growth Pathways</h3>
+                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">Create and manage spiritual journey pathways for all members</p>
                         </div>
-                        <button 
-                            onClick={async () => {
-                                setIsSavingPathway(true);
-                                try {
-                                    await fetch('/api/development/pathway', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ steps: pathwaySteps }),
-                                    });
-                                    refreshData();
-                                } catch (e) { console.error(e); }
-                                finally { setIsSavingPathway(false); }
-                            }}
-                            disabled={isSavingPathway}
-                            className="px-8 py-4 bg-zinc-900 text-white rounded-[2rem] font-black text-xs tracking-widest hover:bg-black transition-all flex items-center gap-3 disabled:opacity-50"
-                        >
-                            <CheckCircle2 size={18} />
-                            {isSavingPathway ? 'SAVING...' : 'SAVE PATHWAY'}
-                        </button>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => {
+                                    const newPathway = { id: `pathway-${Date.now()}`, title: 'New Pathway', description: '', steps: [] };
+                                    setPathways([...pathways, newPathway]);
+                                    setEditingPathwayIdx(pathways.length);
+                                }}
+                                className="px-6 py-4 bg-[#0d9488] text-white rounded-[2rem] font-black text-xs tracking-widest hover:bg-[#0f766e] transition-all flex items-center gap-3"
+                            >
+                                <Plus size={18} />
+                                NEW PATHWAY
+                            </button>
+                            <button 
+                                onClick={async () => {
+                                    setIsSavingPathway(true);
+                                    try {
+                                        await fetch('/api/development/pathway', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ pathways }),
+                                        });
+                                        refreshData();
+                                    } catch (e) { console.error(e); }
+                                    finally { setIsSavingPathway(false); }
+                                }}
+                                disabled={isSavingPathway}
+                                className="px-8 py-4 bg-zinc-900 text-white rounded-[2rem] font-black text-xs tracking-widest hover:bg-black transition-all flex items-center gap-3 disabled:opacity-50"
+                            >
+                                <CheckCircle2 size={18} />
+                                {isSavingPathway ? 'SAVING...' : 'SAVE ALL'}
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
-                        {pathwaySteps.map((step, idx) => (
-                            <div key={idx} className="p-8 bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm flex flex-col md:flex-row gap-6 items-start md:items-center">
-                                <div className="w-12 h-12 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 font-black">
-                                    {idx + 1}
-                                </div>
-                                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Step Title</label>
-                                        <input 
-                                            type="text" 
-                                            value={step.title}
-                                            onChange={(e) => {
-                                                const newSteps = [...pathwaySteps];
-                                                newSteps[idx].title = e.target.value;
-                                                setPathwaySteps(newSteps);
-                                            }}
-                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Duration</label>
-                                        <input 
-                                            type="text" 
-                                            value={step.dur}
-                                            onChange={(e) => {
-                                                const newSteps = [...pathwaySteps];
-                                                newSteps[idx].dur = e.target.value;
-                                                setPathwaySteps(newSteps);
-                                            }}
-                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Icon (Lucide)</label>
-                                        <select 
-                                            value={step.icon}
-                                            onChange={(e) => {
-                                                const newSteps = [...pathwaySteps];
-                                                newSteps[idx].icon = e.target.value;
-                                                setPathwaySteps(newSteps);
-                                            }}
-                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold"
-                                        >
-                                            <option value="CheckCircle2">CheckCircle</option>
-                                            <option value="Clock">Clock</option>
-                                            <option value="Settings">Settings</option>
-                                            <option value="Users">Users</option>
-                                            <option value="BookMarked">BookMarked</option>
-                                            <option value="Flame">Flame</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={() => {
-                                        const newSteps = pathwaySteps.filter((_, i) => i !== idx);
-                                        setPathwaySteps(newSteps);
-                                    }}
-                                    className="p-3 text-red-400 hover:bg-red-50 rounded-xl transition-all"
-                                >
-                                    <X size={20} />
-                                </button>
+                    {pathways.length === 0 ? (
+                        <div className="bg-white rounded-[3rem] p-20 text-center border-dashed border-2 border-zinc-200 flex flex-col items-center justify-center min-h-[300px]">
+                            <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
+                                <Map size={40} className="text-zinc-200" />
                             </div>
-                        ))}
-                        <button 
-                            onClick={() => setPathwaySteps([...pathwaySteps, { id: `step-${Date.now()}`, title: 'New Step', dur: 'TBD', icon: 'Clock' }])}
-                            className="w-full py-6 border-2 border-dashed border-zinc-100 rounded-[2.5rem] flex items-center justify-center gap-3 text-zinc-400 font-black hover:border-zinc-200 hover:text-zinc-600 transition-all"
-                        >
-                            <Plus size={20} />
-                            ADD JOURNEY STEP
-                        </button>
-                    </div>
+                            <h3 className="text-xl font-bold text-zinc-900 mb-3 uppercase tracking-tight">No Pathways Created</h3>
+                            <p className="text-zinc-500 mb-8 max-w-sm font-medium text-sm">
+                                Create your first pathway to guide members on their spiritual journey.
+                            </p>
+                            <button 
+                                onClick={() => {
+                                    const newPathway = { id: `pathway-${Date.now()}`, title: 'New Pathway', description: '', steps: [] };
+                                    setPathways([newPathway]);
+                                    setEditingPathwayIdx(0);
+                                }}
+                                className="px-8 py-4 bg-zinc-900 text-white rounded-[2rem] font-black text-xs tracking-widest hover:bg-black transition-all flex items-center gap-3"
+                            >
+                                <Plus size={18} />
+                                CREATE FIRST PATHWAY
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {pathways.map((pathway, pIdx) => (
+                                <div key={pathway.id || pIdx} className="bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm overflow-hidden">
+                                    {/* Pathway Header */}
+                                    <div 
+                                        className="p-8 flex items-center justify-between cursor-pointer hover:bg-zinc-50 transition-all"
+                                        onClick={() => setEditingPathwayIdx(editingPathwayIdx === pIdx ? null : pIdx)}
+                                    >
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 rounded-2xl bg-zinc-900 text-[#ccf381] flex items-center justify-center font-black text-lg">
+                                                {pIdx + 1}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xl font-black text-zinc-900 tracking-tight">{pathway.title || 'Untitled Pathway'}</h4>
+                                                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                                                    {pathway.steps?.length || 0} STEPS{pathway.description ? ` • ${pathway.description}` : ''}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setPathways(pathways.filter((_, i) => i !== pIdx));
+                                                    if (editingPathwayIdx === pIdx) setEditingPathwayIdx(null);
+                                                }}
+                                                className="p-3 text-red-400 hover:bg-red-50 rounded-xl transition-all"
+                                            >
+                                                <X size={20} />
+                                            </button>
+                                            <ChevronRight size={20} className={`text-zinc-300 transition-transform ${editingPathwayIdx === pIdx ? 'rotate-90' : ''}`} />
+                                        </div>
+                                    </div>
+
+                                    {/* Pathway Editor (Expanded) */}
+                                    {editingPathwayIdx === pIdx && (
+                                        <div className="px-8 pb-8 border-t border-zinc-100 pt-6 space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Pathway Title</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={pathway.title}
+                                                        onChange={(e) => {
+                                                            const updated = [...pathways];
+                                                            updated[pIdx] = { ...updated[pIdx], title: e.target.value };
+                                                            setPathways(updated);
+                                                        }}
+                                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold"
+                                                        placeholder="e.g. New Believers Journey"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Description</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={pathway.description || ''}
+                                                        onChange={(e) => {
+                                                            const updated = [...pathways];
+                                                            updated[pIdx] = { ...updated[pIdx], description: e.target.value };
+                                                            setPathways(updated);
+                                                        }}
+                                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold"
+                                                        placeholder="A brief description of this pathway"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Steps */}
+                                            <div className="space-y-3">
+                                                <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Journey Steps</h5>
+                                                {(pathway.steps || []).map((step: any, sIdx: number) => (
+                                                    <div key={sIdx} className="p-6 bg-zinc-50 rounded-2xl border border-zinc-100 flex flex-col md:flex-row gap-4 items-start md:items-center">
+                                                        <div className="w-10 h-10 rounded-xl bg-zinc-200 flex items-center justify-center text-zinc-500 font-black text-sm">
+                                                            {sIdx + 1}
+                                                        </div>
+                                                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Step Title</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    value={step.title}
+                                                                    onChange={(e) => {
+                                                                        const updated = [...pathways];
+                                                                        const newSteps = [...(updated[pIdx].steps || [])];
+                                                                        newSteps[sIdx] = { ...newSteps[sIdx], title: e.target.value };
+                                                                        updated[pIdx] = { ...updated[pIdx], steps: newSteps };
+                                                                        setPathways(updated);
+                                                                    }}
+                                                                    className="w-full px-4 py-3 bg-white border border-zinc-100 rounded-xl text-sm font-bold"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Duration</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    value={step.dur}
+                                                                    onChange={(e) => {
+                                                                        const updated = [...pathways];
+                                                                        const newSteps = [...(updated[pIdx].steps || [])];
+                                                                        newSteps[sIdx] = { ...newSteps[sIdx], dur: e.target.value };
+                                                                        updated[pIdx] = { ...updated[pIdx], steps: newSteps };
+                                                                        setPathways(updated);
+                                                                    }}
+                                                                    className="w-full px-4 py-3 bg-white border border-zinc-100 rounded-xl text-sm font-bold"
+                                                                    placeholder="e.g. 4 Weeks"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Icon</label>
+                                                                <select 
+                                                                    value={step.icon}
+                                                                    onChange={(e) => {
+                                                                        const updated = [...pathways];
+                                                                        const newSteps = [...(updated[pIdx].steps || [])];
+                                                                        newSteps[sIdx] = { ...newSteps[sIdx], icon: e.target.value };
+                                                                        updated[pIdx] = { ...updated[pIdx], steps: newSteps };
+                                                                        setPathways(updated);
+                                                                    }}
+                                                                    className="w-full px-4 py-3 bg-white border border-zinc-100 rounded-xl text-sm font-bold"
+                                                                >
+                                                                    <option value="CheckCircle2">CheckCircle</option>
+                                                                    <option value="Clock">Clock</option>
+                                                                    <option value="Settings">Settings</option>
+                                                                    <option value="Users">Users</option>
+                                                                    <option value="BookMarked">BookMarked</option>
+                                                                    <option value="Flame">Flame</option>
+                                                                    <option value="Star">Star</option>
+                                                                    <option value="GraduationCap">GraduationCap</option>
+                                                                    <option value="Trophy">Trophy</option>
+                                                                    <option value="Map">Map</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => {
+                                                                const updated = [...pathways];
+                                                                updated[pIdx] = { ...updated[pIdx], steps: (updated[pIdx].steps || []).filter((_: any, i: number) => i !== sIdx) };
+                                                                setPathways(updated);
+                                                            }}
+                                                            className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-all"
+                                                        >
+                                                            <X size={18} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button 
+                                                    onClick={() => {
+                                                        const updated = [...pathways];
+                                                        const newStep = { id: `step-${Date.now()}`, title: 'New Step', dur: 'TBD', icon: 'Clock' };
+                                                        updated[pIdx] = { ...updated[pIdx], steps: [...(updated[pIdx].steps || []), newStep] };
+                                                        setPathways(updated);
+                                                    }}
+                                                    className="w-full py-4 border-2 border-dashed border-zinc-100 rounded-2xl flex items-center justify-center gap-3 text-zinc-400 font-black text-xs hover:border-zinc-200 hover:text-zinc-600 transition-all"
+                                                >
+                                                    <Plus size={18} />
+                                                    ADD STEP
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
             <GrowthPlanModal isOpen={isPlanModalOpen} onClose={() => setIsPlanModalOpen(false)} />

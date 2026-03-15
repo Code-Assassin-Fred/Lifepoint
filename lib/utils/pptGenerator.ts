@@ -4,6 +4,7 @@ export interface SlideData {
     title: string;
     body: string;
     scripture?: string;
+    speakerNotes?: string;
 }
 
 export interface PresentationData {
@@ -89,10 +90,15 @@ export async function generatePPT(data: PresentationData) {
                 w: '90%',
                 h: 0.5,
                 fontSize: 14,
-                color: 'dc2626', // Red-600 like the app style
+                color: '0d9488', // Teal to match brand
                 italic: true,
                 bold: true
             });
+        }
+
+        // Speaker Notes
+        if (slide.speakerNotes) {
+            s.addNotes(slide.speakerNotes);
         }
 
         // Footer branding

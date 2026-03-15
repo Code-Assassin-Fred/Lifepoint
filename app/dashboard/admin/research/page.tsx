@@ -2,46 +2,50 @@
 
 import { useState, useEffect } from 'react';
 import {
-    Plus,
-    Search,
     Sparkles,
-    Layout,
-    BookMarked,
-    Calendar,
-    History,
-    ChevronRight,
     FileText,
     Save,
-    MoreVertical,
-    Download,
-    Loader2
+    Loader2,
+    Trash2,
+    ChevronRight,
+    Search as SearchIcon
 } from 'lucide-react';
 import PPTGeneratorModal from '@/components/admin/PPTGeneratorModal';
 
+interface Draft {
+    id: string;
+    title: string;
+    content: string;
+    category: string;
+    updatedAt?: string;
+}
+
 export default function ResearchPage() {
     const [isPPTModalOpen, setIsPPTModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
     const [currentNotes, setCurrentNotes] = useState('');
     const [title, setTitle] = useState('');
-    const [recentResearches, setRecentResearches] = useState<any[]>([]);
+    const [recentResearches, setRecentResearches] = useState<Draft[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [activeId, setActiveId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+    const fetchDrafts = async () => {
+        try {
+            const response = await fetch('/api/admin/research');
+            if (response.ok) {
+                const data = await response.json();
+                setRecentResearches(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch drafts:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchDrafts = async () => {
-            try {
-                const response = await fetch('/api/admin/research');
-                if (response.ok) {
-                    const data = await response.json();
-                    setRecentResearches(data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch drafts:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchDrafts();
     }, []);
 
@@ -49,26 +53,71 @@ export default function ResearchPage() {
         if (!title.trim() && !currentNotes.trim()) return;
         setSaving(true);
         try {
-            const response = await fetch('/api/admin/research', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: title || 'Untitled Draft',
-                    content: currentNotes,
-                    category: 'Draft'
-                }),
-            });
-            if (response.ok) {
-                // Refresh list
-                const res = await fetch('/api/admin/research');
-                if (res.ok) setRecentResearches(await res.json());
+            if (activeId) {
+                // Update existing
+                await fetch('/api/admin/research', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: activeId,
+                        title: title || 'Untitled Draft',
+                        content: currentNotes,
+                        category: 'Draft'
+                    }),
+                });
+            } else {
+                // Create new
+                const res = await fetch('/api/admin/research', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: title || 'Untitled Draft',
+                        content: currentNotes,
+                        category: 'Draft'
+                    }),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setActiveId(data.id);
+                }
             }
+            await fetchDrafts();
         } catch (error) {
             console.error('Failed to save draft:', error);
         } finally {
             setSaving(false);
         }
     };
+
+    const handleLoadDraft = (draft: Draft) => {
+        setTitle(draft.title);
+        setCurrentNotes(draft.content || '');
+        setActiveId(draft.id);
+    };
+
+    const handleNewDraft = () => {
+        setTitle('');
+        setCurrentNotes('');
+        setActiveId(null);
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await fetch(`/api/admin/research?id=${id}`, { method: 'DELETE' });
+            if (activeId === id) {
+                handleNewDraft();
+            }
+            await fetchDrafts();
+            setDeleteConfirm(null);
+        } catch (error) {
+            console.error('Failed to delete draft:', error);
+        }
+    };
+
+    const filteredDrafts = recentResearches.filter(d =>
+        d.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.content?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 pt-4">
@@ -83,12 +132,15 @@ export default function ResearchPage() {
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="px-6 py-2.5 bg-white text-zinc-700 rounded-xl text-sm font-bold hover:bg-zinc-100 transition-colors shadow-sm border border-zinc-200">
-                        Past Drafts
+                    <button
+                        onClick={handleNewDraft}
+                        className="px-6 py-2.5 bg-white text-zinc-700 rounded-xl text-sm font-bold hover:bg-zinc-100 transition-colors shadow-sm border border-zinc-200"
+                    >
+                        New Draft
                     </button>
                     <button
                         onClick={() => setIsPPTModalOpen(true)}
-                        className="px-6 py-2.5 bg-[#ccf381] text-black rounded-xl text-sm font-bold shadow-md shadow-[#ccf381]/20 hover:shadow-xl transition-all flex items-center gap-2"
+                        className="px-6 py-2.5 bg-[#0d9488] text-white rounded-xl text-sm font-bold shadow-md shadow-[#0d9488]/20 hover:bg-[#0d9488]/90 transition-all flex items-center gap-2"
                     >
                         <Sparkles size={18} />
                         Generate AI PPT
@@ -100,18 +152,22 @@ export default function ResearchPage() {
                 {/* Main Workspace */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_4px_20px_-1px_rgba(0,0,0,0.05)] border border-zinc-100 min-h-[600px] flex flex-col relative group">
-                        <div className="absolute top-8 right-8 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
+                        <div className="absolute top-8 right-8 flex gap-2">
+                            <button
                                 onClick={handleSave}
-                                disabled={saving}
-                                className="p-2 bg-zinc-50 text-zinc-400 hover:text-zinc-900 rounded-xl transition-all disabled:opacity-50"
+                                disabled={saving || (!title.trim() && !currentNotes.trim())}
+                                className="px-5 py-2 bg-[#0d9488] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#0d9488]/90 transition-all disabled:opacity-40 flex items-center gap-2 shadow-md shadow-[#0d9488]/20"
                             >
-                                {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                            </button>
-                            <button className="p-2 bg-zinc-50 text-zinc-400 hover:text-zinc-900 rounded-xl transition-all">
-                                <History size={18} />
+                                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                {activeId ? 'Update' : 'Save'}
                             </button>
                         </div>
+
+                        {activeId && (
+                            <div className="mb-4">
+                                <span className="text-[10px] font-black text-[#0d9488] uppercase tracking-widest">Editing Draft</span>
+                            </div>
+                        )}
 
                         <input
                             type="text"
@@ -130,8 +186,10 @@ export default function ResearchPage() {
 
                         <div className="mt-6 pt-6 border-t border-zinc-50 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <span className="inline-block w-2 h-2 rounded-full bg-[#ccf381]" />
-                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Workspace Autosaved</p>
+                                <span className="inline-block w-2 h-2 rounded-full bg-[#0d9488]" />
+                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                    {activeId ? 'Draft loaded' : 'New draft'}
+                                </p>
                             </div>
                             <div className="flex items-center gap-4">
                                 <p className="text-xs font-bold text-zinc-400">{currentNotes.split(/\s+/).filter(w => w).length} Words</p>
@@ -140,77 +198,83 @@ export default function ResearchPage() {
                     </div>
                 </div>
 
-                {/* Sidebar Tools */}
+                {/* Sidebar — Recent Drafts */}
                 <div className="space-y-6">
-                    {/* Search / Context */}
-                    <div className="bg-zinc-900 rounded-[2rem] p-6 text-white overflow-hidden relative group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#ccf381]/20 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-[#ccf381]/30 transition-all duration-700" />
-
-                        <h3 className="text-lg font-bold mb-4 relative z-10 flex items-center gap-2">
-                            <Layout size={20} className="text-[#ccf381]" />
-                            Prep Tools
-                        </h3>
-
-                        <div className="space-y-3 relative z-10">
-                            {[
-                                { icon: BookMarked, label: 'Scripture Explorer' },
-                                { icon: Calendar, label: 'Series Planner' },
-                                { icon: Sparkles, label: 'AI Illustration Gen' }
-                            ].map((item) => (
-                                <button key={item.label} className="w-full p-4 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-between group/item transition-all border border-white/5">
-                                    <div className="flex items-center gap-3">
-                                        <item.icon size={18} className="text-[#ccf381]" />
-                                        <span className="text-sm font-bold text-zinc-300 group-hover/item:text-white">{item.label}</span>
-                                    </div>
-                                    <ChevronRight size={16} className="text-zinc-600 group-hover/item:translate-x-1 transition-transform" />
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Recent Research */}
-                    <div className="bg-white rounded-[2rem] p-6 border border-zinc-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Recent Activity</h3>
-                            <button className="text-[10px] font-black text-[#0d9488] hover:text-zinc-600 uppercase tracking-widest">See All</button>
+                    <div className="bg-white rounded-[2rem] p-6 border border-zinc-100 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Saved Drafts</h3>
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{recentResearches.length}</span>
                         </div>
 
-                        <div className="space-y-4">
+                        {/* Search */}
+                        <div className="relative mb-4">
+                            <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-300" />
+                            <input
+                                type="text"
+                                placeholder="Search drafts..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-9 pr-3 py-2.5 bg-zinc-50 border border-zinc-100 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-[#0d9488]/10 focus:border-[#0d9488] transition-all"
+                            />
+                        </div>
+
+                        <div className="space-y-2 max-h-[500px] overflow-y-auto no-scrollbar">
                             {loading ? (
                                 <div className="flex justify-center py-4">
-                                    <Loader2 className="animate-spin text-teal-600" size={24} />
+                                    <Loader2 className="animate-spin text-[#0d9488]" size={24} />
                                 </div>
-                            ) : recentResearches.length > 0 ? (
-                                recentResearches.map((item) => (
-                                    <div key={item.id} className="group cursor-pointer">
+                            ) : filteredDrafts.length > 0 ? (
+                                filteredDrafts.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className={`group cursor-pointer p-3 rounded-xl border transition-all ${activeId === item.id ? 'bg-[#0d9488]/5 border-[#0d9488]/20' : 'border-transparent hover:bg-zinc-50'}`}
+                                        onClick={() => handleLoadDraft(item)}
+                                    >
                                         <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-[#ccf381] group-hover:text-black transition-all">
-                                                <FileText size={18} />
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${activeId === item.id ? 'bg-[#0d9488] text-white' : 'bg-zinc-50 text-zinc-400 group-hover:bg-[#ccf381] group-hover:text-black'}`}>
+                                                <FileText size={14} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="text-sm font-bold text-zinc-800 truncate group-hover:text-[#0d9488] transition-colors">{item.title}</h4>
+                                                <h4 className={`text-sm font-bold truncate transition-colors ${activeId === item.id ? 'text-[#0d9488]' : 'text-zinc-800 group-hover:text-[#0d9488]'}`}>
+                                                    {item.title}
+                                                </h4>
                                                 <p className="text-[10px] font-bold text-zinc-400 mt-0.5">
-                                                    {item.category} • {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'Just now'}
+                                                    {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Just now'}
                                                 </p>
                                             </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteConfirm === item.id ? handleDelete(item.id) : setDeleteConfirm(item.id);
+                                                }}
+                                                className={`p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${deleteConfirm === item.id ? 'bg-red-50 text-red-500 opacity-100' : 'text-zinc-300 hover:text-red-500 hover:bg-red-50'}`}
+                                                title={deleteConfirm === item.id ? 'Click again to confirm' : 'Delete draft'}
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-xs font-bold text-zinc-400 text-center py-4">No recent activity.</p>
+                                <p className="text-xs font-bold text-zinc-400 text-center py-8">
+                                    {searchQuery ? 'No matching drafts.' : 'No saved drafts yet.'}
+                                </p>
                             )}
                         </div>
                     </div>
 
-                    {/* Quick Insight / Tips */}
+                    {/* Quick Tip */}
                     <div className="p-6 bg-[#0d9488] rounded-[2rem] text-white overflow-hidden relative">
                         <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mb-8" />
-                        <h4 className="text-xs font-black uppercase tracking-widest mb-3 opacity-60">Prep Tip</h4>
+                        <h4 className="text-xs font-black uppercase tracking-widest mb-3 opacity-60">Workflow Tip</h4>
                         <p className="text-sm font-bold leading-relaxed mb-4">
-                            Use the <span className="text-[#ccf381]">AI Generator</span> to convert your notes into high-impact slides once your research is 70% complete.
+                            Draft your research notes, then use <span className="text-[#ccf381]">Generate AI PPT</span> to convert them into professional presentation slides. You can review and edit each slide before downloading.
                         </p>
-                        <button className="text-xs font-black text-white hover:text-black hover:bg-[#ccf381] py-2 px-4 rounded-xl border border-white/20 transition-all flex items-center gap-2">
-                            Learn More <ChevronRight size={14} />
+                        <button
+                            onClick={() => setIsPPTModalOpen(true)}
+                            className="text-xs font-black text-white hover:text-black hover:bg-[#ccf381] py-2 px-4 rounded-xl border border-white/20 transition-all flex items-center gap-2"
+                        >
+                            Try it Now <ChevronRight size={14} />
                         </button>
                     </div>
                 </div>

@@ -19,11 +19,11 @@ export default function DashboardLayout({
     const { user, loading, role, selectedModules } = useAuth();
 
     // Get modules based on role and selection
-    // Admin sees all modules, user sees only their selected modules
+    // Admin sees all modules (minus give), user sees only their selected modules
     const modules =
         role === 'admin'
-            ? getAllModules()
-            : getModulesForUser(selectedModules);
+            ? getModulesForUser(selectedModules, role)
+            : getModulesForUser(selectedModules, role);
 
     const handleLogout = async () => {
         await signOut(auth);

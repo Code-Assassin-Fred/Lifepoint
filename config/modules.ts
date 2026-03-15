@@ -90,7 +90,7 @@ export function getModuleRoute(moduleId: string, role: string | null): string {
 }
 
 // Helper to get modules for a user based on their selection
-export function getModulesForUser(selectedIds: string[], role: string | null): Module[] {
+export function getModulesForUser(selectedIds: string[], role: string | null = null): Module[] {
     const idMap: Record<string, string> = {
         church: 'home',
         bible: 'wisdom',
@@ -103,8 +103,8 @@ export function getModulesForUser(selectedIds: string[], role: string | null): M
     const normalizedIds = Array.from(new Set(selectedIds.map((id) => idMap[id] || id)));
     let modules = ALL_MODULES.filter((m) => normalizedIds.includes(m.id));
 
-    // Ensure 'give' is always present for all users
-    if (!modules.some(m => m.id === 'give')) {
+    // Ensure 'give' is always present for regular users (not admins)
+    if (role !== 'admin' && !modules.some(m => m.id === 'give')) {
         const giveModule = ALL_MODULES.find(m => m.id === 'give');
         if (giveModule) modules.push(giveModule);
     }
@@ -123,7 +123,9 @@ export function getModulesForUser(selectedIds: string[], role: string | null): M
 
     if (role === 'admin') {
         const adminSpecific = ALL_MODULES.filter(m => m.adminOnly);
-        return Array.from(new Set([...modules, ...adminSpecific]));
+        // Filter out 'give' for admin — giving is not automated, admins check accounts directly
+        const combined = Array.from(new Set([...modules, ...adminSpecific]));
+        return combined.filter(m => m.id !== 'give');
     }
 
     return modules;
