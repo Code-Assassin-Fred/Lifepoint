@@ -13,31 +13,61 @@ interface Stat {
 }
 
 export default function UserDashboardPage() {
-    const { user, role } = useAuth();
+    const { user, loading: authLoading, role, selectedModules } = useAuth();
     const allModules = getAllModules();
+    const [stats, setStats] = useState<Stat[]>([]);
+    const [loading, setLoading] = useState(true);
 
     // We filter modules to show as "Active Programs"
     // Using default background colors mapped from the admin tab style
-    const activePrograms = allModules.slice(0, 5).map((module, idx) => {
-        const colors = [
-            { tabColor: 'bg-teal-600', bgColor: 'bg-teal-50', tabLabel: 'Health' },
-            { tabColor: 'bg-sky-600', bgColor: 'bg-sky-50', tabLabel: 'Growth' },
-            { tabColor: 'bg-slate-700', bgColor: 'bg-slate-100', tabLabel: 'Focus' },
-            { tabColor: 'bg-emerald-600', bgColor: 'bg-emerald-50', tabLabel: 'Journey' },
-            { tabColor: 'bg-teal-700', bgColor: 'bg-teal-50', tabLabel: 'Sync' }
-        ];
-        return {
-            ...module,
-            ...colors[idx % colors.length]
-        };
-    });
+    const activePrograms = allModules
+        .filter(m => selectedModules.includes(m.id))
+        .map((module, idx) => {
+            const colors = [
+                { tabColor: 'bg-teal-600', bgColor: 'bg-teal-50', tabLabel: 'Health' },
+                { tabColor: 'bg-sky-600', bgColor: 'bg-sky-50', tabLabel: 'Growth' },
+                { tabColor: 'bg-slate-700', bgColor: 'bg-slate-100', tabLabel: 'Focus' },
+                { tabColor: 'bg-emerald-600', bgColor: 'bg-emerald-50', tabLabel: 'Journey' },
+                { tabColor: 'bg-teal-700', bgColor: 'bg-teal-50', tabLabel: 'Sync' }
+            ];
+            return {
+                ...module,
+                ...colors[idx % colors.length]
+            };
+        });
 
-    const [stats, setStats] = useState<Stat[]>([
-        { label: 'Bible engagement', value: '45', unit: 'mins' },
-        { label: 'Prayer Streak', value: '12', unit: 'days' },
-        { label: 'Community Hub', value: '8', unit: 'shares' },
-        { label: 'Growth XP', value: '840', unit: 'pts' },
-    ]);
+    useEffect(() => {
+        const fetchStats = async () => {
+            if (!user) return;
+            try {
+                const response = await fetch(`/api/user/stats?userId=${user.uid}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Map API stats to dashboard Stat interface
+                    const mapped: Stat[] = data.map((s: any) => ({
+                        label: s.label,
+                        value: s.value.replace(/[^\d]/g, ''),
+                        unit: s.value.includes('%') ? '%' : s.value.replace(/[\d]/g, '').trim() || (s.label.includes('XP') ? 'pts' : '')
+                    }));
+                    setStats(mapped);
+                }
+            } catch (error) {
+                console.error('Failed to fetch user stats:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStats();
+    }, [user]);
+
+    if (authLoading || loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-slate-50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-8 pb-20 pt-4 bg-slate-50 min-h-screen">

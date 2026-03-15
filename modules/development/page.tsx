@@ -24,12 +24,41 @@ export default function GrowthModule() {
     const { role, user } = useAuth();
     const isAdmin = role === 'admin';
     const [activeTab, setActiveTab] = useState<'journey' | 'plans' | 'mentorship'>('journey');
+    const [journeyData, setJourneyData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
     const tabs = [
         { id: 'journey', label: 'My Journey', icon: Trophy },
         { id: 'plans', label: 'Growth Plans', icon: BookMarked },
         { id: 'mentorship', label: 'Mentorship', icon: Users },
     ];
+
+    useEffect(() => {
+        const fetchJourney = async () => {
+            if (!user) return;
+            try {
+                const res = await fetch(`/api/user/development?userId=${user.uid}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setJourneyData(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch journey data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchJourney();
+    }, [user]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900" />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-10 pb-20 pt-4">
@@ -70,22 +99,22 @@ export default function GrowthModule() {
 
                             <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
                                 <div className="w-32 h-32 rounded-full border-4 border-[#ccf381] flex items-center justify-center relative">
-                                    <span className="text-4xl font-black">72%</span>
+                                    <span className="text-4xl font-black">{Math.round((journeyData.xp / (journeyData.xp + journeyData.xpNeeded)) * 100)}%</span>
                                     <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#ccf381] text-black rounded-full flex items-center justify-center">
                                         <Star size={20} fill="currentColor" />
                                     </div>
                                 </div>
                                 <div>
-                                    <h2 className="text-3xl font-black mb-2 tracking-tight">Level 4: Foundation Builder</h2>
-                                    <p className="text-zinc-400 font-bold mb-6">Next Milestone: Leadership Essentials (800 XP needed)</p>
+                                    <h2 className="text-3xl font-black mb-2 tracking-tight">Level {journeyData.level}: {journeyData.levelName}</h2>
+                                    <p className="text-zinc-400 font-bold mb-6">Next Milestone: {journeyData.nextMilestone} ({journeyData.xpNeeded} XP needed)</p>
                                     <div className="flex gap-4">
                                         <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
                                             <Flame size={16} className="text-[#ccf381]" />
-                                            <span className="text-xs font-black">12 DAY STREAK</span>
+                                            <span className="text-xs font-black">{journeyData.streak} DAY STREAK</span>
                                         </div>
                                         <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
                                             <Trophy size={16} className="text-[#ccf381]" />
-                                            <span className="text-xs font-black">24 BADGES</span>
+                                            <span className="text-xs font-black">{journeyData.badges} BADGES</span>
                                         </div>
                                     </div>
                                 </div>
@@ -101,30 +130,27 @@ export default function GrowthModule() {
                                 <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-zinc-100" />
 
                                 <div className="space-y-12">
-                                    {[
-                                        { status: 'completed', title: 'Believers Foundation', dur: '4 Weeks', icon: CheckCircle2 },
-                                        { status: 'completed', title: 'Life in Community', dur: '3 Weeks', icon: CheckCircle2 },
-                                        { status: 'active', title: 'Spiritual Gifts Discovery', dur: '2 Weeks', icon: Clock },
-                                        { status: 'locked', title: 'Leadership Level 1', dur: '6 Weeks', icon: Settings },
-                                        { status: 'locked', title: 'Mentorship Initiation', dur: 'Ongoing', icon: Users }
-                                    ].map((step, i) => (
-                                        <div key={i} className="relative flex items-center gap-8 pl-20 group">
-                                            <div className={`absolute left-0 w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all z-10 ${step.status === 'completed' ? 'bg-[#ccf381] border-[#ccf381] text-black' :
-                                                    step.status === 'active' ? 'bg-white border-[#0d9488] text-[#0d9488]' :
-                                                        'bg-zinc-50 border-zinc-100 text-zinc-300'
-                                                }`}>
-                                                <step.icon size={28} />
-                                            </div>
-
-                                            <div className="flex-1 p-6 bg-zinc-50 rounded-3xl border border-zinc-100 group-hover:bg-[#ccf381]/5 transition-all">
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <h4 className={`font-black text-lg ${step.status === 'locked' ? 'text-zinc-400' : 'text-zinc-900'}`}>{step.title}</h4>
-                                                    {step.status === 'active' && <span className="px-3 py-1 bg-[#0d9488] text-white text-[10px] font-black rounded-lg">IN PROGRESS</span>}
+                                    {journeyData.steps.map((step: any, i: number) => {
+                                        const Icon = step.icon === 'CheckCircle2' ? CheckCircle2 : step.icon === 'Clock' ? Clock : step.icon === 'Settings' ? Settings : Users;
+                                        return (
+                                            <div key={i} className="relative flex items-center gap-8 pl-20 group">
+                                                <div className={`absolute left-0 w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all z-10 ${step.status === 'completed' ? 'bg-[#ccf381] border-[#ccf381] text-black' :
+                                                        step.status === 'active' ? 'bg-white border-[#0d9488] text-[#0d9488]' :
+                                                            'bg-zinc-50 border-zinc-100 text-zinc-300'
+                                                    }`}>
+                                                    <Icon size={28} />
                                                 </div>
-                                                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{step.dur}</p>
+
+                                                <div className="flex-1 p-6 bg-zinc-50 rounded-3xl border border-zinc-100 group-hover:bg-[#ccf381]/5 transition-all">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <h4 className={`font-black text-lg ${step.status === 'locked' ? 'text-zinc-400' : 'text-zinc-900'}`}>{step.title}</h4>
+                                                        {step.status === 'active' && <span className="px-3 py-1 bg-[#0d9488] text-white text-[10px] font-black rounded-lg">IN PROGRESS</span>}
+                                                    </div>
+                                                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{step.dur}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -135,26 +161,24 @@ export default function GrowthModule() {
                         <div className="bg-white rounded-[3rem] p-8 border border-zinc-100 shadow-sm">
                             <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-6 border-b border-zinc-50 pb-4">Daily Habits</h3>
                             <div className="space-y-4">
-                                {[
-                                    { label: 'Scripture Reading', icon: BookMarked, done: true },
-                                    { label: 'Morning Prayer', icon: Flame, done: true },
-                                    { label: 'Devotional Entry', icon: CheckCircle2, done: false },
-                                    { label: 'Evening Reflection', icon: Clock, done: false }
-                                ].map((habit, i) => (
-                                    <div key={i} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${habit.done ? 'bg-zinc-50 border-zinc-100 text-zinc-400' : 'bg-white border-zinc-100 text-zinc-900 hover:border-[#ccf381]'
-                                        }`}>
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${habit.done ? 'bg-zinc-200' : 'bg-[#ccf381]/20 text-[#0d9488]'}`}>
-                                                <habit.icon size={16} />
-                                            </div>
-                                            <span className="text-sm font-bold">{habit.label}</span>
-                                        </div>
-                                        <button className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${habit.done ? 'bg-[#ccf381] border-[#ccf381] text-black' : 'border-zinc-200 hover:border-[#ccf381]'
+                                {journeyData.habits.map((habit: any, i: number) => {
+                                    const Icon = habit.icon === 'BookMarked' ? BookMarked : habit.icon === 'Flame' ? Flame : habit.icon === 'CheckCircle2' ? CheckCircle2 : Clock;
+                                    return (
+                                        <div key={i} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${habit.done ? 'bg-zinc-50 border-zinc-100 text-zinc-400' : 'bg-white border-zinc-100 text-zinc-900 hover:border-[#ccf381]'
                                             }`}>
-                                            {habit.done && <CheckCircle2 size={12} fill="currentColor" />}
-                                        </button>
-                                    </div>
-                                ))}
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${habit.done ? 'bg-zinc-200' : 'bg-[#ccf381]/20 text-[#0d9488]'}`}>
+                                                    <Icon size={16} />
+                                                </div>
+                                                <span className="text-sm font-bold">{habit.label}</span>
+                                            </div>
+                                            <button className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${habit.done ? 'bg-[#ccf381] border-[#ccf381] text-black' : 'border-zinc-200 hover:border-[#ccf381]'
+                                                }`}>
+                                                {habit.done && <CheckCircle2 size={12} fill="currentColor" />}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 

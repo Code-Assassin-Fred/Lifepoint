@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/context/AuthContext';
 import {
     Heart,
     ShieldCheck,
@@ -15,10 +16,39 @@ import {
 } from 'lucide-react';
 
 export default function GivePage() {
+    const { user } = useAuth();
     const [amount, setAmount] = useState('50');
     const [frequency, setFrequency] = useState('One-time');
+    const [projects, setProjects] = useState<any[]>([]);
+    const [history, setHistory] = useState<any[]>([]);
+    const [stats, setStats] = useState<any>({ raisedThisMonth: '$0', familiesHelped: '0' });
+    const [loading, setLoading] = useState(true);
 
     const suggestedAmounts = ['10', '25', '50', '100', '250', 'Custom'];
+
+    useEffect(() => {
+        const fetchSupport = async () => {
+            try {
+                const url = user ? `/api/user/support?userId=${user.uid}` : '/api/user/support';
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    setProjects(data.projects);
+                    setHistory(data.history);
+                    setStats({
+                        raisedThisMonth: `$${(data.stats.raisedThisMonth / 1000).toFixed(0)}k+`,
+                        familiesHelped: data.stats.familiesHelped.toLocaleString()
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch support data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSupport();
+    }, [user]);
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-12 pb-20 pt-4">
@@ -38,11 +68,11 @@ export default function GivePage() {
 
                         <div className="flex flex-wrap gap-8">
                             <div className="flex flex-col">
-                                <span className="text-3xl font-black text-[#ccf381]">$45k+</span>
+                                <span className="text-3xl font-black text-[#ccf381]">{stats.raisedThisMonth}</span>
                                 <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Raised this month</span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-3xl font-black text-[#ccf381]">1,200</span>
+                                <span className="text-3xl font-black text-[#ccf381]">{stats.familiesHelped}</span>
                                 <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Families Helped</span>
                             </div>
                         </div>
@@ -111,41 +141,40 @@ export default function GivePage() {
                 </div>
 
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    {[
-                        { title: 'New Community Center', raised: '$840k', goal: '$1.2M', progress: 70, icon: Globe, color: 'bg-teal-600' },
-                        { title: 'Global Mission Fund', raised: '$12k', goal: '$25k', progress: 48, icon: Zap, color: 'bg-sky-600' },
-                        { title: 'Food Drive 2025', raised: '$8.5k', goal: '$10k', progress: 85, icon: Users, color: 'bg-red-500' }
-                    ].map((project, i) => (
-                        <div key={i} className="bg-white rounded-[3rem] p-10 border border-zinc-100 shadow-sm group hover:-translate-y-2 transition-all duration-500">
-                            <div className="flex justify-between items-start mb-8">
-                                <div className={`w-14 h-14 ${project.color} text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                                    <project.icon size={24} />
-                                </div>
-                                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{project.progress}% FUNDED</span>
-                            </div>
-
-                            <h3 className="text-xl font-black text-zinc-900 mb-3">{project.title}</h3>
-
-                            <div className="space-y-4">
-                                <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
-                                    <div
-                                        className={`h-full ${project.color} transition-all duration-1000`}
-                                        style={{ width: `${project.progress}%` }}
-                                    />
-                                </div>
-                                <div className="flex justify-between items-center font-black text-[10px] uppercase tracking-widest">
-                                    <div className="flex flex-col">
-                                        <span className="text-zinc-400">Raised</span>
-                                        <span className="text-zinc-900 text-sm">{project.raised}</span>
+                    {projects.map((project, i) => {
+                        const Icon = project.icon === 'Globe' ? Globe : project.icon === 'Zap' ? Zap : Users;
+                        return (
+                            <div key={i} className="bg-white rounded-[3rem] p-10 border border-zinc-100 shadow-sm group hover:-translate-y-2 transition-all duration-500">
+                                <div className="flex justify-between items-start mb-8">
+                                    <div className={`w-14 h-14 ${project.color} text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                                        <Icon size={24} />
                                     </div>
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-zinc-400">Goal</span>
-                                        <span className="text-zinc-900 text-sm">{project.goal}</span>
+                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{project.progress}% FUNDED</span>
+                                </div>
+
+                                <h3 className="text-xl font-black text-zinc-900 mb-3">{project.title}</h3>
+
+                                <div className="space-y-4">
+                                    <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full ${project.color} transition-all duration-1000`}
+                                            style={{ width: `${project.progress}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between items-center font-black text-[10px] uppercase tracking-widest">
+                                        <div className="flex flex-col">
+                                            <span className="text-zinc-400">Raised</span>
+                                            <span className="text-zinc-900 text-sm">${(project.raised / 1000).toFixed(0)}k</span>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-zinc-400">Goal</span>
+                                            <span className="text-zinc-900 text-sm">${(project.goal / 1000000).toFixed(1)}M</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
@@ -163,25 +192,27 @@ export default function GivePage() {
                     </div>
 
                     <div className="space-y-4">
-                        {[
-                            { id: '#4829', date: 'Oct 01, 2025', amount: '$50.00', status: 'Succeeded', method: 'Visa •• 4242' },
-                            { id: '#4815', date: 'Sep 01, 2025', amount: '$50.00', status: 'Succeeded', method: 'Visa •• 4242' },
-                            { id: '#4792', date: 'Aug 14, 2025', amount: '$250.00', status: 'Succeeded', method: 'Apple Pay' }
-                        ].map((tx) => (
-                            <div key={tx.id} className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-zinc-50 rounded-3xl border border-zinc-100 group transition-all hover:bg-white hover:shadow-xl">
-                                <div className="flex items-center gap-6 mb-4 md:mb-0">
-                                    <span className="text-sm font-black text-zinc-900">{tx.amount}</span>
-                                    <div>
-                                        <p className="text-sm font-bold text-zinc-900">{tx.method}</p>
-                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Reference {tx.id} • {tx.date}</p>
+                        {history.length === 0 ? (
+                            <div className="py-20 text-center text-zinc-400 font-bold border border-dashed border-zinc-200 rounded-3xl">
+                                No contribution history yet.
+                            </div>
+                        ) : (
+                            history.map((tx) => (
+                                <div key={tx.id} className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-zinc-50 rounded-3xl border border-zinc-100 group transition-all hover:bg-white hover:shadow-xl">
+                                    <div className="flex items-center gap-6 mb-4 md:mb-0">
+                                        <span className="text-sm font-black text-zinc-900">${tx.amount}</span>
+                                        <div>
+                                            <p className="text-sm font-bold text-zinc-900">{tx.method || 'Contribution'}</p>
+                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Reference {tx.id.slice(0, 5)} • {tx.date}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-lg">Succeeded</span>
+                                        <ChevronRight size={18} className="text-zinc-200 group-hover:text-zinc-900 group-hover:translate-x-1 transition-all" />
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-6">
-                                    <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-lg">{tx.status}</span>
-                                    <ChevronRight size={18} className="text-zinc-200 group-hover:text-zinc-900 group-hover:translate-x-1 transition-all" />
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

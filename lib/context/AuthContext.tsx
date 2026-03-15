@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [selectedModules, setSelectedModules] = useState<string[]>([]);
     const [onboardingComplete, setOnboardingComplete] = useState(false);
     const [loading, setLoading] = useState(true);
+    const lastPingRef = useRef<number>(0);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
@@ -69,6 +70,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         return () => unsubscribeAuth();
     }, []);
+
+    // Activity tracking effect
+    useEffect(() => {
+        if (!user) return;
+
+        const PING_COOLDOWN = 5 * 60 * 1000; // 5 minutes
+
+        const pingActivity = async () => {
+            const now = Date.now();
+            if (now - lastPingRef.current < PING_COOLDOWN) return;
+
+            try {
+                await fetch('/api/user/activity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: user.uid }),
+                });
+                lastPingRef.current = now;
+            } catch (error) {
+                console.error('Failed to ping activity:', error);
+            }
+        };
+
+        // Ping on initial load and setup interval
+        pingActivity();
+        const intervalId = setInterval(pingActivity, 60000); // Check every minute
+
+        // Also ping on visibility change
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                pingActivity();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(intervalId);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [user]);
 
     return (
         <AuthContext.Provider

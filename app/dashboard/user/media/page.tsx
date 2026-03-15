@@ -32,51 +32,40 @@ export default function MediaPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [playingVideo, setPlayingVideo] = useState<{ url: string, title: string } | null>(null);
+    const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const categories = ['All', 'Sermon', 'Podcast', 'Worship', 'Testimony'];
 
-    const mediaItems: MediaItem[] = [
-        {
-            id: '1',
-            title: 'Walking in the Spirit',
-            speaker: 'Pastor John Doe',
-            date: 'Oct 12, 2025',
-            duration: '42:15',
-            category: 'Sermon',
-            thumbnail: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80',
-            videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-        },
-        {
-            id: '2',
-            title: 'Faith in Adversity',
-            speaker: 'Sarah Jenkins',
-            date: 'Oct 5, 2025',
-            duration: '28:30',
-            category: 'Podcast',
-            thumbnail: 'https://images.unsplash.com/photo-1478737270239-2fccd2c7fd1d?w=800&q=80',
-            audioUrl: '#'
-        },
-        {
-            id: '3',
-            title: 'Morning Worship Session',
-            speaker: 'Lifepoint Worship',
-            date: 'Sep 28, 2025',
-            duration: '15:20',
-            category: 'Worship',
-            thumbnail: 'https://images.unsplash.com/photo-1459749411177-042180ce673c?w=800&q=80',
-            videoUrl: '#'
-        },
-        {
-            id: '4',
-            title: 'My Journey Home',
-            speaker: 'Mark Thompson',
-            date: 'Sep 21, 2025',
-            duration: '08:45',
-            category: 'Testimony',
-            thumbnail: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&q=80',
-            videoUrl: '#'
-        },
-    ];
+    useEffect(() => {
+        const fetchMedia = async () => {
+            try {
+                const res = await fetch('/api/sermons');
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // Map API data to MediaItem interface
+                    const formatted: MediaItem[] = data.map((item: any) => ({
+                        id: item.id,
+                        title: item.title,
+                        speaker: item.speaker,
+                        date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                        duration: item.duration || '00:00',
+                        category: item.category || 'Sermon',
+                        thumbnail: item.thumbnailUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80',
+                        videoUrl: item.videoUrl
+                    }));
+                    setMediaItems(formatted);
+                }
+            } catch (error) {
+                console.error('Failed to fetch media:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMedia();
+    }, []);
 
     const filteredItems = mediaItems.filter(item => {
         const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

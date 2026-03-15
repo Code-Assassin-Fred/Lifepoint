@@ -21,12 +21,53 @@ export default function ResearchPage() {
     const [isPPTModalOpen, setIsPPTModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentNotes, setCurrentNotes] = useState('');
+    const [title, setTitle] = useState('');
+    const [recentResearches, setRecentResearches] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
-    const recentResearches = [
-        { id: 1, title: 'The Power of Forgiveness', date: 'Yesterday', category: 'Sermon Series' },
-        { id: 2, title: 'Biblical Stewardship', date: '3 days ago', category: 'Workshop' },
-        { id: 3, title: 'Mental Health & Faith', date: 'Last Week', category: 'Special Event' },
-    ];
+    useEffect(() => {
+        const fetchDrafts = async () => {
+            try {
+                const response = await fetch('/api/admin/research');
+                if (response.ok) {
+                    const data = await response.json();
+                    setRecentResearches(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch drafts:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDrafts();
+    }, []);
+
+    const handleSave = async () => {
+        if (!title.trim() && !currentNotes.trim()) return;
+        setSaving(true);
+        try {
+            const response = await fetch('/api/admin/research', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: title || 'Untitled Draft',
+                    content: currentNotes,
+                    category: 'Draft'
+                }),
+            });
+            if (response.ok) {
+                // Refresh list
+                const res = await fetch('/api/admin/research');
+                if (res.ok) setRecentResearches(await res.json());
+            }
+        } catch (error) {
+            console.error('Failed to save draft:', error);
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 pt-4">
@@ -59,8 +100,12 @@ export default function ResearchPage() {
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_4px_20px_-1px_rgba(0,0,0,0.05)] border border-zinc-100 min-h-[600px] flex flex-col relative group">
                         <div className="absolute top-8 right-8 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-2 bg-zinc-50 text-zinc-400 hover:text-zinc-900 rounded-xl transition-all">
-                                <Save size={18} />
+                            <button 
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="p-2 bg-zinc-50 text-zinc-400 hover:text-zinc-900 rounded-xl transition-all disabled:opacity-50"
+                            >
+                                {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                             </button>
                             <button className="p-2 bg-zinc-50 text-zinc-400 hover:text-zinc-900 rounded-xl transition-all">
                                 <History size={18} />
@@ -71,7 +116,8 @@ export default function ResearchPage() {
                             type="text"
                             placeholder="Sermon Title..."
                             className="text-2xl font-black text-zinc-900 placeholder:text-zinc-200 outline-none w-full mb-6 border-none focus:ring-0"
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
                         />
 
                         <textarea
@@ -129,19 +175,29 @@ export default function ResearchPage() {
                         </div>
 
                         <div className="space-y-4">
-                            {recentResearches.map((item) => (
-                                <div key={item.id} className="group cursor-pointer">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-[#ccf381] group-hover:text-black transition-all">
-                                            <FileText size={18} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="text-sm font-bold text-zinc-800 truncate group-hover:text-[#0d9488] transition-colors">{item.title}</h4>
-                                            <p className="text-[10px] font-bold text-zinc-400 mt-0.5">{item.category} • {item.date}</p>
+                            {loading ? (
+                                <div className="flex justify-center py-4">
+                                    <Loader2 className="animate-spin text-teal-600" size={24} />
+                                </div>
+                            ) : recentResearches.length > 0 ? (
+                                recentResearches.map((item) => (
+                                    <div key={item.id} className="group cursor-pointer">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-[#ccf381] group-hover:text-black transition-all">
+                                                <FileText size={18} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-sm font-bold text-zinc-800 truncate group-hover:text-[#0d9488] transition-colors">{item.title}</h4>
+                                                <p className="text-[10px] font-bold text-zinc-400 mt-0.5">
+                                                    {item.category} • {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'Just now'}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <p className="text-xs font-bold text-zinc-400 text-center py-4">No recent activity.</p>
+                            )}
                         </div>
                     </div>
 
