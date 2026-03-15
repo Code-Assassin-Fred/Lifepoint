@@ -18,11 +18,13 @@ export async function GET(req: Request) {
         // If admin, fetch all generic users to start threads with (or existing threads ideally)
         // For simplicity, we just fetch all users with role 'user'
         if (role === 'admin') {
-            const usersSnapshot = await adminDb.collection('users').where('role', '==', 'user').get();
-            users = usersSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const usersSnapshot = await adminDb.collection('users').get();
+            users = usersSnapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }))
+                .filter(u => u.role !== 'admin');
         } 
         // If user, fetch all admins (mentors)
         else {

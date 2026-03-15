@@ -22,15 +22,40 @@ export async function GET(req: Request) {
         const threadId = [userId, otherUserId].sort().join('_');
 
         const messagesRef = adminDb.collection('messages')
-            .where('threadId', '==', threadId)
-            .orderBy('timestamp', 'asc');
+            .where('threadId', '==', threadId);
 
         const snapshot = await messagesRef.get();
-        const messages = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            timestamp: doc.data().timestamp?.toDate().toISOString() // Convert Timestamp to string
-        }));
+        let messages = snapshot.docs.map(doc => {
+            const data = doc.data();
+            
+            let tsMillis = 0;
+            let isoString = new Date().toISOString();
+
+            if (data.timestamp) {
+                if (typeof data.timestamp.toDate === 'function') {
+                    const date = data.timestamp.toDate();
+                    tsMillis = date.getTime();
+                    isoString = date.toISOString();
+                } else if (typeof data.timestamp === 'string' || typeof data.timestamp === 'number') {
+                    const date = new Date(data.timestamp);
+                    tsMillis = date.getTime();
+                    isoString = date.toISOString();
+                }
+            }
+
+            return {
+                id: doc.id,
+                ...data,
+                tsMillis, // Temporary field for sorting
+                timestamp: isoString // Safe string for frontend
+            };
+        });
+
+        // Sort in memory to avoid missing composite index errors on Firestore
+        messages.sort((a, b) => a.tsMillis - b.tsMillis);
+        
+        // Remove the temporary sorting field
+        messages = messages.map(({ tsMillis, ...rest }) => rest);
 
         return NextResponse.json({ messages });
     } catch (error) {
@@ -55,6 +80,7 @@ export async function POST(req: Request) {
             receiverId,
             content,
             threadId,
+            read: false,
             timestamp: new Date() // Will be serialized by admin SDK
         };
 
@@ -70,6 +96,41 @@ export async function POST(req: Request) {
         });
     } catch (error) {
         console.error('Error adding message:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+export async function PATCH(req: Request) {
+    try {
+        const body = await req.json();
+        const { threadId, receiverId } = body;
+
+        if (!threadId || !receiverId) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Only mark messages where receiverId matches the current user as read
+        const unreadMessagesRef = adminDb.collection('messages')
+            .where('threadId', '==', threadId)
+            .where('receiverId', '==', receiverId)
+            .where('read', '==', false);
+
+        const snapshot = await unreadMessagesRef.get();
+
+        if (snapshot.empty) {
+            return NextResponse.json({ success: true, count: 0 });
+        }
+
+        const batch = adminDb.batch();
+        snapshot.docs.forEach(doc => {
+            batch.update(doc.ref, { read: true });
+        });
+
+        await batch.commit();
+
+        return NextResponse.json({ success: true, count: snapshot.size });
+    } catch (error) {
+        console.error('Error updating messages:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

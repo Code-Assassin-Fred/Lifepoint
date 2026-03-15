@@ -21,7 +21,8 @@ import {
     Map,
     MessageCircle,
     Star,
-    Flame
+    Flame,
+    X
 } from 'lucide-react';
 import GrowthPlanModal from '@/components/wisdom/GrowthPlanModal';
 import MentorshipRequestModal from '@/components/development/MentorshipRequestModal';

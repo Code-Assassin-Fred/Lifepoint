@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { Send, User as UserIcon, Loader2, ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/lib/context/AuthContext';
+import { useSearchParams } from 'next/navigation';
+import { Send, User as UserIcon, Loader2, ArrowLeft, MessageSquare } from 'lucide-react';
 
 interface MessagesModuleProps {
     isAdmin: boolean;
@@ -14,6 +15,8 @@ interface Message {
     receiverId: string;
     content: string;
     timestamp: any;
+    read?: boolean;
+    threadId?: string;
 }
 
 interface ThreadUser {
@@ -33,24 +36,36 @@ export default function MessagesModule({ isAdmin }: MessagesModuleProps) {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const searchParams = useSearchParams();
+    const openUserId = searchParams.get('open');
+
+    const fetchThreads = async () => {
+        if (!user) return;
+        try {
+            const res = await fetch(`/api/messages/threads?role=${isAdmin ? 'admin' : 'user'}`);
+            if (res.ok) {
+                const data = await res.json();
+                setThreads(data.users || []);
+            }
+        } catch (error) {
+            console.error('Failed to fetch message threads:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Deep link to specific chat from notification
+    useEffect(() => {
+        if (openUserId && threads.length > 0) {
+            const userToOpen = threads.find(t => t.id === openUserId);
+            if (userToOpen && (!activeUser || activeUser.id !== openUserId)) {
+                setActiveUser(userToOpen);
+            }
+        }
+    }, [openUserId, threads]);
 
     // Fetch available threads (admins see all users, users see admins)
     useEffect(() => {
-        const fetchThreads = async () => {
-            if (!user) return;
-            try {
-                const res = await fetch(`/api/messages/threads?role=${isAdmin ? 'admin' : 'user'}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setThreads(data.users || []);
-                }
-            } catch (error) {
-                console.error('Failed to fetch message threads:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchThreads();
     }, [user, isAdmin]);
 
@@ -66,6 +81,21 @@ export default function MessagesModule({ isAdmin }: MessagesModuleProps) {
                     const data = await res.json();
                     setMessages(data.messages || []);
                     scrollToBottom();
+
+                    // Mark as read in background if there's any unread addressed to current user
+                    if (data.messages && data.messages.length > 0) {
+                        const hasUnread = data.messages.some((m: any) => m.receiverId === user.uid && !m.read);
+                        if (hasUnread && data.messages[0].threadId) {
+                            fetch('/api/messages', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    threadId: data.messages[0].threadId,
+                                    receiverId: user.uid
+                                })
+                            });
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch messages:', error);
@@ -142,7 +172,12 @@ export default function MessagesModule({ isAdmin }: MessagesModuleProps) {
             <div className="grid lg:grid-cols-3 gap-8 h-[70vh]">
                 {/* Threads List (Only show on mobile if no active user selected) */}
                 <div className={`lg:block bg-zinc-50 rounded-[3rem] p-6 border border-zinc-100 ${activeUser ? 'hidden' : 'block'}`}>
-                    <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-6 px-4">Conversations</h3>
+                    <div className="flex items-center justify-between mb-6 px-4">
+                        <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Conversations</h3>
+                        <button onClick={fetchThreads} className="text-zinc-500 hover:text-zinc-900 transition-colors">
+                            <ArrowLeft size={16} className="rotate-180" />
+                        </button>
+                    </div>
                     
                     {threads.length === 0 ? (
                         <div className="text-center py-12 px-4">
