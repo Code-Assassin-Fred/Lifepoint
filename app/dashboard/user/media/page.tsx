@@ -12,9 +12,11 @@ import {
     ChevronRight,
     Headphones,
     Share2,
-    Bookmark
+    Bookmark,
+    Radio
 } from 'lucide-react';
 import VideoPlayer from '@/components/media/VideoPlayer';
+import { livestreamService } from '@/lib/services/livestreamService';
 
 interface MediaItem {
     id: string;
@@ -40,23 +42,49 @@ export default function MediaPage() {
     useEffect(() => {
         const fetchMedia = async () => {
             try {
+                // Fetch Sermons
                 const res = await fetch('/api/sermons');
+                let sermons = [];
                 if (res.ok) {
-                    const data = await res.json();
-                    
-                    // Map API data to MediaItem interface
-                    const formatted: MediaItem[] = data.map((item: any) => ({
-                        id: item.id,
-                        title: item.title,
-                        speaker: item.speaker,
-                        date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                        duration: item.duration || '00:00',
-                        category: item.category || 'Sermon',
-                        thumbnail: item.thumbnailUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80',
-                        videoUrl: item.videoUrl
-                    }));
-                    setMediaItems(formatted);
+                    sermons = await res.json();
                 }
+
+                // Fetch Past Live Streams
+                let pastStreams = [];
+                try {
+                    pastStreams = await livestreamService.getPastSessions();
+                } catch (err) {
+                    console.error('Failed to fetch past streams:', err);
+                }
+
+                // Map and combine
+                const formattedSermons: MediaItem[] = sermons.map((item: any) => ({
+                    id: item.id,
+                    title: item.title,
+                    speaker: item.speaker,
+                    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    duration: item.duration || '00:00',
+                    category: item.category || 'Sermon',
+                    thumbnail: item.thumbnailUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80',
+                    videoUrl: item.videoUrl
+                }));
+
+                const formattedStreams: MediaItem[] = pastStreams.map((ps: any) => ({
+                    id: ps.id,
+                    title: ps.title,
+                    speaker: 'LifePoint Live',
+                    date: ps.endedAt ? new Date(ps.endedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently',
+                    duration: 'Live Recording',
+                    category: 'Worship',
+                    thumbnail: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&q=80',
+                    videoUrl: ps.recordingUrl
+                }));
+
+                const combined = [...formattedSermons, ...formattedStreams].sort((a, b) => 
+                    new Date(b.date).getTime() - new Date(a.date).getTime()
+                );
+
+                setMediaItems(combined);
             } catch (error) {
                 console.error('Failed to fetch media:', error);
             } finally {
@@ -142,7 +170,7 @@ export default function MediaPage() {
                 {filteredItems.map((item) => (
                     <div
                         key={item.id}
-                        className="group flex flex-col bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-2xl transition-all duration-500 border border-zinc-50 hover:-translate-y-2"
+                        className="group flex flex-col transition-all duration-500 hover:-translate-y-2"
                     >
                         <div className="relative aspect-[16/10] rounded-2xl overflow-hidden mb-6">
                             <img src={item.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={item.title} />
@@ -150,7 +178,7 @@ export default function MediaPage() {
 
                             <div className="absolute top-4 left-4 flex gap-2">
                                 <span className="p-2 bg-black/60 backdrop-blur-md rounded-xl text-white">
-                                    {item.category === 'Sermon' || item.category === 'Worship' ? <Video size={16} /> : <Mic size={16} />}
+                                    {item.category === 'Sermon' ? <Video size={16} /> : item.category === 'Worship' ? <Radio size={16} /> : <Mic size={16} />}
                                 </span>
                             </div>
 
@@ -173,16 +201,16 @@ export default function MediaPage() {
                         <div className="px-2 flex-1 flex flex-col">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-[10px] font-black text-[#0d9488] uppercase tracking-widest">{item.category}</span>
-                                <div className="flex gap-1 text-zinc-300">
-                                    <button className="hover:text-red-500 transition-colors"><Bookmark size={14} /></button>
-                                    <button className="hover:text-sky-500 transition-colors"><Share2 size={14} /></button>
+                                <div className="flex gap-1 text-zinc-400">
+                                    <button className="hover:text-red-600 transition-colors"><Bookmark size={14} /></button>
+                                    <button className="hover:text-sky-600 transition-colors"><Share2 size={14} /></button>
                                 </div>
                             </div>
                             <h3 className="text-xl font-black text-zinc-900 leading-tight mb-2 group-hover:text-[#0d9488] transition-colors">{item.title}</h3>
-                            <p className="text-sm font-bold text-zinc-400 mb-6">{item.speaker}</p>
+                            <p className="text-sm font-bold text-zinc-600 mb-6">{item.speaker}</p>
 
-                            <div className="mt-auto pt-6 border-t border-zinc-50 flex items-center justify-between">
-                                <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{item.date}</span>
+                            <div className="mt-auto pt-6 border-t border-zinc-200 flex items-center justify-between">
+                                <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{item.date}</span>
                                 <button className="flex items-center gap-1.5 text-[10px] font-black text-zinc-900 group-hover:text-red-600 transition-colors uppercase tracking-widest">
                                     Explore <ChevronRight size={14} />
                                 </button>
