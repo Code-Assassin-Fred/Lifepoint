@@ -54,14 +54,40 @@ export default function MessagesModule({ isAdmin }: MessagesModuleProps) {
         }
     };
 
-    // Deep link to specific chat from notification
+    // Deep link to specific chat from notification or external link
     useEffect(() => {
-        if (openUserId && threads.length > 0) {
-            const userToOpen = threads.find(t => t.id === openUserId);
-            if (userToOpen && (!activeUser || activeUser.id !== openUserId)) {
-                setActiveUser(userToOpen);
+        const loadDeepLinkUser = async () => {
+            if (!openUserId) return;
+            
+            // First check if user is already in threads
+            const existingInThreads = threads.find(t => t.id === openUserId);
+            if (existingInThreads) {
+                if (!activeUser || activeUser.id !== openUserId) {
+                    setActiveUser(existingInThreads);
+                }
+                return;
             }
-        }
+
+            // If not in threads, fetch user details directly
+            try {
+                const res = await fetch(`/api/messages/user?userId=${openUserId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.user) {
+                        // Add to threads temporarily so it shows up in the UI
+                        setThreads(prev => {
+                            if (prev.some(t => t.id === data.user.id)) return prev;
+                            return [data.user, ...prev];
+                        });
+                        setActiveUser(data.user);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch deep link user:', error);
+            }
+        };
+
+        loadDeepLinkUser();
     }, [openUserId, threads]);
 
     // Fetch available threads (admins see all users, users see admins)

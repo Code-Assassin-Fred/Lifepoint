@@ -12,14 +12,30 @@ export async function GET(
             .where('eventId', '==', eventId)
             .get();
 
-        const registrations = snapshot.docs.map(doc => {
+        const registrations = await Promise.all(snapshot.docs.map(async doc => {
             const data = doc.data();
+            let userId = data.userId;
+
+            // Fallback: If userId is missing, try to find user by email
+            if (!userId && data.userEmail) {
+                const userSnapshot = await adminDb.collection('users')
+                    .where('email', '==', data.userEmail)
+                    .limit(1)
+                    .get();
+                if (!userSnapshot.empty) {
+                    userId = userSnapshot.docs[0].id;
+                }
+            }
+
             return {
                 id: doc.id,
                 ...data,
+                userId,
                 registeredAt: data.registeredAt?.toDate ? data.registeredAt.toDate().toISOString() : data.registeredAt
             };
-        }).sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime());
+        }));
+        
+        registrations.sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime());
 
         return NextResponse.json(registrations);
     } catch (error) {
