@@ -19,8 +19,13 @@ import {
     CalendarDays,
     Settings2,
     Map,
-    MessageCircle
+    MessageCircle,
+    Star,
+    Flame
 } from 'lucide-react';
+import GrowthPlanModal from '@/components/wisdom/GrowthPlanModal';
+import MentorshipRequestModal from '@/components/development/MentorshipRequestModal';
+import ScheduleSessionModal from '@/components/development/ScheduleSessionModal';
 
 export default function GrowthModule() {
     const { role, user } = useAuth();
@@ -33,6 +38,11 @@ export default function GrowthModule() {
     const [requests, setRequests] = useState<any[]>([]);
     const [isScheduling, setIsScheduling] = useState(false);
     const [isRequesting, setIsRequesting] = useState(false);
+    const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [mentors, setMentors] = useState<any[]>([]);
+
+    const refreshData = () => setRefreshTrigger(prev => prev + 1);
 
     const tabs = isAdmin ? [
         { id: 'dashboard', label: 'Admin Feed', icon: Trophy },
@@ -84,6 +94,13 @@ export default function GrowthModule() {
                         setRequests(data);
                     }
                 }
+
+                // Fetch Mentors
+                const mentorsRes = await fetch('/api/development/mentors');
+                if (mentorsRes.ok) {
+                    const data = await mentorsRes.json();
+                    setMentors(data);
+                }
             } catch (error) {
                 console.error('Failed to fetch development data:', error);
             } finally {
@@ -92,7 +109,22 @@ export default function GrowthModule() {
         };
 
         fetchData();
-    }, [user, role, activeTab]);
+    }, [user, role, activeTab, refreshTrigger]);
+
+    const handleRequestAction = async (requestId: string, status: 'approved' | 'declined') => {
+        try {
+            const res = await fetch('/api/development/requests', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId, status })
+            });
+            if (res.ok) {
+                refreshData();
+            }
+        } catch (error) {
+            console.error('Failed to update request:', error);
+        }
+    };
 
     if (loading) {
         return (
@@ -180,11 +212,11 @@ export default function GrowthModule() {
                         <div className="py-6 border-b border-zinc-100">
                             <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-6 border-b border-zinc-50 pb-4">Bishop's Actions</h3>
                             <div className="space-y-4">
-                                <button onClick={() => setActiveTab('sessions')} className="w-full p-4 bg-zinc-900 text-white rounded-2xl font-black text-xs tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-3">
+                                <button onClick={() => setIsScheduling(true)} className="w-full p-4 bg-zinc-900 text-white rounded-2xl font-black text-xs tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-3">
                                     <CalendarDays size={18} />
                                     SCHEDULE SESSION
                                 </button>
-                                <button onClick={() => setActiveTab('plans')} className="w-full p-4 bg-zinc-100 text-zinc-900 border border-zinc-200 rounded-2xl font-black text-xs tracking-widest hover:bg-white transition-all flex items-center justify-center gap-3">
+                                <button onClick={() => setIsPlanModalOpen(true)} className="w-full p-4 bg-zinc-100 text-zinc-900 border border-zinc-200 rounded-2xl font-black text-xs tracking-widest hover:bg-white transition-all flex items-center justify-center gap-3">
                                     <Plus size={18} />
                                     CREATE GROWTH PLAN
                                 </button>
@@ -360,15 +392,12 @@ export default function GrowthModule() {
                             <p className="text-zinc-500 font-bold mb-8">Connect with experienced guides.</p>
 
                             <div className="space-y-4">
-                                {[
-                                    { name: 'Bishop Fredrick', role: 'Main Oversight', img: 'https://i.pravatar.cc/150?u=1' },
-                                    { name: 'Dr. John Wilson', role: 'Theology & Leadership', img: 'https://i.pravatar.cc/150?u=2' }
-                                ].map((mentor, i) => (
+                                {mentors.length > 0 ? mentors.map((mentor, i) => (
                                     <div key={i} className="flex items-center justify-between p-6 bg-zinc-50 rounded-3xl border border-zinc-100 group cursor-pointer hover:bg-white hover:shadow-xl transition-all">
                                         <div className="flex items-center gap-4">
-                                            <img src={mentor.img} className="w-14 h-14 rounded-2xl object-cover" alt={mentor.name} />
+                                            <img src={mentor.photoURL} className="w-14 h-14 rounded-2xl object-cover" alt={mentor.displayName} />
                                             <div>
-                                                <h4 className="font-black text-zinc-900">{mentor.name}</h4>
+                                                <h4 className="font-black text-zinc-900">{mentor.displayName}</h4>
                                                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{mentor.role}</p>
                                             </div>
                                         </div>
@@ -376,7 +405,9 @@ export default function GrowthModule() {
                                             <ArrowUpRight size={20} />
                                         </button>
                                     </div>
-                                ))}
+                                )) : (
+                                    <div className="text-center py-10 opacity-50 font-bold">No mentors available yet.</div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -408,12 +439,22 @@ export default function GrowthModule() {
                                         </div>
                                     </div>
                                     <div className="flex gap-3">
-                                        <button className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all">
-                                            Approve
-                                        </button>
-                                        <button className="px-6 py-3 bg-white border border-zinc-200 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
-                                            Decline
-                                        </button>
+                                        {req.status === 'pending' && (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleRequestAction(req.id, 'approved')}
+                                                    className="px-6 py-3 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all"
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleRequestAction(req.id, 'declined')}
+                                                    className="px-6 py-3 bg-white border border-zinc-200 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all"
+                                                >
+                                                    Decline
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -427,7 +468,10 @@ export default function GrowthModule() {
                     <div className="py-6">
                         <div className="flex justify-between items-center mb-10">
                             <h3 className="text-2xl font-black tracking-tight">Mentor Sessions</h3>
-                            <button className="flex items-center gap-2 px-6 py-4 bg-zinc-900 text-white rounded-[2rem] text-xs font-black tracking-widest hover:bg-black transition-all">
+                            <button 
+                                onClick={() => setIsScheduling(true)}
+                                className="flex items-center gap-2 px-6 py-4 bg-zinc-900 text-white rounded-[2rem] text-xs font-black tracking-widest hover:bg-black transition-all"
+                            >
                                 <Plus size={18} />
                                 SCHEDULE NEW SESSION
                             </button>
@@ -464,7 +508,10 @@ export default function GrowthModule() {
                 <div className="px-4 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
                     {isAdmin && (
                         <div className="flex justify-end pt-4">
-                            <button className="px-8 py-4 bg-[#0d9488] text-white rounded-[2rem] font-black text-xs tracking-widest hover:bg-[#0f766e] transition-all flex items-center gap-3">
+                            <button 
+                                onClick={() => setIsPlanModalOpen(true)}
+                                className="px-8 py-4 bg-[#0d9488] text-white rounded-[2rem] font-black text-xs tracking-widest hover:bg-[#0f766e] transition-all flex items-center gap-3"
+                            >
                                 <Plus size={18} />
                                 NEW GROWTH PLAN
                             </button>
@@ -487,6 +534,9 @@ export default function GrowthModule() {
                     </div>
                 </div>
             )}
+            <GrowthPlanModal isOpen={isPlanModalOpen} onClose={() => setIsPlanModalOpen(false)} />
+            <MentorshipRequestModal isOpen={isRequesting} onClose={() => setIsRequesting(false)} onSuccess={refreshData} />
+            <ScheduleSessionModal isOpen={isScheduling} onClose={() => setIsScheduling(false)} onSuccess={refreshData} />
         </div>
     );
 }

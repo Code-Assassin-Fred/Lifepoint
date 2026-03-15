@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Plus,
     Search,
@@ -13,7 +13,8 @@ import {
     FileText,
     Save,
     MoreVertical,
-    Download
+    Download,
+    Loader2
 } from 'lucide-react';
 import PPTGeneratorModal from '@/components/admin/PPTGeneratorModal';
 

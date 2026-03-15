@@ -97,9 +97,9 @@ export default function GrowthPlanModal({ isOpen, onClose, initialData }: Growth
             };
 
             if (initialData?.id) {
-                await updateDoc(doc(db, 'studyPlans', initialData.id), data);
+                await updateDoc(doc(db, 'growthPlans', initialData.id), data);
             } else {
-                await addDoc(collection(db, 'studyPlans'), {
+                await addDoc(collection(db, 'growthPlans'), {
                     ...data,
                     createdAt: serverTimestamp(),
                 });
