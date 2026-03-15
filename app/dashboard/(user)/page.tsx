@@ -3,20 +3,12 @@
 import { useAuth } from '@/lib/context/AuthContext';
 import { getModuleRoute, getAllModules } from '@/config/modules';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-// Using the same Stat interface style as admin, without the change/trend
-interface Stat {
-    label: string;
-    value: string;
-    unit: string;
-}
 
 export default function UserDashboardPage() {
     const { user, loading: authLoading, role, selectedModules } = useAuth();
     const allModules = getAllModules();
-    const [stats, setStats] = useState<Stat[]>([]);
-    const [loading, setLoading] = useState(true);
 
     // We filter modules to show as "Active Programs"
     // Using default background colors mapped from the admin tab style
@@ -36,32 +28,7 @@ export default function UserDashboardPage() {
             };
         });
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            if (!user) return;
-            try {
-                const response = await fetch(`/api/user/stats?userId=${user.uid}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    // Map API stats to dashboard Stat interface
-                    const mapped: Stat[] = data.map((s: any) => ({
-                        label: s.label,
-                        value: s.value.replace(/[^\d]/g, ''),
-                        unit: s.value.includes('%') ? '%' : s.value.replace(/[\d]/g, '').trim() || (s.label.includes('XP') ? 'pts' : '')
-                    }));
-                    setStats(mapped);
-                }
-            } catch (error) {
-                console.error('Failed to fetch user stats:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchStats();
-    }, [user]);
-
-    if (authLoading || loading) {
+    if (authLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-slate-50">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
@@ -75,7 +42,7 @@ export default function UserDashboardPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-slate-800 mb-2">
-                        Spiritual Overview
+                        Overview
                     </h1>
                     <p className="text-slate-500 font-medium text-sm">
                         Your journey with Christ, visualized.
@@ -91,26 +58,6 @@ export default function UserDashboardPage() {
                 </div>
             </div>
 
-            {/* Top Metrics Grid (Clean layout, no percentages) */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 px-2">
-                {stats.map((stat) => (
-                    <div
-                        key={stat.label}
-                        className="bg-white p-6 rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 flex flex-col justify-between h-[130px]"
-                    >
-                        <div className="flex justify-between items-start">
-                            <span className="text-sm font-semibold text-slate-500">
-                                {stat.label}
-                            </span>
-                        </div>
-                        <div>
-                            <h3 className="text-3xl font-bold text-slate-800">
-                                {stat.value} <span className="text-sm font-semibold text-slate-400">{stat.unit}</span>
-                            </h3>
-                        </div>
-                    </div>
-                ))}
-            </div>
 
             {/* Active Programs (Folder-Tab style) */}
             <div className="px-2 pt-6">

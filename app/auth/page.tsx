@@ -180,10 +180,10 @@ export default function AuthPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto" />
-          <p className="mt-4 text-gray-700 font-medium">Loading Lifepoint...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0d9488] mx-auto" />
+          <p className="mt-4 text-slate-700 font-medium tracking-tight">Loading Lifepoint...</p>
         </div>
       </div>
     );
@@ -195,12 +195,9 @@ export default function AuthPage() {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[3fr_2fr] bg-white">
       {/* Left Column: Form */}
       <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-12">
-        <div className="max-w-md w-full mx-auto space-y-8">
-          <div className="mb-10">
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-              {isSignup ? 'Create your account' : 'Welcome back'}
-            </h1>
-            <p className="mt-2 text-gray-600">
+        <div className="max-w-sm w-full mx-auto space-y-6">
+          <div className="mb-8 text-center">
+            <p className="text-slate-800 font-bold text-sm">
               {isSignup
                 ? 'Join our community and start your journey today.'
                 : 'Enter your details to access your account.'}
@@ -211,16 +208,16 @@ export default function AuthPage() {
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200 disabled:opacity-60 shadow-sm"
+              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200 disabled:opacity-60 shadow-sm"
             >
               <FcGoogle className="w-5 h-5" />
               <span className="text-sm font-semibold">Continue with Google</span>
             </button>
 
             <div className="relative flex items-center py-2">
-              <div className="flex-1 border-t border-gray-100" />
-              <span className="px-4 text-xs font-medium text-gray-400 bg-white">or</span>
-              <div className="flex-1 border-t border-gray-100" />
+              <div className="flex-1 border-t border-slate-100" />
+              <span className="px-4 text-xs font-semibold uppercase tracking-widest text-slate-400 bg-white">or</span>
+              <div className="flex-1 border-t border-slate-100" />
             </div>
 
             {error && (
@@ -238,7 +235,7 @@ export default function AuthPage() {
                     placeholder="Enter your full name"
                     value={signupDisplayName}
                     onChange={(e) => setSignupDisplayName(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-black/5 focus:border-gray-200 transition-all placeholder-gray-400 text-sm"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-[#0d9488]/5 focus:border-[#0d9488] transition-all placeholder-slate-400 text-xs outline-none"
                     disabled={loading}
                     required
                   />
@@ -252,7 +249,7 @@ export default function AuthPage() {
                   placeholder="name@example.com"
                   value={isSignup ? signupEmail : loginEmail}
                   onChange={(e) => isSignup ? setSignupEmail(e.target.value) : setLoginEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-black/5 focus:border-gray-200 transition-all placeholder-gray-400 text-sm"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-[#0d9488]/5 focus:border-[#0d9488] transition-all placeholder-slate-400 text-xs outline-none"
                   disabled={loading}
                   required
                 />
@@ -265,7 +262,7 @@ export default function AuthPage() {
                     <button
                       type="button"
                       onClick={handleForgotPassword}
-                      className="text-xs font-semibold text-gray-500 hover:text-black transition-colors"
+                      className="text-xs font-bold text-[#0d9488] hover:text-[#0b7a70] transition-colors"
                     >
                       Forgot password?
                     </button>
@@ -277,7 +274,7 @@ export default function AuthPage() {
                     placeholder="••••••••"
                     value={isSignup ? signupPassword : loginPassword}
                     onChange={(e) => isSignup ? setSignupPassword(e.target.value) : setLoginPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-black/5 focus:border-gray-200 transition-all placeholder-gray-400 text-sm"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-[#0d9488]/5 focus:border-[#0d9488] transition-all placeholder-slate-400 text-xs outline-none"
                     disabled={loading}
                     required
                   />
@@ -300,7 +297,7 @@ export default function AuthPage() {
                       placeholder="••••••••"
                       value={signupConfirmPassword}
                       onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-black/5 focus:border-gray-200 transition-all placeholder-gray-400 text-sm"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-[#0d9488]/5 focus:border-[#0d9488] transition-all placeholder-slate-400 text-xs outline-none"
                       disabled={loading}
                       required
                     />
@@ -318,7 +315,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition-all duration-200 disabled:opacity-60 shadow-lg shadow-black/10 mt-2"
+                className="w-full bg-[#0d9488] text-white font-bold py-3 rounded-xl hover:bg-[#0b7a70] transition-all duration-200 disabled:opacity-60 shadow-lg shadow-[#0d9488]/20 mt-2 text-sm"
               >
                 {loading ? 'Processing...' : (isSignup ? 'Create Account' : 'Sign In')}
               </button>
@@ -328,17 +325,17 @@ export default function AuthPage() {
               {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
               <button
                 onClick={toggleMode}
-                className="font-bold text-black hover:underline underline-offset-4"
+                className="font-bold text-[#0d9488] hover:underline underline-offset-4 text-xs"
               >
                 {isSignup ? 'Sign in' : 'Sign up'}
               </button>
             </p>
           </div>
 
-          <p className="text-center text-[10px] uppercase tracking-widest text-gray-400 mt-12">
+          <p className="text-center text-[10px] font-bold uppercase tracking-wider text-black mt-8 opacity-70">
             By continuing, you agree to our{' '}
-            <a href="/terms" className="hover:text-black transition-colors">Terms</a> &{' '}
-            <a href="/privacy" className="hover:text-black transition-colors">Privacy Policy</a>
+            <a href="/terms" className="text-[#0d9488] hover:underline transition-colors underline-offset-4">Terms</a> &{' '}
+            <a href="/privacy" className="text-[#0d9488] hover:underline transition-colors underline-offset-4">Privacy Policy</a>
           </p>
         </div>
       </div>
@@ -346,15 +343,15 @@ export default function AuthPage() {
       {/* Right Column: Image */}
       <div className="hidden lg:block relative overflow-hidden bg-gray-100">
         <img
-          src="/auth-bg.png"
+          src="/onboarding.jpg"
           alt="Abstract Background"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d9488]/60 via-transparent to-black/20" />
         <div className="absolute bottom-12 left-12 right-12 text-white">
-          <div className="backdrop-blur-md bg-white/10 p-8 rounded-2xl border border-white/20">
-            <h2 className="text-2xl font-bold mb-2">Empowering Your Spiritual Journey</h2>
-            <p className="text-white/80 text-sm leading-relaxed">
+          <div className="backdrop-blur-xl bg-white/10 p-8 rounded-3xl border border-white/20 shadow-2xl">
+            <h2 className="text-2xl font-black mb-2 tracking-tight">Empowering Your Spiritual Journey</h2>
+            <p className="text-white/90 text-sm font-medium leading-relaxed">
               Join thousands of others in discovering purpose, finding community, and growing in wisdom through our integrated platform.
             </p>
           </div>
