@@ -10,7 +10,6 @@ export async function GET(
 
         const snapshot = await adminDb.collection('registrations')
             .where('eventId', '==', eventId)
-            .orderBy('registeredAt', 'desc')
             .get();
 
         const registrations = snapshot.docs.map(doc => {
@@ -20,7 +19,7 @@ export async function GET(
                 ...data,
                 registeredAt: data.registeredAt?.toDate ? data.registeredAt.toDate().toISOString() : data.registeredAt
             };
-        });
+        }).sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime());
 
         return NextResponse.json(registrations);
     } catch (error) {

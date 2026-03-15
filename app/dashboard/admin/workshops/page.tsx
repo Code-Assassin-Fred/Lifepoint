@@ -355,7 +355,7 @@ function EventRow({
                     {!isPast && (
                         <button
                             onClick={() => onDelete(event.id)}
-                            className="px-3 py-1.5 text-zinc-300 font-bold text-[10px] uppercase tracking-widest hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                            className="px-3 py-1.5 text-zinc-500 font-bold text-[10px] uppercase tracking-widest hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
                             title="Delete event"
                         >
                             Delete
