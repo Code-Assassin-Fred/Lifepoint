@@ -66,7 +66,6 @@ export async function generatePPT(data: PresentationData) {
             fontSize: 28,
             color: '0d9488', // Teal
             bold: true,
-            border: { type: 'none' }
         });
 
         // Body Content

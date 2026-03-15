@@ -12,7 +12,7 @@ export async function GET(req: Request) {
             query = adminDb.collection('mentorshipRequests').orderBy('createdAt', 'desc');
         } else if (userId) {
             query = adminDb.collection('mentorshipRequests')
-                .where('userId', 'eq', userId)
+                .where('userId', '==', userId)
                 .orderBy('createdAt', 'desc');
         } else {
             return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });

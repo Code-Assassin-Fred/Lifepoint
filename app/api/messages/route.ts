@@ -55,9 +55,9 @@ export async function GET(req: Request) {
         messages.sort((a, b) => a.tsMillis - b.tsMillis);
         
         // Remove the temporary sorting field
-        messages = messages.map(({ tsMillis, ...rest }) => rest);
+        const finalMessages = messages.map(({ tsMillis, ...rest }) => rest);
 
-        return NextResponse.json({ messages });
+        return NextResponse.json({ messages: finalMessages });
     } catch (error) {
         console.error('Error fetching messages:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -18,7 +18,7 @@ import {
     Radio
 } from 'lucide-react';
 import SessionUploadModal from '@/components/home/SessionUploadModal';
-import { livestreamService } from '@/lib/services/livestreamService';
+import { livestreamService, LiveSession } from '@/lib/services/livestreamService';
 
 export default function MediaAdminPage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -31,13 +31,13 @@ export default function MediaAdminPage() {
             try {
                 // Fetch Sermons/Videos
                 const response = await fetch('/api/sermons');
-                let sermons = [];
+                let sermons: any[] = [];
                 if (response.ok) {
                     sermons = await response.json();
                 }
 
                 // Fetch Past Live Streams
-                let pastStreams = [];
+                let pastStreams: LiveSession[] = [];
                 try {
                     pastStreams = await livestreamService.getPastSessions();
                 } catch (err) {

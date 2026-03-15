@@ -23,7 +23,7 @@ export async function GET(req: Request) {
                 .map(doc => ({
                     id: doc.id,
                     ...doc.data()
-                }))
+                } as any))
                 .filter(u => u.role !== 'admin');
         } 
         // If user, fetch all admins (mentors)

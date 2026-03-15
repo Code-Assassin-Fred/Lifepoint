@@ -16,7 +16,7 @@ import {
     Radio
 } from 'lucide-react';
 import VideoPlayer from '@/components/media/VideoPlayer';
-import { livestreamService } from '@/lib/services/livestreamService';
+import { livestreamService, LiveSession } from '@/lib/services/livestreamService';
 
 interface MediaItem {
     id: string;
@@ -44,13 +44,13 @@ export default function MediaPage() {
             try {
                 // Fetch Sermons
                 const res = await fetch('/api/sermons');
-                let sermons = [];
+                let sermons: any[] = [];
                 if (res.ok) {
                     sermons = await res.json();
                 }
 
                 // Fetch Past Live Streams
-                let pastStreams = [];
+                let pastStreams: LiveSession[] = [];
                 try {
                     pastStreams = await livestreamService.getPastSessions();
                 } catch (err) {
