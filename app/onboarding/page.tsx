@@ -14,7 +14,6 @@ const MODULES = [
   { id: 'development', name: 'Growth & Mentorship', submodules: ['Purpose Discovery', 'Life Skills', 'Leadership Development', 'Find a Mentor', 'Book Coaching', 'Youth Mentorship'] },
   { id: 'community', name: 'Community', submodules: ['Global Groups', 'Forums', 'Events'] },
   { id: 'media', name: 'Media & Content', submodules: ['Videos', 'Podcasts', 'Guest Speakers'] },
-  { id: 'assessments', name: 'Assessments', submodules: ['Personal Progress', 'Leadership Skills', 'Global Standards'] },
   { id: 'workshops', name: 'Workshops & Events', submodules: ['Masterclasses', 'Special Workshops', 'Guest Sessions'] },
 ];
 
