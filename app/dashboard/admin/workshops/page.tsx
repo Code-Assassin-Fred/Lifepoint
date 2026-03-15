@@ -232,8 +232,8 @@ export default function AdminEventsPage() {
                                             </div>
                                             
                                             <Link 
-                                                href={`/dashboard/admin/messages${reg.userId ? `?open=${reg.userId}` : ''}`}
-                                                className="px-6 py-2.5 bg-zinc-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all flex items-center gap-2 shadow-lg shadow-zinc-900/10"
+                                                href={`/dashboard/admin/messages?open=${reg.userId || ''}`}
+                                                className={`px-6 py-2.5 bg-zinc-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#0d9488] transition-all flex items-center gap-2 shadow-lg shadow-zinc-900/10 ${!reg.userId ? 'opacity-50' : ''}`}
                                             >
                                                 <MessageSquare size={14} />
                                                 Message

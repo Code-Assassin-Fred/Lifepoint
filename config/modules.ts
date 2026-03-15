@@ -84,8 +84,8 @@ export const ALL_MODULES: Module[] = [
 
 // Get route for a module based on role
 export function getModuleRoute(moduleId: string, role: string | null): string {
-    if (moduleId === 'give') return '/dashboard/user/support';
-    const baseRoute = role === 'admin' ? '/dashboard/admin' : '/dashboard/user';
+    if (moduleId === 'give') return '/dashboard/support';
+    const baseRoute = role === 'admin' ? '/dashboard/admin' : '/dashboard';
     return `${baseRoute}/${moduleId}`;
 }
 

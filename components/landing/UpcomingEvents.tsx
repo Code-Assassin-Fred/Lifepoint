@@ -42,7 +42,7 @@ const UpcomingEvents = () => {
                     {events.map((event, index) => (
                         <Link
                             key={event.id}
-                            href="/dashboard/user/workshops"
+                            href="/dashboard/workshops"
                             className="group p-10 bg-zinc-50 border border-zinc-100 rounded-md flex flex-col transition-all duration-500 hover:bg-white hover:shadow-2xl hover:shadow-[#0d9488]/10 hover:-translate-y-1"
                         >
                             <div className="mb-10">

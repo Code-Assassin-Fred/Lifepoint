@@ -31,11 +31,11 @@ export default function DashboardLayout({
             if (!user) {
                 router.replace('/auth');
             } else if (pathname.startsWith('/dashboard/admin') && role !== 'admin') {
-                router.replace('/dashboard/user');
-            } else if (pathname.startsWith('/dashboard/user') && role === 'admin') {
+                router.replace('/dashboard');
+            } else if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/admin') && role === 'admin') {
                 router.replace('/dashboard/admin');
             } else if (pathname === '/dashboard') {
-                router.replace(role === 'admin' ? '/dashboard/admin' : '/dashboard/user');
+                router.replace(role === 'admin' ? '/dashboard/admin' : '/dashboard');
             }
         }
     }, [user, loading, role, router, pathname]);

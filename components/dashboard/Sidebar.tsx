@@ -40,7 +40,7 @@ export default function Sidebar({
         return pathname === route || pathname.startsWith(route + '/');
     };
 
-    const dashboardRoute = role === 'admin' ? '/dashboard/admin' : '/dashboard/user';
+    const dashboardRoute = role === 'admin' ? '/dashboard/admin' : '/dashboard';
 
     const NavItem = ({ href, icon: Icon, label, active, badge }: { href: string; icon: any; label: string; active?: boolean; badge?: string | number }) => (
         <Link

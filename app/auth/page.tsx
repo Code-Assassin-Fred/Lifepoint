@@ -41,7 +41,7 @@ export default function AuthPage() {
       if (!onboardingComplete) {
         router.replace('/onboarding');
       } else {
-        router.replace(`/dashboard/${role || 'user'}`);
+        router.replace(role === 'admin' ? '/dashboard/admin' : '/dashboard');
       }
     }
   }, [user, onboardingComplete, role, authLoading, router]);

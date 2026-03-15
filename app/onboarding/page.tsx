@@ -71,7 +71,7 @@ export default function OnboardingPage() {
       });
 
       if (res.ok) {
-        router.replace('/dashboard/user');
+        router.replace('/dashboard');
       } else {
         const error = await res.json();
         alert(error.error || 'Something went wrong.');

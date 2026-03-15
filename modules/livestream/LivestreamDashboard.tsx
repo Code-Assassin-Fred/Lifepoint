@@ -49,7 +49,7 @@ export default function LivestreamDashboard() {
 
     const handleShare = useCallback(async () => {
         try {
-            const shareUrl = `${window.location.origin}/dashboard/user/home?tab=livestream`;
+            const shareUrl = `${window.location.origin}/dashboard/home?tab=livestream`;
             await navigator.clipboard.writeText(shareUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
