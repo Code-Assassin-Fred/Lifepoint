@@ -37,11 +37,13 @@ export default function AuthPage() {
   // Redirect logic (runs once user state is confirmed)
   useEffect(() => {
     if (authLoading) return;
+    
     if (user) {
       if (!onboardingComplete) {
         router.replace('/onboarding');
       } else {
-        router.replace(role === 'admin' ? '/dashboard/admin' : '/dashboard');
+        const dest = role === 'admin' ? '/dashboard/admin' : '/dashboard';
+        router.replace(dest);
       }
     }
   }, [user, onboardingComplete, role, authLoading, router]);

@@ -17,20 +17,59 @@ export async function GET(req: Request) {
         const userDoc = await adminDb.collection('users').doc(userId).get();
         const userData = userDoc.data() || {};
         
+        // Fetch Real Bible Engagement
+        const enrollmentsSnapshot = await adminDb.collection('planEnrollments')
+            .where('userId', '==', userId)
+            .get();
+        
+        const bookmarksSnapshot = await adminDb.collection('userBookmarks')
+            .where('userId', '==', userId)
+            .get();
+
+        // Calculate progress percentage
+        let totalSteps = 0;
+        let completedSteps = 0;
+        enrollmentsSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            totalSteps += data.totalSteps || 10; // default to 10 if missing
+            completedSteps += (data.completedSteps || []).length;
+        });
+
+        const engagementPct = totalSteps > 0 
+            ? Math.round((completedSteps / totalSteps) * 100) 
+            : (bookmarksSnapshot.size > 0 ? 10 : 0); // fallback to small % if they have bookmarks
+
         const prayerRequestsSnapshot = await adminDb.collection('prayer_requests')
             .where('userId', '==', userId)
             .get();
         
         const selectedModules = userData.selectedModules || [];
         
-        // Calculate Streak (if we had a daily check-in log)
-        // For now, we'll return some realistic placeholders derived from user data
-        
         const stats = [
-            { label: 'Bible engagement', value: '45%', change: '+5%', trend: 'up' },
-            { label: 'Prayer Streak', value: prayerRequestsSnapshot.size > 0 ? `${Math.min(prayerRequestsSnapshot.size, 7)} Days` : '0 Days', change: '+1', trend: 'up' },
-            { label: 'Active Programs', value: selectedModules.length.toString(), change: 'current', trend: 'neutral' },
-            { label: 'Growth Points', value: (userData.xp || 0).toString(), change: '+124', trend: 'up' },
+            { 
+                label: 'Bible engagement', 
+                value: `${engagementPct}%`, 
+                change: engagementPct > 0 ? 'active' : 'start', 
+                trend: 'up' 
+            },
+            { 
+                label: 'Prayer Streak', 
+                value: `${userData.streak || 0} Days`, 
+                change: `+${prayerRequestsSnapshot.size}`, 
+                trend: 'up' 
+            },
+            { 
+                label: 'Active Programs', 
+                value: selectedModules.length.toString(), 
+                change: 'current', 
+                trend: 'neutral' 
+            },
+            { 
+                label: 'Growth Points', 
+                value: (userData.xp || 0).toString(), 
+                change: `Rank ${userData.level || 1}`, 
+                trend: 'up' 
+            },
         ];
 
         return NextResponse.json(stats);

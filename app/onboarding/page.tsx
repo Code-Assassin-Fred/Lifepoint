@@ -19,7 +19,7 @@ const MODULES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, onboardingComplete, refreshProfile, loading: authLoading } = useAuth();
 
   const [step, setStep] = useState(1);
   const [dob, setDob] = useState('');
@@ -27,6 +27,13 @@ export default function OnboardingPage() {
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already onboarded
+  useEffect(() => {
+    if (!authLoading && user && onboardingComplete) {
+      router.replace('/dashboard');
+    }
+  }, [user, onboardingComplete, authLoading, router]);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -70,6 +77,9 @@ export default function OnboardingPage() {
       });
 
       if (res.ok) {
+        // CRITICAL: Refresh the profile to update onboardingComplete in state
+        // before we navigate to the dashboard.
+        await refreshProfile();
         router.replace('/dashboard');
       } else {
         const error = await res.json();
@@ -82,6 +92,14 @@ export default function OnboardingPage() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0d9488]" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[3fr_2fr] bg-white">

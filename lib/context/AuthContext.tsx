@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
@@ -10,6 +10,7 @@ interface AuthContextProps {
     onboardingComplete: boolean;
     role: string | null;
     selectedModules: string[];
+    refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextProps>({
     onboardingComplete: false,
     role: null,
     selectedModules: [],
+    refreshProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -30,34 +32,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const lastPingRef = useRef<number>(0);
 
+    const fetchUserProfile = useCallback(async (firebaseUser: FirebaseUser) => {
+        try {
+            const response = await fetch(`/api/auth/profile?userId=${firebaseUser.uid}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data) {
+                    setRole(data.role || null);
+                    setSelectedModules(data.selectedModules || []);
+                    setOnboardingComplete(data.onboarded === true);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // Exposed function to manually refresh profile (e.g. after onboarding completes)
+    const refreshProfile = useCallback(async () => {
+        if (user) {
+            await fetchUserProfile(user);
+        }
+    }, [user, fetchUserProfile]);
+
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
 
             if (firebaseUser) {
-                // Fetch user document via Admin SDK (Semi-realtime via polling or single fetch)
-                const fetchUserProfile = async () => {
-                    try {
-                        const response = await fetch(`/api/auth/profile?userId=${firebaseUser.uid}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data) {
-                                setRole(data.role || null);
-                                setSelectedModules(data.selectedModules || []);
-                                setOnboardingComplete(data.onboarded === true);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error fetching user profile:', error);
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-
-                fetchUserProfile();
+                fetchUserProfile(firebaseUser);
 
                 // Poll user profile every 2 minutes for any role changes
-                const interval = setInterval(fetchUserProfile, 120000);
+                const interval = setInterval(() => fetchUserProfile(firebaseUser), 120000);
                 
                 return () => clearInterval(interval);
             } else {
@@ -69,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
 
         return () => unsubscribeAuth();
-    }, []);
+    }, [fetchUserProfile]);
 
     // Activity tracking effect
     useEffect(() => {
@@ -113,7 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <AuthContext.Provider
-            value={{ user, loading, role, onboardingComplete, selectedModules }}
+            value={{ user, loading, role, onboardingComplete, selectedModules, refreshProfile }}
         >
             {children}
         </AuthContext.Provider>

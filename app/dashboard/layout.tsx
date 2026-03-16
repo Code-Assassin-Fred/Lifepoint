@@ -16,7 +16,7 @@ export default function DashboardLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { user, loading, role, selectedModules } = useAuth();
+    const { user, loading, role, selectedModules, onboardingComplete } = useAuth();
     const [notificationCount, setNotificationCount] = useState(0);
     const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
@@ -31,6 +31,9 @@ export default function DashboardLayout({
         if (!loading) {
             if (!user) {
                 router.replace('/auth');
+            } else if (!onboardingComplete && role !== 'admin') {
+                // If not onboarded and not an admin (admins might bypass), go to onboarding
+                router.replace('/onboarding');
             } else if (pathname.startsWith('/dashboard/admin') && role !== 'admin') {
                 router.replace('/dashboard');
             } else if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/admin') && role === 'admin') {
@@ -39,7 +42,7 @@ export default function DashboardLayout({
                 router.replace(role === 'admin' ? '/dashboard/admin' : '/dashboard');
             }
         }
-    }, [user, loading, role, router, pathname]);
+    }, [user, loading, role, onboardingComplete, router, pathname]);
 
     useEffect(() => {
         const fetchCounts = async () => {
