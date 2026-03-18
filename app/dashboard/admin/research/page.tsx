@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { generatePPT, PresentationData, SlideData } from '@/lib/utils/pptGenerator';
+import SlidePreview from '@/components/slides/SlidePreview';
+
 
 interface Draft {
     id: string;
@@ -89,6 +91,8 @@ When given a topic, provide comprehensive, scholarly research including:
 
 Be thorough, scholarly, and pastorally sensitive. Write 600-900 words. Use markdown formatting with headers, bold text, and bullet points for clarity.
 CRITICAL: DO NOT use em dashes. Use commas, colons, or parentheses instead.`;
+
+
 
     const handleResearch = async () => {
         if (!researchQuery.trim()) return;
@@ -240,15 +244,22 @@ CRITICAL: DO NOT use em dashes. Use commas, colons, or parentheses instead.`;
             }
 
             const data = await res.json();
+            if (!data.slides || !Array.isArray(data.slides)) {
+                throw new Error('AI returned an invalid presentation structure');
+            }
+
             setReviewTitle(data.title || pptTopic);
             setReviewSubtitle(data.subtitle || '');
             setReviewSlides(data.slides.map((s: any) => ({
+                ...s,
+                slideType: s.slideType || 'content',
                 title: s.title || '',
                 body: s.body || '',
                 scripture: s.scripture || '',
                 speakerNotes: s.speakerNotes || ''
             })));
             setViewMode('ppt-review');
+
         } catch (err: any) {
             if (err.name === 'AbortError') {
                 console.log('PPT generation aborted');
@@ -360,7 +371,7 @@ CRITICAL: DO NOT use em dashes. Use commas, colons, or parentheses instead.`;
                     <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#0d9488]/10 rounded-full blur-[100px] -mr-32 -mt-32" />
                     <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#ccf381]/5 rounded-full blur-[80px] -ml-24 -mb-24" />
                 </div>
-                
+
                 <div className="relative z-10 p-8 animate-in fade-in duration-500">
                     {/* RESEARCH VIEW */}
                     {viewMode === 'research' && (
@@ -556,119 +567,54 @@ CRITICAL: DO NOT use em dashes. Use commas, colons, or parentheses instead.`;
 
                     {/* PPT REVIEW VIEW */}
                     {viewMode === 'ppt-review' && (
-                        <div className="space-y-8 max-w-4xl mx-auto">
-                            <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-white/10">
                                 <div>
-                                    <h2 className="text-2xl font-black text-white mb-1">Review & Edit Slides</h2>
-                                    <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">Bishop Review Workspace</p>
-                                </div>
-                                <button
-                                    onClick={addSlide}
-                                    className="px-4 py-2 bg-white/10 text-white rounded-md text-xs font-black uppercase tracking-widest hover:bg-[#ccf381] hover:text-black transition-all"
-                                >
-                                    Add Slide
-                                </button>
-                            </div>
-
-                            {/* Presentation Info */}
-                            <div className="p-8 bg-black rounded-md border border-white/5 shadow-2xl">
-                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Main Title</label>
-                                <input
-                                    type="text"
-                                    value={reviewTitle}
-                                    onChange={(e) => setReviewTitle(e.target.value)}
-                                    className="w-full bg-transparent text-3xl font-black text-[#ccf381] outline-none border-none placeholder:text-zinc-800"
-                                    placeholder="Title"
-                                />
-                                <input
-                                    type="text"
-                                    value={reviewSubtitle}
-                                    onChange={(e) => setReviewSubtitle(e.target.value)}
-                                    className="w-full bg-transparent text-sm font-bold text-zinc-500 outline-none border-none mt-2 placeholder:text-zinc-800"
-                                    placeholder="Subtitle"
-                                />
-                            </div>
-
-                            {/* Slides List */}
-                            <div className="space-y-4">
-                                {reviewSlides.map((slide, i) => (
-                                    <div key={i} className={`rounded-md border animate-in fade-in transition-all duration-300 ${editingSlideIndex === i ? 'border-[#0d9488] bg-white/5 shadow-xl' : 'border-white/5 bg-white/5 hover:border-white/10'}`}>
-                                        <div
-                                            className="flex items-center justify-between p-5 cursor-pointer"
-                                            onClick={() => setEditingSlideIndex(editingSlideIndex === i ? null : i)}
-                                        >
-                                            <div className="flex items-center gap-4 min-w-0">
-                                                <span className="text-[10px] font-black text-zinc-500 uppercase w-12 flex-shrink-0">Slide {i + 1}</span>
-                                                <h4 className="text-sm font-bold text-white truncate">{slide.title}</h4>
-                                            </div>
-                                            <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest">
-                                                <button onClick={(e) => { e.stopPropagation(); moveSlide(i, 'up'); }} disabled={i === 0} className="text-zinc-500 hover:text-white disabled:opacity-20 transition-all px-2">Up</button>
-                                                <button onClick={(e) => { e.stopPropagation(); moveSlide(i, 'down'); }} disabled={i === reviewSlides.length - 1} className="text-zinc-500 hover:text-white disabled:opacity-20 transition-all px-2">Down</button>
-                                                <button onClick={(e) => { e.stopPropagation(); removeSlide(i); }} disabled={reviewSlides.length <= 1} className="text-zinc-500 hover:text-red-500 disabled:opacity-20 transition-all px-2">Del</button>
-                                                <span className={`${editingSlideIndex === i ? 'text-[#ccf381]' : 'text-zinc-700'}`}>Edit</span>
-                                            </div>
-                                        </div>
-
-                                        {editingSlideIndex === i && (
-                                            <div className="px-5 pb-6 space-y-4 border-t border-white/5 pt-5 animate-in slide-in-from-top-2">
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Slide Heading</label>
-                                                    <input
-                                                        type="text"
-                                                        value={slide.title}
-                                                        onChange={(e) => updateSlide(i, 'title', e.target.value)}
-                                                        className="w-full px-4 py-3 bg-black border border-white/10 rounded-md text-sm font-bold text-white outline-none"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Bullet Points / Body</label>
-                                                    <textarea
-                                                        value={slide.body}
-                                                        onChange={(e) => updateSlide(i, 'body', e.target.value)}
-                                                        rows={4}
-                                                        className="w-full px-4 py-3 bg-black border border-white/10 rounded-md text-sm text-zinc-300 outline-none resize-none font-medium"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Scripture Focus</label>
-                                                    <input
-                                                        type="text"
-                                                        value={slide.scripture || ''}
-                                                        onChange={(e) => updateSlide(i, 'scripture', e.target.value)}
-                                                        className="w-full px-4 py-3 bg-black border border-white/10 rounded-md text-sm text-[#ccf381] outline-none font-medium"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Speaker Notes</label>
-                                                    <textarea
-                                                        value={slide.speakerNotes || ''}
-                                                        onChange={(e) => updateSlide(i, 'speakerNotes', e.target.value)}
-                                                        rows={2}
-                                                        className="w-full px-4 py-3 bg-black border border-white/10 rounded-md text-sm text-zinc-500 outline-none resize-none italic font-medium"
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
+                                    <h2 className="text-3xl font-black text-white mb-2">Review Sermon Deck</h2>
+                                    <div className="flex items-center gap-3">
+                                        <span className="px-2 py-0.5 bg-[#CCF381] text-black text-[10px] font-black rounded uppercase tracking-widest leading-normal">
+                                            {reviewSlides.length} SLIDES
+                                        </span>
+                                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                                            Design: Lifepoint Dark Premium
+                                        </span>
                                     </div>
-                                ))}
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={addSlide}
+                                        className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-md text-[11px] font-black uppercase tracking-widest transition-all"
+                                    >
+                                        Add Slide
+                                    </button>
+                                    <button
+                                        onClick={handleDownloadPPT}
+                                        className="px-6 py-2.5 bg-[#ccf381] text-black rounded-md text-[11px] font-black uppercase tracking-widest hover:bg-[#ccf381]/90 shadow-xl shadow-[#ccf381]/20 transition-all"
+                                    >
+                                        Download PPTX
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex justify-center gap-4 pt-4 pb-12">
+                            {/* Main Preview Component */}
+                            <SlidePreview
+                                slides={reviewSlides}
+                                title={reviewTitle}
+                                subtitle={reviewSubtitle}
+                                onUpdateSlide={updateSlide}
+                            />
+
+                            <div className="flex justify-center pt-8 pb-12">
                                 <button
                                     onClick={() => setViewMode('ppt-input')}
-                                    className="px-8 py-3 bg-zinc-100/5 text-zinc-400 rounded-md text-sm font-black tracking-widest hover:bg-zinc-100/10 transition-all border border-white/5"
+                                    className="px-8 py-3 bg-white/5 text-zinc-500 hover:text-white rounded-md text-[11px] font-black tracking-[0.2em] uppercase transition-all"
                                 >
-                                    REGENERATE
-                                </button>
-                                <button
-                                    onClick={handleDownloadPPT}
-                                    className="px-8 py-3 bg-[#ccf381] text-black rounded-md text-sm font-black tracking-widest hover:bg-[#ccf381]/90 shadow-2xl shadow-[#ccf381]/10 transition-all font-bold"
-                                >
-                                    DOWNLOAD PPTX
+                                    ← BACK TO SETTINGS
                                 </button>
                             </div>
                         </div>
                     )}
+
                 </div>
             </div>
 

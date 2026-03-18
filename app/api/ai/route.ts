@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI, Part } from '@google/generative-ai';
+import { GoogleGenerativeAI, Part, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 const GEMINI_API_KEY = process.env.Gemini_API_KEY;
 
@@ -44,6 +44,25 @@ IMPORTANT: Format your responses with clear structure using markdown:
 Be thorough but practical. Provide content that can be directly used or easily adapted.
 CRITICAL: DO NOT use em dashes (—). Use commas, colons, or parentheses instead.`;
 
+const safetySettings = [
+    {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+    },
+];
+
 export async function POST(req: NextRequest) {
     if (!GEMINI_API_KEY || !model) {
         console.error('Gemini API key or model missing');
@@ -56,13 +75,17 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         console.log('Received AI Request Body:', body);
-        const { action, content, context, messages, format, material, specifications } = body;
+        const { action, content, prompt, systemPrompt: reqSystemPrompt, context, messages, format, material, specifications } = body;
+
+        // Support 'prompt' as an alias for 'content'
+        const effectiveContent = content || prompt || '';
 
         const generationConfig = {
             temperature: 0.7,
-            maxOutputTokens: 3500,
+            maxOutputTokens: 16384,
             responseMimeType: format === 'json' ? 'application/json' : 'text/plain',
         };
+
 
         // Handle multi-turn chat
         if (action === 'chat') {
@@ -87,14 +110,16 @@ export async function POST(req: NextRequest) {
         }
 
         // Handle single-turn actions (legacy/user actions / content generation)
-        let systemPrompt = SYSTEM_PROMPT;
+        let systemPrompt = reqSystemPrompt || SYSTEM_PROMPT;
         let userMessage = '';
 
         if (format === 'json') {
-            systemPrompt = `You are a structured data generator for a church app. Output ONLY valid JSON matching the requested schema. Do not include markdown code blocks or additional text.`;
+            if (!reqSystemPrompt) {
+                systemPrompt = `You are a structured data generator for a church app. Output ONLY valid JSON matching the requested schema. Do not include markdown code blocks or additional text.`;
+            }
 
             if (action === 'generate-skeleton') {
-                userMessage = `Act as a Head of Curriculum. Create a 7-day Bible study outline based on the theme: "${content}".
+                userMessage = `Act as a Head of Curriculum. Create a 7-day Bible study outline based on the theme: "${effectiveContent}".
                 ${material ? `Source Material: ${material.substring(0, 5000)}` : ''}
                 CRITICAL: DO NOT use em dashes (—). Use commas or colons.
                 Output JSON with:
@@ -108,7 +133,7 @@ export async function POST(req: NextRequest) {
             } else if (action === 'generate-lesson') {
                 const { skeleton, dayNumber } = body;
                 userMessage = `Act as a Pastoral Content Writer. Expand Day ${dayNumber} of this curriculum.
-                Theme: ${content}
+                Theme: ${effectiveContent}
                 Daily Title: ${skeleton.title}
                 Scripture: ${skeleton.scripture}
                 ${material ? `Source Material: ${material.substring(0, 8000)}` : ''}
@@ -128,7 +153,7 @@ export async function POST(req: NextRequest) {
                 }`;
             } else if (action === 'verify-lesson') {
                 const { lesson } = body;
-                systemPrompt = `You are a Theological Reviewer. Critique the following lesson for:
+                systemPrompt = reqSystemPrompt || `You are a Theological Reviewer. Critique the following lesson for:
 1. Theological accuracy
 2. Alignment with source material
 3. Hallucinations (making up quotes/facts not in scripture or material)
@@ -143,10 +168,10 @@ Output ONLY JSON:
 }`;
                 userMessage = `Review this lesson:\n${JSON.stringify(lesson)}\n\nSource Material: ${material ? material.substring(0, 5000) : 'None provided'}`;
             } else if (action === 'generate-insight') {
-                userMessage = `Generate a daily devotional insight based on: "${content}". 
+                userMessage = `Generate a daily devotional insight based on: "${effectiveContent}". 
                 Schema: { "title": string, "content": string, "prayerPrompt": string }`;
             } else if (action === 'generate-plan') {
-                userMessage = `Generate a 3-7 day Bible study plan based on: "${content}". 
+                userMessage = `Generate a 3-7 day Bible study plan based on: "${effectiveContent}". 
                 Schema: { 
                     "title": string, 
                     "description": string, 
@@ -157,7 +182,7 @@ Output ONLY JSON:
                 }`;
             } else if (action === 'generate-weekly-curriculum') {
                 userMessage = `Act as a team of Christian Educators (Planner, Content Creator, and Engagement Specialist).
-                Generate a COMPREHENSIVE 7-day Bible study curriculum for one week based on the theme: "${content}".
+                Generate a COMPREHENSIVE 7-day Bible study curriculum for one week based on the theme: "${effectiveContent}".
                 
                 ${material ? `Use the following source material as the primary foundation: \n\n ${material} \n\n` : ''}
                 ${specifications ? `IMPORTANT ADDITIONAL SPECIFICATIONS: \n\n ${specifications} \n\n` : ''}
@@ -193,7 +218,7 @@ Output ONLY JSON:
         } else {
             switch (action) {
                 case 'explain-scripture':
-                    userMessage = `Explain this scripture passage in detail: "${content}"
+                    userMessage = `Explain this scripture passage in detail: "${effectiveContent}"
     
     Help me understand:
     - What did this mean to the original audience?
@@ -206,14 +231,14 @@ Output ONLY JSON:
                     break;
 
                 case 'study-insight':
-                    userMessage = `I'm studying: "${content}"
+                    userMessage = `I'm studying: "${effectiveContent}"
     ${context ? `Context: ${context}` : ''}
     
     Provide deep insights for my Bible study. Help me see things I might miss on a surface reading. Include original language insights where relevant.`;
                     break;
 
                 case 'devotion-reflection':
-                    userMessage = `Today's devotion scripture is: "${content}"
+                    userMessage = `Today's devotion scripture is: "${effectiveContent}"
     
     Help me reflect on this passage for my personal devotion time. Structure your response with:
     - A brief meditation thought
@@ -223,7 +248,7 @@ Output ONLY JSON:
                     break;
 
                 case 'prayer-guidance':
-                    userMessage = `Based on this scripture: "${content}"
+                    userMessage = `Based on this scripture: "${effectiveContent}"
     
     Help me form a prayer response to God's Word. Structure your response with:
     - Themes to bring before God
@@ -233,11 +258,15 @@ Output ONLY JSON:
                     break;
 
                 case 'ask-question':
-                    userMessage = content;
+                    userMessage = effectiveContent;
+                    break;
+
+                case 'generate':
+                    userMessage = effectiveContent;
                     break;
 
                 default:
-                    userMessage = content;
+                    userMessage = effectiveContent;
             }
         }
 
@@ -247,7 +276,8 @@ Output ONLY JSON:
                 { role: 'model', parts: [{ text: "Understood. I will provide the requested guidance in the specified format." }] },
                 { role: 'user', parts: [{ text: userMessage }] }
             ],
-            generationConfig
+            generationConfig,
+            safetySettings
         });
 
         let aiResponse = result.response.text();
@@ -255,21 +285,31 @@ Output ONLY JSON:
         // Clean JSON if requested
         if (format === 'json') {
             try {
-                // If it contains ```json ... ``` or just ``` ... ```
-                const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-                const cleanedJson = jsonMatch ? jsonMatch[1] : aiResponse;
+                // More robust JSON extraction: find first '{' and last '}'
+                const firstBrace = aiResponse.indexOf('{');
+                const lastBrace = aiResponse.lastIndexOf('}');
+
+                if (firstBrace === -1 || lastBrace === -1) {
+                    throw new Error('No JSON object found in response');
+                }
+
+                const cleanedJson = aiResponse.substring(firstBrace, lastBrace + 1);
                 return NextResponse.json(JSON.parse(cleanedJson));
-            } catch (err) {
+            } catch (err: any) {
                 console.error('JSON parsing failed. Raw response:', aiResponse);
-                throw new Error('AI produced invalid JSON');
+                return NextResponse.json({
+                    error: 'AI produced invalid JSON',
+                    details: err.message,
+                    rawResponse: aiResponse.substring(0, 500) + '...'
+                }, { status: 500 });
             }
         }
 
         return NextResponse.json({ response: aiResponse });
     } catch (error: any) {
-        console.error('AI route error:', error);
+        console.error('AI route error:', error?.message || error);
         return NextResponse.json(
-            { error: 'Internal server error', details: error.message },
+            { error: error?.message || 'Internal server error', details: error?.message },
             { status: 500 }
         );
     }
