@@ -194,7 +194,7 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
                 {/* Form */}
                 <div className="p-6 space-y-5">
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
+                        <div className="p-3 bg-white border-2 border-red-600 text-red-600 text-sm rounded-xl font-medium">
                             {error}
                         </div>
                     )}
@@ -250,8 +250,8 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
                                 type="button"
                                 onClick={() => setVideoSource('link')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${videoSource === 'link'
-                                    ? 'bg-red-50 text-red-600 border-r border-red-100'
-                                    : 'bg-white text-black/60 hover:bg-gray-50 border-r border-gray-200'
+                                    ? 'bg-red-600 text-white border-r border-red-700'
+                                    : 'bg-white text-black/60 hover:text-black hover:bg-gray-100 border-r border-gray-200'
                                     }`}
                             >
                                 <Link2 size={16} />
@@ -261,8 +261,8 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
                                 type="button"
                                 onClick={() => setVideoSource('upload')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${videoSource === 'upload'
-                                    ? 'bg-red-50 text-red-600'
-                                    : 'bg-white text-black/60 hover:bg-gray-50'
+                                    ? 'bg-red-600 text-white'
+                                    : 'bg-white text-black/60 hover:text-black hover:bg-gray-100'
                                     }`}
                             >
                                 <Upload size={16} />
@@ -292,8 +292,8 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
                             className={`p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 ${isDragging
-                                ? 'border-red-500 bg-red-50'
-                                : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+                                ? 'border-red-600 bg-white'
+                                : 'border-gray-300 bg-white hover:border-red-600'
                                 }`}
                         >
                             <input
@@ -303,7 +303,7 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
                                 accept="video/*"
                                 className="hidden"
                             />
-                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                            <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white shadow-sm">
                                 <Upload size={24} />
                             </div>
                             <div className="text-center">
@@ -319,7 +319,7 @@ export default function SessionUploadModal({ isOpen, onClose }: SessionUploadMod
                                         <span className="text-[10px] font-bold text-red-600 uppercase">Uploading</span>
                                         <span className="text-[10px] font-bold text-red-600">{Math.round(uploadProgress)}%</span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-red-100 rounded-full overflow-hidden">
+                                    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-red-600 transition-all duration-300"
                                             style={{ width: `${uploadProgress}%` }}
