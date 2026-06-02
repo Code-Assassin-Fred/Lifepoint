@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Sparkles, Loader2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -22,6 +22,8 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
     const [content, setContent] = useState('');
     const [prayerPrompt, setPrayerPrompt] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
@@ -36,10 +38,47 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
             setTitle('');
             setContent('');
             setPrayerPrompt('');
+            setAiPrompt('');
             setError(null);
             setSuccess(false);
         }
     }, [initialData, isOpen]);
+
+    const handleAIGenerate = async () => {
+        if (!aiPrompt.trim()) {
+            setError('Please provide a theme or scripture for AI generation');
+            return;
+        }
+
+        setIsGenerating(true);
+        setError(null);
+
+        try {
+            const response = await fetch('/api/ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'generate-insight',
+                    content: aiPrompt,
+                    format: 'json'
+                })
+            });
+
+            if (!response.ok) throw new Error('AI generation failed');
+
+            const data = await response.json();
+            if (data.title) setTitle(data.title);
+            if (data.content) setContent(data.content);
+            if (data.prayerPrompt) setPrayerPrompt(data.prayerPrompt);
+
+            setAiPrompt('');
+        } catch (err) {
+            console.error('AI Insight Error:', err);
+            setError('Failed to generate insight with AI. Please try again.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!title.trim() || !content.trim()) {
@@ -88,6 +127,7 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
             setTitle('');
             setContent('');
             setPrayerPrompt('');
+            setAiPrompt('');
         }
         setError(null);
         onClose();
@@ -99,101 +139,127 @@ export default function InsightModal({ isOpen, onClose, initialData }: InsightMo
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
 
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center justify-between p-8 border-b border-gray-100">
                     <div>
-                        <h2 className="text-xl font-bold text-black">Create Insight</h2>
-                        <p className="text-sm text-black/60 mt-0.5">Add a daily insight for the community</p>
+                        <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Daily Insight</h2>
+                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">Spiritual nourishment for the flock</p>
                     </div>
-                    <button onClick={handleClose} className="p-2 text-black/40 hover:text-black/60 hover:bg-gray-100 rounded-lg">
+                    <button onClick={handleClose} className="p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 rounded-xl transition-all">
                         <X size={20} />
                     </button>
                 </div>
 
                 {/* Form */}
-                <div className="p-6 space-y-4">
+                <div className="p-8 space-y-8">
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">{error}</div>
+                        <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs font-bold rounded-2xl animate-in shake duration-300 uppercase tracking-wider">{error}</div>
                     )}
 
                     {success && (
-                        <div className="p-4 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl flex items-center gap-3 animate-in fade-in zoom-in duration-300">
-                            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="p-6 bg-teal-50 border border-teal-100 text-[#0d9488] text-sm rounded-2xl flex items-center gap-4 animate-in fade-in zoom-in duration-300">
+                            <div className="w-10 h-10 rounded-xl bg-[#0d9488] text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-teal-200">
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
                             <div>
-                                <p className="font-bold">Insight Saved Successfully!</p>
-                                <p className="opacity-80">This insight is now live for the community.</p>
+                                <p className="font-black uppercase tracking-tight">Insight Published</p>
+                                <p className="text-xs font-bold opacity-70">Word of wisdom is now live.</p>
                             </div>
                         </div>
                     )}
 
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-1.5">Date</label>
-                        <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        />
+                    {/* AI Section */}
+                    {!initialData && (
+                        <div className="bg-zinc-50 rounded-3xl p-6 border border-zinc-100">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Sparkles size={16} className="text-[#0d9488]" />
+                                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Generate with AI</h3>
+                            </div>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                    placeholder="Enter theme, e.g., 'Faith in storms'"
+                                    className="flex-1 px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-[#0d9488]/10 outline-none"
+                                />
+                                <button
+                                    onClick={handleAIGenerate}
+                                    disabled={isGenerating || !aiPrompt.trim()}
+                                    className="px-6 py-3 bg-[#0d9488] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0f766e] disabled:opacity-50 transition-all shadow-lg shadow-teal-200"
+                                >
+                                    {isGenerating ? <Loader2 size={16} className="animate-spin" /> : 'GENERATE'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Publish Date</label>
+                            <input
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold focus:ring-2 focus:ring-[#0d9488]/10 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Title</label>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Today's Theme"
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-xl text-sm font-bold focus:ring-2 focus:ring-[#0d9488]/10 outline-none"
+                            />
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-1.5">Title *</label>
-                        <input
-                            type="text"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="e.g., Finding Peace in the Storm"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        />
-                    </div>
-
-
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-1.5">Insight Content *</label>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Insight Content</label>
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="Write the daily insight reflection..."
-                            rows={5}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                            placeholder="Write the daily reflection..."
+                            rows={6}
+                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#0d9488]/10 outline-none resize-none"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-1.5 font-bold text-red-600 flex items-center gap-2">
-                             Prayer & Reflection Focus (optional)
-                             <span className="text-[10px] bg-red-50 px-2 py-0.5 rounded-full font-medium">Shown as "Prayer Focus" to users</span>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-[#0d9488] uppercase tracking-widest ml-1 flex items-center gap-2">
+                            Prayer & Reflection Focus
+                            <span className="text-[9px] bg-teal-50 px-2 py-0.5 rounded-full font-black">Admin View Only</span>
                         </label>
                         <textarea
                             value={prayerPrompt}
                             onChange={(e) => setPrayerPrompt(e.target.value)}
-                            placeholder="A guiding prompt for prayer or personal reflection..."
+                            placeholder="A guiding prompt for prayer..."
                             rows={2}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#0d9488]/10 outline-none resize-none"
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+                <div className="flex items-center justify-end gap-3 p-8 border-t border-gray-100 bg-gray-50 rounded-b-3xl">
                     <button
                         onClick={handleClose}
                         disabled={loading}
-                        className="px-5 py-2.5 text-sm font-medium text-black/70 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50"
+                        className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-50"
+                        className="px-8 py-3 text-[10px] font-black uppercase tracking-widest text-white bg-[#0d9488] rounded-2xl hover:bg-[#0f766e] disabled:opacity-50 transition-all shadow-xl shadow-teal-100"
                     >
-                        {loading ? 'Creating...' : 'Create Insight'}
+                        {loading ? 'SAVING...' : (initialData?.id ? 'UPDATE INSIGHT' : 'PUBLISH INSIGHT')}
                     </button>
                 </div>
             </div>

@@ -40,6 +40,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import InsightModal from '@/components/wisdom/InsightModal';
 import GrowthPlanModal from '@/components/wisdom/GrowthPlanModal';
+import WeeklyStudyModal from '@/components/wisdom/WeeklyStudyModal';
 
 interface Insight {
     id: string;
@@ -91,6 +92,7 @@ export default function WisdomModule() {
     const [insightInitialData, setInsightInitialData] = useState<any>(null);
     const [isGrowthPlanModalOpen, setIsGrowthPlanModalOpen] = useState(false);
     const [growthPlanInitialData, setGrowthPlanInitialData] = useState<any>(null);
+    const [isWeeklyStudyModalOpen, setIsWeeklyStudyModalOpen] = useState(false);
 
     // Selected Growth Plan State
     const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -154,14 +156,14 @@ export default function WisdomModule() {
                 if (data.bookmarks) setBookmarks(data.bookmarks);
 
                 // Fetch weekly session
-                const sessionRes = await fetch('/api/wisdom/weekly');
+                const sessionRes = await fetch(`/api/wisdom/weekly?userId=${user?.uid || ''}`);
                 if (sessionRes.ok) {
                     const sessionData = await sessionRes.json();
                     setWeeklySession(sessionData);
                 }
 
                 // Fetch past studies history
-                const historyRes = await fetch('/api/wisdom/weekly?action=history');
+                const historyRes = await fetch(`/api/wisdom/weekly?action=history&userId=${user?.uid || ''}`);
                 if (historyRes.ok) {
                     const historyData = await historyRes.json();
                     setPastSessions(historyData);
@@ -260,8 +262,8 @@ export default function WisdomModule() {
                 <button onClick={() => { setSelectedPlan(null); setCurrentDay(0); }} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 mb-6 transition-colors">
                     <ChevronLeft size={18} /> Back to Growth Plans
                 </button>
-                <div className="bg-white rounded-2xl p-8 mb-6 border-l-4 border-l-red-500 border border-zinc-200 shadow-sm">
-                    <span className="text-xs px-2.5 py-1 bg-red-50 text-red-600 rounded-full font-bold uppercase tracking-wider">{selectedPlan.category}</span>
+                <div className="bg-white rounded-2xl p-8 mb-6 border-l-4 border-l-[#0d9488] border border-zinc-200 shadow-sm">
+                    <span className="text-xs px-2.5 py-1 bg-teal-50 text-[#0d9488] rounded-full font-bold uppercase tracking-wider">{selectedPlan.category}</span>
                     <h2 className="text-2xl font-bold text-zinc-900 mt-3">{selectedPlan.title}</h2>
                     <p className="text-zinc-500 mt-2 leading-relaxed">{selectedPlan.description}</p>
                 </div>
@@ -285,7 +287,7 @@ export default function WisdomModule() {
                         </button>
                     </div>
                     <h3 className="font-bold text-zinc-900 text-xl mb-2">{day.title}</h3>
-                    <p className="text-red-600 font-serif italic text-lg mb-6">{day.scripture}</p>
+                    <p className="text-[#0d9488] font-serif italic text-lg mb-6">{day.scripture}</p>
                     {day.content && <p className="text-zinc-600 leading-relaxed whitespace-pre-wrap">{day.content}</p>}
                 </div>
 
@@ -304,7 +306,7 @@ export default function WisdomModule() {
                             'bg-zinc-900 border-zinc-800 text-white'
                         }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notification.type === 'success' ? 'bg-green-500 text-white' :
-                            notification.type === 'error' ? 'bg-red-500 text-white' :
+                            notification.type === 'error' ? 'bg-zinc-900 text-white' :
                                 'bg-zinc-800 text-zinc-400'
                             }`}>
                             {notification.type === 'success' && <CheckCircle2 size={20} />}
@@ -325,14 +327,14 @@ export default function WisdomModule() {
             {confirmDeleteWeekly && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-6">
+                        <div className="w-16 h-16 bg-teal-50 text-[#0d9488] rounded-2xl flex items-center justify-center mb-6">
                             <Trash2 size={32} />
                         </div>
                         <h3 className="text-xl font-bold text-zinc-900 mb-2 uppercase">Delete Bible Study?</h3>
                         <p className="text-zinc-500 text-sm mb-8 font-medium italic">This will permanently remove this Bible study session and all its lessons. This action cannot be undone.</p>
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmDeleteWeekly(null)} className="flex-1 px-4 py-3 bg-zinc-100 text-zinc-600 rounded-xl font-bold hover:bg-zinc-200 transition-all">CANCEL</button>
-                            <button onClick={() => handleDeleteWeekly(confirmDeleteWeekly)} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">DELETE</button>
+                            <button onClick={() => handleDeleteWeekly(confirmDeleteWeekly)} className="flex-1 px-4 py-3 bg-[#0d9488] text-white rounded-xl font-bold hover:bg-[#0f766e] transition-all shadow-lg shadow-teal-100">DELETE</button>
                         </div>
                     </div>
                 </div>
@@ -342,14 +344,14 @@ export default function WisdomModule() {
             {confirmDelete && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-6">
+                        <div className="w-16 h-16 bg-teal-50 text-[#0d9488] rounded-2xl flex items-center justify-center mb-6">
                             <Trash2 size={32} />
                         </div>
                         <h3 className="text-xl font-bold text-zinc-900 mb-2 uppercase">Delete Insight?</h3>
                         <p className="text-zinc-500 text-sm mb-8 font-medium italic">This action cannot be undone. Are you sure you want to remove this piece of wisdom?</p>
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmDelete(null)} className="flex-1 px-4 py-3 bg-zinc-100 text-zinc-600 rounded-xl font-bold hover:bg-zinc-200 transition-all">CANCEL</button>
-                            <button onClick={() => handleDeleteInsight(confirmDelete)} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">DELETE</button>
+                            <button onClick={() => handleDeleteInsight(confirmDelete)} className="flex-1 px-4 py-3 bg-[#0d9488] text-white rounded-xl font-bold hover:bg-[#0f766e] transition-all shadow-lg shadow-teal-100">DELETE</button>
                         </div>
                     </div>
                 </div>
@@ -366,11 +368,11 @@ export default function WisdomModule() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as Tab)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                                        ? 'bg-white text-red-600 shadow-sm'
-                                        : 'text-zinc-500 hover:text-red-600 hover:bg-red-50/50'
+                                        ? 'bg-white text-[#0d9488] shadow-sm'
+                                        : 'text-zinc-500 hover:text-[#0d9488] hover:bg-teal-50/50'
                                         }`}
                                 >
-                                    <Icon size={16} className={isActive ? 'text-red-600' : 'text-zinc-400'} />
+                                    <Icon size={16} className={isActive ? 'text-[#0d9488]' : 'text-zinc-400'} />
                                     {tab.label}
                                 </button>
                             );
@@ -381,9 +383,15 @@ export default function WisdomModule() {
                     <div className="flex gap-2">
                         <button
                             onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white text-sm rounded-full font-bold hover:shadow-xl transition-all shadow-lg shadow-red-200"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-[#0d9488] text-white text-sm rounded-full font-bold hover:shadow-xl transition-all shadow-lg shadow-teal-100 uppercase tracking-widest"
                         >
                             <Plus size={16} /> New Insight
+                        </button>
+                        <button
+                            onClick={() => setIsWeeklyStudyModalOpen(true)}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-zinc-900 text-[#ccf381] text-sm rounded-full font-bold hover:shadow-xl transition-all shadow-lg shadow-zinc-200 uppercase tracking-widest"
+                        >
+                            <BookOpen size={16} /> New Bible Study
                         </button>
                     </div>
                 )}
@@ -411,18 +419,18 @@ export default function WisdomModule() {
                                         <div className="relative z-10 flex flex-col md:flex-row gap-10">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 mb-4">
-                                                    <span className="px-3 py-1 bg-red-500 text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-lg shadow-red-200">Featured</span>
+                                                    <span className="px-3 py-1 bg-[#ccf381] text-black text-[10px] font-bold rounded-full uppercase tracking-widest shadow-lg shadow-lime-100">Featured</span>
                                                     <p className="text-zinc-500 font-bold text-sm">{new Date(todaysInsight.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                                                 </div>
                                                 <h3 className="text-2xl font-extrabold text-zinc-900 mb-4 tracking-tight leading-tight uppercase">{todaysInsight.title}</h3>
-                                                {todaysInsight.scripture && <p className="text-red-600 font-serif italic text-lg mb-6">{todaysInsight.scripture}</p>}
+                                                {todaysInsight.scripture && <p className="text-[#0d9488] font-serif italic text-lg mb-6">{todaysInsight.scripture}</p>}
                                                 <p className="text-zinc-700 leading-relaxed whitespace-pre-wrap text-base font-medium mb-8">{todaysInsight.content}</p>
 
                                                 {todaysInsight.prayerPrompt && (
                                                     <div className="bg-zinc-900 rounded-2xl p-6 text-white relative overflow-hidden shadow-xl">
 
                                                         <div className="relative z-10">
-                                                            <div className="flex items-center gap-2 mb-2 text-red-500">
+                                                            <div className="flex items-center gap-2 mb-2 text-[#ccf381]">
                                                                 <Sparkles size={14} />
                                                                 <span className="text-[9px] font-extrabold uppercase tracking-[0.2em]">Prayer Focus</span>
                                                             </div>
@@ -435,7 +443,7 @@ export default function WisdomModule() {
 
                                             <div className="flex flex-col gap-3">
                                                 {isAdmin && (
-                                                    <button onClick={() => setConfirmDelete(todaysInsight.id)} className="flex items-center justify-center w-12 h-12 bg-white text-zinc-400 border border-zinc-100 rounded-xl hover:border-red-600 hover:text-red-600 transition-all shadow-sm"><Trash2 size={18} /></button>
+                                                    <button onClick={() => setConfirmDelete(todaysInsight.id)} className="flex items-center justify-center w-12 h-12 bg-white text-zinc-400 border border-zinc-100 rounded-xl hover:border-[#0d9488] hover:text-[#0d9488] transition-all shadow-sm"><Trash2 size={18} /></button>
                                                 )}
                                             </div>
                                         </div>
@@ -448,7 +456,7 @@ export default function WisdomModule() {
                                     </div>
                                     <h3 className="text-xl font-bold text-zinc-900 mb-3 uppercase tracking-tight">No insights from the bishop today</h3>
                                     <p className="text-zinc-500 mb-8 max-w-sm font-medium text-sm">While you wait for today's word, feel free to explore our archive or ask the AI for spiritual guidance.</p>
-                                    {isAdmin && <button onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} className="px-8 py-3 bg-red-600 text-white rounded-full font-bold hover:shadow-xl transition-all shadow-lg shadow-red-200">UPLOAD TODAY'S WORD</button>}
+                                    {isAdmin && <button onClick={() => { setInsightInitialData(null); setIsInsightModalOpen(true); }} className="px-8 py-3 bg-[#0d9488] text-white rounded-full font-bold hover:shadow-xl transition-all shadow-lg shadow-teal-100 uppercase tracking-widest text-xs">UPLOAD TODAY'S WORD</button>}
                                 </div>
                             )}
                         </section>
@@ -463,14 +471,14 @@ export default function WisdomModule() {
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {pastInsights.map((insight) => (
-                                        <div key={insight.id} className="bg-white rounded-3xl p-6 hover:shadow-xl transition-all group cursor-pointer border border-zinc-100 hover:border-red-500/20 shadow-sm" onClick={() => { setInsightInitialData(insight); setActiveTab('devotion'); }}>
+                                        <div key={insight.id} className="bg-white rounded-3xl p-6 hover:shadow-xl transition-all group cursor-pointer border border-zinc-100 hover:border-[#0d9488]/20 shadow-sm" onClick={() => { setInsightInitialData(insight); setActiveTab('devotion'); }}>
                                             <div className="flex justify-between items-start mb-4">
                                                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(insight.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                                                 <div className="flex gap-2">
-                                                    <BookMarked size={14} className={bookmarks.includes(insight.id) ? 'text-red-500' : 'text-zinc-300'} />
+                                                    <BookMarked size={14} className={bookmarks.includes(insight.id) ? 'text-[#0d9488]' : 'text-zinc-300'} />
                                                 </div>
                                             </div>
-                                            <h4 className="font-bold text-zinc-900 group-hover:text-red-500 transition-colors uppercase leading-tight mb-2 line-clamp-1 text-base">{insight.title}</h4>
+                                            <h4 className="font-bold text-zinc-900 group-hover:text-[#0d9488] transition-colors uppercase leading-tight mb-2 line-clamp-1 text-base">{insight.title}</h4>
                                             <p className="text-zinc-500 text-xs line-clamp-2 leading-relaxed">{insight.content}</p>
                                         </div>
                                     ))}
@@ -505,7 +513,7 @@ export default function WisdomModule() {
                                         <div className="relative z-10">
                                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="px-4 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg shadow-red-100">
+                                                    <div className="px-4 py-1.5 bg-zinc-900 text-[#ccf381] text-[10px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg shadow-zinc-100">
                                                         {selectedHistoryId ? 'Archived Study' : 'Active Study'}
                                                     </div>
                                                     <p className="text-zinc-500 font-bold text-sm tracking-tight text-center sm:text-left">
@@ -517,7 +525,7 @@ export default function WisdomModule() {
                                                     <div className="flex items-center gap-3">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setConfirmDeleteWeekly(session.id); }}
-                                                            className="flex items-center gap-2 px-5 py-3 bg-white text-red-600 border border-red-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all shadow-sm"
+                                                            className="flex items-center gap-2 px-5 py-3 bg-white text-zinc-400 border border-zinc-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-[#0d9488] hover:border-[#0d9488] transition-all shadow-sm"
                                                         >
                                                             <Trash2 size={14} /> Delete Study
                                                         </button>
@@ -528,13 +536,13 @@ export default function WisdomModule() {
                                                     <div className="flex items-center gap-2 p-1 bg-zinc-100 rounded-xl">
                                                         <button
                                                             onClick={() => setIsDocumentView(false)}
-                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${!isDocumentView ? 'bg-white text-red-600 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${!isDocumentView ? 'bg-white text-[#0d9488] shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
                                                         >
                                                             <LayoutGrid size={14} /> Daily
                                                         </button>
                                                         <button
                                                             onClick={() => setIsDocumentView(true)}
-                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${isDocumentView ? 'bg-white text-red-600 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${isDocumentView ? 'bg-white text-[#0d9488] shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
                                                         >
                                                             <FileText size={14} /> Document
                                                         </button>
@@ -558,7 +566,7 @@ export default function WisdomModule() {
                                                 {selectedHistoryId && (
                                                     <button
                                                         onClick={() => setSelectedHistoryId(null)}
-                                                        className="text-xs font-black text-red-600 uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all ml-4"
+                                                        className="text-xs font-black text-[#0d9488] uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all ml-4"
                                                     >
                                                         <ChevronLeft size={14} /> Back to current study
                                                     </button>
@@ -587,7 +595,7 @@ export default function WisdomModule() {
                                                                         {isLocked && <Lock className="text-zinc-300" size={24} />}
                                                                     </div>
 
-                                                                    <p className="text-red-600 font-serif italic text-xl mb-10 leading-relaxed">{lesson.scripture}</p>
+                                                                    <p className="text-[#0d9488] font-serif italic text-xl mb-10 leading-relaxed">{lesson.scripture}</p>
 
                                                                     <div className="prose prose-zinc max-w-none text-zinc-700 font-medium leading-relaxed mb-12">
                                                                         <ReactMarkdown components={markdownComponents}>{lesson.content}</ReactMarkdown>
@@ -595,11 +603,11 @@ export default function WisdomModule() {
 
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-10 border-t border-zinc-100">
                                                                         <div>
-                                                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600 mb-6">Reflection Questions</h4>
+                                                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0d9488] mb-6">Reflection Questions</h4>
                                                                             <div className="space-y-4">
                                                                                 {lesson.reflectionQuestions.map((q, i) => (
                                                                                     <div key={i} className="flex gap-4">
-                                                                                        <span className="text-red-500 font-bold">{i + 1}.</span>
+                                                                                        <span className="text-[#0d9488] font-bold">{i + 1}.</span>
                                                                                         <p className="text-zinc-600 text-sm font-medium leading-relaxed">{q}</p>
                                                                                     </div>
                                                                                 ))}
@@ -627,7 +635,7 @@ export default function WisdomModule() {
                                                                     key={lesson.dayNumber}
                                                                     disabled={isLocked}
                                                                     onClick={() => setActiveLessonDay(lesson.dayNumber)}
-                                                                    className={`flex-1 min-w-[120px] flex flex-col items-center py-5 rounded-2xl transition-all relative ${isActive ? 'bg-zinc-900 text-white shadow-2xl scale-105 z-10' :
+                                                                    className={`flex-1 min-w-[120px] flex flex-col items-center py-5 rounded-2xl transition-all relative ${isActive ? 'bg-zinc-900 text-[#ccf381] shadow-2xl scale-105 z-10' :
                                                                         isLocked ? 'bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-50' :
                                                                             'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
                                                                         }`}
@@ -650,7 +658,7 @@ export default function WisdomModule() {
                                                                     </h3>
                                                                 </div>
 
-                                                                <p className="text-red-600 font-serif italic text-2xl mb-12 leading-relaxed">
+                                                                <p className="text-[#0d9488] font-serif italic text-2xl mb-12 leading-relaxed">
                                                                     {session.lessons.find(l => l.dayNumber === activeLessonDay)?.scripture}
                                                                 </p>
 
@@ -663,20 +671,20 @@ export default function WisdomModule() {
 
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                                 <div className="bg-zinc-900 rounded-[2rem] p-10 text-white shadow-2xl relative overflow-hidden">
-                                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500 mb-8 flex items-center gap-2">
+                                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ccf381] mb-8 flex items-center gap-2">
                                                                         Reflection Questions
                                                                     </h4>
                                                                     <div className="space-y-6">
                                                                         {session.lessons.find(l => l.dayNumber === activeLessonDay)?.reflectionQuestions.map((q, i) => (
                                                                             <div key={i} className="flex gap-5">
-                                                                                <span className="text-red-500 font-black text-lg">{i + 1}.</span>
+                                                                                <span className="text-[#ccf381] font-black text-lg">{i + 1}.</span>
                                                                                 <p className="text-zinc-300 text-sm font-medium leading-relaxed">{q}</p>
                                                                             </div>
                                                                         ))}
                                                                     </div>
                                                                 </div>
                                                                 <div className="bg-white rounded-[2rem] p-10 border border-zinc-200 shadow-sm">
-                                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600 mb-8">Prayer Focus</h4>
+                                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0d9488] mb-8">Prayer Focus</h4>
                                                                     <p className="text-zinc-700 font-medium italic text-xl leading-relaxed">
                                                                         "{session.lessons.find(l => l.dayNumber === activeLessonDay)?.prayerPoint}"
                                                                     </p>
@@ -708,13 +716,13 @@ export default function WisdomModule() {
                                                             setIsStudyExpanded(false); // Collapse archive when selected to follow pattern
                                                             window.scrollTo({ top: 0, behavior: 'smooth' });
                                                         }}
-                                                        className="group bg-white rounded-[2rem] p-8 border border-zinc-100 hover:border-red-500/30 hover:shadow-2xl transition-all text-left shadow-sm relative overflow-hidden"
+                                                        className="group bg-white rounded-[2rem] p-8 border border-zinc-100 hover:border-[#0d9488]/30 hover:shadow-2xl transition-all text-left shadow-sm relative overflow-hidden"
                                                     >
-                                                        <div className="absolute top-0 right-0 p-12 bg-zinc-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-colors pointer-events-none" />
-                                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 group-hover:text-red-500 transition-colors">
+                                                        <div className="absolute top-0 right-0 p-12 bg-zinc-500/5 rounded-full blur-2xl group-hover:bg-teal-500/10 transition-colors pointer-events-none" />
+                                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 group-hover:text-[#0d9488] transition-colors">
                                                             {new Date(session.weekStarting).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                         </p>
-                                                        <h3 className="text-xl font-black text-zinc-900 group-hover:text-red-600 transition-colors uppercase tracking-tight leading-tight mb-4">
+                                                        <h3 className="text-xl font-black text-zinc-900 group-hover:text-[#0d9488] transition-colors uppercase tracking-tight leading-tight mb-4">
                                                             {session.theme}
                                                         </h3>
                                                         <p className="text-zinc-500 text-xs line-clamp-2 leading-relaxed font-medium transition-colors">
@@ -726,12 +734,12 @@ export default function WisdomModule() {
                                                                 {isAdmin && (
                                                                     <button
                                                                         onClick={(e) => { e.stopPropagation(); setConfirmDeleteWeekly(session.id); }}
-                                                                        className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-all z-10"
+                                                                        className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 hover:bg-teal-50 hover:text-[#0d9488] transition-all z-10"
                                                                     >
                                                                         <Trash2 size={14} />
                                                                     </button>
                                                                 )}
-                                                                <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-red-600 group-hover:text-white transition-all">
+                                                                <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-[#0d9488] group-hover:text-white transition-all">
                                                                     <ChevronRight size={14} />
                                                                 </div>
                                                             </div>
@@ -752,6 +760,7 @@ export default function WisdomModule() {
 
             <InsightModal isOpen={isInsightModalOpen} onClose={() => setIsInsightModalOpen(false)} initialData={insightInitialData} />
             <GrowthPlanModal isOpen={isGrowthPlanModalOpen} onClose={() => setIsGrowthPlanModalOpen(false)} initialData={growthPlanInitialData} />
+            <WeeklyStudyModal isOpen={isWeeklyStudyModalOpen} onClose={() => setIsWeeklyStudyModalOpen(false)} />
         </div>
     );
 }
