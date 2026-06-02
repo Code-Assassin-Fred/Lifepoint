@@ -41,7 +41,7 @@ function HomeContent() {
     const { role } = useAuth();
     const searchParams = useSearchParams();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'sessions');
+    const [activeTab, setActiveTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'livestream');
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,6 +71,8 @@ function HomeContent() {
             setActiveTab('sessions');
         } else if (tab === 'prayer') {
             setActiveTab('prayer');
+        } else {
+            setActiveTab('livestream');
         }
     }, [searchParams]);
 
